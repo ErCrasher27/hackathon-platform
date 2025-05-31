@@ -1,0 +1,300 @@
+@startuml er-diagram-final-updated
+!define ENTITY entity
+!define RELATIONSHIP diamond
+
+title **Schema Entità-Relazione - Hackathon Platform (FINALE AGGIORNATO)**\n**Database PostgreSQL - Gestione Enum Completa**
+
+' ====================================
+' ENTITÀ PRINCIPALI
+' ====================================
+
+entity "UTENTI" as utenti {
+    * **utente_id** : SERIAL <<PK>>
+    --
+    * username : VARCHAR(50) <<UNIQUE>>
+    * email : VARCHAR(100) <<UNIQUE>>
+    * password : VARCHAR(255)
+    * nome : VARCHAR(50)
+    * cognome : VARCHAR(50)
+    * **tipo_utente_id** : INTEGER <<FK>>
+    * data_registrazione : TIMESTAMP
+    * attivo : BOOLEAN
+}
+
+entity "HACKATHON" as hackathon {
+    * **hackathon_id** : SERIAL <<PK>>
+    --
+    * titolo : VARCHAR(200)
+    * descrizione : TEXT
+    * sede : VARCHAR(200)
+    * data_inizio : TIMESTAMP
+    * data_fine : TIMESTAMP
+    * data_chiusura_registrazioni : TIMESTAMP
+    * max_iscritti : INTEGER
+    * max_dimensione_team : INTEGER
+    * organizzatore_id : INTEGER <<FK>>
+    * status_id : INTEGER <<FK>>
+    * data_creazione : TIMESTAMP
+}
+
+entity "TEAM" as team {
+    * **team_id** : SERIAL <<PK>>
+    --
+    * nome : VARCHAR(100)
+    * hackathon_id : INTEGER <<FK>>
+    * data_creazione : TIMESTAMP
+    * definitivo : BOOLEAN
+}
+
+entity "PROBLEMA" as problema {
+    * **problema_id** : SERIAL <<PK>>
+    --
+    * hackathon_id : INTEGER <<FK>>
+    * titolo : VARCHAR(200)
+    * descrizione : TEXT
+    * data_pubblicazione : TIMESTAMP
+    * pubblicato_da : INTEGER <<FK>>
+}
+
+entity "PROGRESSI" as progressi {
+    * **progresso_id** : SERIAL <<PK>>
+    --
+    * team_id : INTEGER <<FK>>
+    * titolo : VARCHAR(200)
+    * descrizione : TEXT
+    * documento_path : VARCHAR(500)
+    * documento_nome : VARCHAR(200)
+    * data_caricamento : TIMESTAMP
+    * caricato_da : INTEGER <<FK>>
+}
+
+' ====================================
+' ENTITÀ DI RELAZIONE
+' ====================================
+
+entity "REGISTRAZIONI" as registrazioni {
+    * **registrazione_id** : SERIAL <<PK>>
+    --
+    * utente_id : INTEGER <<FK>>
+    * hackathon_id : INTEGER <<FK>>
+    * data_registrazione : TIMESTAMP
+    * team_id : INTEGER <<FK>>
+}
+
+entity "GIUDICI_HACKATHON" as giudici_hackathon {
+    * **giudice_hackathon_id** : SERIAL <<PK>>
+    --
+    * hackathon_id : INTEGER <<FK>>
+    * giudice_id : INTEGER <<FK>>
+    * data_invito : TIMESTAMP
+    * invitato_da : INTEGER <<FK>>
+    * **stato_invito_id** : INTEGER <<FK>>
+}
+
+entity "MEMBRI_TEAM" as membri_team {
+    * **membro_team_id** : SERIAL <<PK>>
+    --
+    * team_id : INTEGER <<FK>>
+    * utente_id : INTEGER <<FK>>
+    * data_ingresso : TIMESTAMP
+    * ruolo_team : VARCHAR(20)
+}
+
+entity "COMMENTI" as commenti {
+    * **commento_id** : SERIAL <<PK>>
+    --
+    * progresso_id : INTEGER <<FK>>
+    * giudice_id : INTEGER <<FK>>
+    * testo : TEXT
+    * data_commento : TIMESTAMP
+}
+
+entity "VOTI" as voti {
+    * **voto_id** : SERIAL <<PK>>
+    --
+    * hackathon_id : INTEGER <<FK>>
+    * team_id : INTEGER <<FK>>
+    * giudice_id : INTEGER <<FK>>
+    * valore : INTEGER
+    * criteri_valutazione : TEXT
+    * data_voto : TIMESTAMP
+}
+
+entity "INVITI_TEAM" as inviti_team {
+    * **invito_id** : SERIAL <<PK>>
+    --
+    * team_id : INTEGER <<FK>>
+    * invitante_id : INTEGER <<FK>>
+    * invitato_id : INTEGER <<FK>>
+    * messaggio_motivazionale : TEXT
+    * **stato_invito_id** : INTEGER <<FK>>
+    * data_invito : TIMESTAMP
+    * data_risposta : TIMESTAMP
+}
+
+' ====================================
+' ENTITÀ ENUM
+' ====================================
+
+entity "USER_ROLES" as user_roles {
+    * **role_id** : SERIAL <<PK>>
+    --
+    * role_name : VARCHAR(50) <<UNIQUE>>
+    * descrizione : TEXT
+}
+
+entity "HACKATHON_STATUS" as hackathon_status {
+    * **status_id** : SERIAL <<PK>>
+    --
+    * status_name : VARCHAR(50) <<UNIQUE>>
+}
+
+entity "INVITO_STATUS" as invito_status {
+    * **status_id** : SERIAL <<PK>>
+    --
+    * status_name : VARCHAR(50) <<UNIQUE>>
+}
+
+' ====================================
+' RELAZIONI ENUM
+' ====================================
+
+' Utente HA Tipo
+user_roles ||--o{ utenti : "CLASSIFICA\n(1:N)"
+utenti }o--|| user_roles : "tipo_utente_id"
+
+' Hackathon HA Status
+hackathon_status ||--o{ hackathon : "DEFINISCE_STATO_H\n(1:N)"
+hackathon }o--|| hackathon_status : "status_id"
+
+' Inviti Giudici HANNO Status
+invito_status ||--o{ giudici_hackathon : "DEFINISCE_STATO_IG\n(1:N)"
+giudici_hackathon }o--|| invito_status : "stato_invito_id"
+
+' Inviti Team HANNO Status
+invito_status ||--o{ inviti_team : "DEFINISCE_STATO_IT\n(1:N)"
+inviti_team }o--|| invito_status : "stato_invito_id"
+
+' ====================================
+' RELAZIONI 1:N
+' ====================================
+
+' Utente ORGANIZZA Hackathon (solo ORGANIZZATORI)
+utenti ||--o{ hackathon : "ORGANIZZA\n(1:N)"
+hackathon }o--|| utenti : "organizzatore_id"
+
+' Hackathon CONTIENE Team
+hackathon ||--o{ team : "CONTIENE\n(1:N)"
+team }o--|| hackathon : "hackathon_id"
+
+' Hackathon DEFINISCE Problema
+hackathon ||--o{ problema : "DEFINISCE\n(1:N)"
+problema }o--|| hackathon : "hackathon_id"
+
+' Utente PUBBLICA Problema (solo GIUDICI)
+utenti ||--o{ problema : "PUBBLICA\n(1:N)"
+problema }o--|| utenti : "pubblicato_da"
+
+' Team CARICA Progressi
+team ||--o{ progressi : "CARICA\n(1:N)"
+progressi }o--|| team : "team_id"
+
+' Utente CARICA Progressi (Autore - PARTECIPANTI)
+utenti ||--o{ progressi : "AUTORE\n(1:N)"
+progressi }o--|| utenti : "caricato_da"
+
+' Progressi RICEVE Commenti
+progressi ||--o{ commenti : "RICEVE\n(1:N)"
+commenti }o--|| progressi : "progresso_id"
+
+' Utente SCRIVE Commenti (solo GIUDICI)
+utenti ||--o{ commenti : "SCRIVE\n(1:N)"
+commenti }o--|| utenti : "giudice_id"
+
+' Team INVIA Inviti
+team ||--o{ inviti_team : "INVIA\n(1:N)"
+inviti_team }o--|| team : "team_id"
+
+' Utente INVITA (Invitante - PARTECIPANTI)
+utenti ||--o{ inviti_team : "INVITA\n(1:N)"
+inviti_team }o--|| utenti : "invitante_id"
+
+' Utente RICEVE Inviti (Invitato - PARTECIPANTI)
+utenti ||--o{ inviti_team : "RICEVE\n(1:N)"
+inviti_team }o--|| utenti : "invitato_id"
+
+' ====================================
+' RELAZIONI N:M (tramite tabelle associative)
+' ====================================
+
+' Utente PARTECIPA Hackathon (N:M via REGISTRAZIONI - solo PARTECIPANTI)
+utenti ||--o{ registrazioni : "SI_REGISTRA\n(N:M)"
+registrazioni }o--|| utenti : "utente_id"
+hackathon ||--o{ registrazioni : "RICEVE\n(N:M)"
+registrazioni }o--|| hackathon : "hackathon_id"
+
+' Team INCLUDE Registrazioni
+team ||--o{ registrazioni : "INCLUDE\n(1:N)"
+registrazioni }o--o| team : "team_id"
+
+' Utente GIUDICA Hackathon (N:M via GIUDICI_HACKATHON - solo GIUDICI)
+utenti ||--o{ giudici_hackathon : "GIUDICA\n(N:M)"
+giudici_hackathon }o--|| utenti : "giudice_id"
+hackathon ||--o{ giudici_hackathon : "HA_GIUDICI\n(N:M)"
+giudici_hackathon }o--|| hackathon : "hackathon_id"
+
+' Utente INVITA Giudice (chi ha fatto l'invito - ORGANIZZATORI)
+utenti ||--o{ giudici_hackathon : "INVITA_GIUDICE\n(1:N)"
+giudici_hackathon }o--|| utenti : "invitato_da"
+
+' Utente APPARTIENE Team (N:M via MEMBRI_TEAM - solo PARTECIPANTI)
+utenti ||--o{ membri_team : "APPARTIENE\n(N:M)"
+membri_team }o--|| utenti : "utente_id"
+team ||--o{ membri_team : "COMPOSTO_DA\n(N:M)"
+membri_team }o--|| team : "team_id"
+
+' Utente VALUTA Team in Hackathon (N:M:M via VOTI - solo GIUDICI)
+utenti ||--o{ voti : "ASSEGNA\n(N:M:M)"
+voti }o--|| utenti : "giudice_id"
+team ||--o{ voti : "RICEVE\n(N:M:M)"
+voti }o--|| team : "team_id"
+hackathon ||--o{ voti : "CONTIENE\n(N:M:M)"
+voti }o--|| hackathon : "hackathon_id"
+
+' ====================================
+' VINCOLI E NOTE
+' ====================================
+
+note top of user_roles : **USER_ROLES**\n**Tipi Utente:**\n• PARTECIPANTE: Partecipa agli hackathon\n• ORGANIZZATORE: Crea hackathon\n• GIUDICE: Valuta i team\nOgni utente ha UN tipo fisso
+
+note top of hackathon_status : **HACKATHON_STATUS**\n**Stati Hackathon:**\n• REGISTRAZIONI_APERTE\n• REGISTRAZIONI_CHIUSE\n• IN_CORSO\n• TERMINATO
+
+note top of invito_status : **INVITO_STATUS**\n**Stati Invito:**\n• PENDING (default)\n• ACCEPTED\n• DECLINED\nUsato per inviti giudici e team
+
+' ====================================
+' CARDINALITÀ E VINCOLI BUSINESS
+' ====================================
+
+note as business_rules
+    **REGOLE BUSINESS PER TIPO UTENTE**
+
+    **PARTECIPANTE:**
+    • Può registrarsi agli hackathon
+    • Può far parte di team (max 1 per hackathon)
+    • Può caricare progressi se membro team
+    • Può inviare/ricevere inviti team
+
+    **ORGANIZZATORE:**
+    • Può creare hackathon
+    • Può invitare giudici
+    • Non può partecipare come concorrente
+
+    **GIUDICE:**
+    • Può essere invitato agli hackathon
+    • Può pubblicare problemi
+    • Può commentare progressi
+    • Può votare team (0-10)
+    • Non può partecipare come concorrente
+end note
+
+@enduml

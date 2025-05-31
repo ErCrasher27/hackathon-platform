@@ -83,7 +83,7 @@ public class Team {
 
     public boolean aggiungiMembro(Utente utente) {
         // TODO: Implementazione delegata al Controller/DAO
-        return utente != null && utente.isAttivo();
+        return utente != null;
     }
 
     public boolean rimuoviMembro(Utente utente) {

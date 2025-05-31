@@ -1,97 +1,50 @@
 package it.unina.hackathon.model;
 
+import it.unina.hackathon.utils.UtenteResponse;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
-/**
- * Rappresenta un utente della piattaforma hackathon.
- * Un utente può assumere diversi ruoli: partecipante, organizzatore, giudice.
- * La classe gestisce le funzionalità comuni a tutti i ruoli.
- *
- * <p>Vincoli di business:
- * <ul>
- *   <li>Username univoco</li>
- *   <li>Email univoca e formato valido</li>
- *   <li>Nome e cognome obbligatori</li>
- * </ul>
- */
 public class Utente {
 
+    // Regex per validazione email
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$");
+
+    // Regex per validazione username
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._]+$");
+
     // region Proprietà
-
-    /**
-     * Identificativo univoco dell'utente
-     */
+    private final String username;
+    private final String password;
     private int utenteId;
-
-    /**
-     * Nome utente univoco per login
-     */
-    private String username;
-
-    /**
-     * Indirizzo email univoco
-     */
     private String email;
-
-    /**
-     * Hash della password per sicurezza
-     */
-    private String passwordHash;
-
-    /**
-     * Nome anagrafico dell'utente
-     */
     private String nome;
-
-    /**
-     * Cognome anagrafico dell'utente
-     */
     private String cognome;
-
-    /**
-     * Data di registrazione nella piattaforma
-     */
+    private TipoUtente tipoUtente;
     private LocalDateTime dataRegistrazione;
-
-    /**
-     * Flag che indica se l'account è attivo
-     */
-    private boolean attivo;
 
     // endregion
 
     // region Costruttori
 
-    /**
-     * Costruttore di default.
-     */
-    public Utente() {
-        this.dataRegistrazione = LocalDateTime.now();
-        this.attivo = true;
+    public Utente(String username, String password) {
+        this.username = username != null ? username.trim() : null;
+        this.password = password;
     }
 
-    /**
-     * Costruttore con parametri principali.
-     *
-     * @param username     nome utente univoco
-     * @param email        indirizzo email
-     * @param passwordHash hash della password
-     * @param nome         nome anagrafico
-     * @param cognome      cognome anagrafico
-     */
-    public Utente(String username, String email, String passwordHash, String nome, String cognome) {
-        this();
-        this.username = username;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.nome = nome;
-        this.cognome = cognome;
+    public Utente(String username, String email, String password, String nome, String cognome, TipoUtente tipoUtente) {
+        this.username = username != null ? username.trim() : null;
+        this.email = email != null ? email.trim().toLowerCase() : null;
+        this.password = password;
+        this.nome = nome != null ? nome.trim() : null;
+        this.cognome = cognome != null ? cognome.trim() : null;
+        this.tipoUtente = tipoUtente;
     }
 
     // endregion
 
-    // region Getter e Setter
+    // region Getters e Setters
 
     public int getUtenteId() {
         return utenteId;
@@ -105,41 +58,26 @@ public class Utente {
         return username;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public String getPassword() {
+        return password;
     }
 
     public String getNome() {
         return nome;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
     public String getCognome() {
         return cognome;
     }
 
-    public void setCognome(String cognome) {
-        this.cognome = cognome;
+    public TipoUtente getTipoUtente() {
+        return tipoUtente;
     }
+
 
     public LocalDateTime getDataRegistrazione() {
         return dataRegistrazione;
@@ -149,103 +87,88 @@ public class Utente {
         this.dataRegistrazione = dataRegistrazione;
     }
 
-    public boolean isAttivo() {
-        return attivo;
-    }
-
-    public void setAttivo(boolean attivo) {
-        this.attivo = attivo;
-    }
-
     // endregion
 
-    // region Business
+    // region Business Methods
 
-    /**
-     * Registra un nuovo utente nel sistema.
-     * Imposta la data di registrazione e attiva l'account.
-     *
-     * @return true se la registrazione è avvenuta con successo
-     */
-    public boolean registrati() {
-        // Validazione input
-        if (username == null || username.trim().isEmpty()) {
-            return false;
+    public UtenteResponse validaLogin() {
+        if (this.username == null || this.username.isEmpty()) {
+            return new UtenteResponse(null, "Username è obbligatorio!");
         }
-        if (email == null || email.trim().isEmpty()) {
-            return false;
+        if (this.password == null || this.password.isEmpty()) {
+            return new UtenteResponse(null, "Password è obbligatoria!");
         }
-        if (nome == null || nome.trim().isEmpty()) {
-            return false;
-        }
-        if (cognome == null || cognome.trim().isEmpty()) {
-            return false;
-        }
-
-        // Imposta valori di registrazione di default: utente attivo e data di registrazione
-        this.dataRegistrazione = LocalDateTime.now();
-        this.attivo = true;
-
-        return true;
+        return new UtenteResponse(new Utente(this.username, this.password), "Credenziali potenzialmente valide");
     }
 
-    /**
-     * Autentica l'utente verificando la password.
-     *
-     * @param password password da verificare
-     * @return true se l'autenticazione è riuscita
-     */
-    public boolean autenticati(String password) {
-        if (password == null || !attivo) {
-            return false;
+    public UtenteResponse validaRegistrazione(String confermaPassword) {
+        // Validazione nome
+        if (nome == null || nome.isEmpty()) {
+            return new UtenteResponse(null, "Nome è obbligatorio!");
+        }
+        if (nome.length() < 2) {
+            return new UtenteResponse(null, "Nome deve essere almeno 2 caratteri!");
         }
 
-        // TODO: Implementare verifica hash sicura (es. BCrypt)
-        // TODO: Per ora confronto diretto (da migliorare in produzione)
-        return password.equals(this.passwordHash);
+        // Validazione cognome
+        if (cognome == null || cognome.isEmpty()) {
+            return new UtenteResponse(null, "Cognome è obbligatorio!");
+        }
+        if (cognome.length() < 2) {
+            return new UtenteResponse(null, "Cognome deve essere almeno 2 caratteri!");
+        }
+
+        // Validazione username
+        if (username == null || username.isEmpty()) {
+            return new UtenteResponse(null, "Username è obbligatorio!");
+        }
+        if (username.length() < 3) {
+            return new UtenteResponse(null, "Username deve essere almeno 3 caratteri!");
+        }
+        if (!USERNAME_PATTERN.matcher(username).matches()) {
+            return new UtenteResponse(null, "Username può contenere solo lettere, numeri, punti e underscore!");
+        }
+
+        // Validazione email
+        if (email == null || email.isEmpty()) {
+            return new UtenteResponse(null, "Email è obbligatoria!");
+        }
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            return new UtenteResponse(null, "Formato email non valido!");
+        }
+
+        // Validazione password
+        if (password == null || password.isEmpty()) {
+            return new UtenteResponse(null, "Password è obbligatoria!");
+        }
+        if (password.length() < 6) {
+            return new UtenteResponse(null, "Password deve essere almeno 6 caratteri!");
+        }
+
+        // Validazione conferma password
+        if (!password.equals(confermaPassword)) {
+            return new UtenteResponse(null, "Password e conferma password devono coincidere!");
+        }
+
+        // Validazione tipo utente
+        if (tipoUtente == null) {
+            return new UtenteResponse(null, "Tipo utente è obbligatorio!");
+        }
+
+        return new UtenteResponse(this, "Validazione completata con successo!");
     }
 
-    /**
-     * Modifica il profilo utente.
-     * Permette di aggiornare nome, cognome ed email.
-     */
-    public void modificaProfilo() {
-        // TODO: Metodo che verrà esteso dalla GUI per permettere
-        // TODO: la modifica interattiva del profilo utente
-        // TODO: Per ora implementazione vuota, sarà chiamato dal Controller
+    public UtenteResponse autenticati(Utente utenteDaAutenticare) {
+        boolean autenticazione = this.username.equals(utenteDaAutenticare.getUsername()) && this.password.equals(utenteDaAutenticare.getPassword());
+        if (autenticazione) {
+            return new UtenteResponse(utenteDaAutenticare, "Login avvenuto con successo!");
+        } else {
+            return new UtenteResponse(null, "Password errata!");
+        }
     }
 
-    /**
-     * Verifica se l'utente può assumere il ruolo di organizzatore.
-     *
-     * @return true se può essere organizzatore
-     */
-    public boolean isOrganizzatore() {
-        // Un utente attivo può organizzare hackathon
-        // TODO: Valutare di passare l'Hackathon id per conoscere il ruolo dell'utente
-        return attivo;
-    }
-
-    /**
-     * Verifica se l'utente può assumere il ruolo di giudice.
-     *
-     * @return true se può essere giudice
-     */
-    public boolean isGiudice() {
-        // Un utente attivo può essere invitato come giudice
-        // TODO: Valutare di passare l'Hackathon id per conoscere il ruolo dell'utente
-        return attivo;
-    }
-
-    /**
-     * Verifica se l'utente può assumere il ruolo di partecipante.
-     *
-     * @return true se può essere partecipante
-     */
-    public boolean isPartecipante() {
-        // Un utente attivo può partecipare agli hackathon
-        // TODO: Valutare di passare l'Hackathon id per conoscere il ruolo dell'utente
-        return attivo;
+    public String getNomeCompleto() {
+        return nome + " " + cognome;
     }
 
     // endregion
@@ -256,7 +179,6 @@ public class Utente {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-
         Utente utente = (Utente) obj;
         return utenteId == utente.utenteId;
     }
@@ -268,7 +190,7 @@ public class Utente {
 
     @Override
     public String toString() {
-        return String.format("Utente{id=%d, username='%s', nome='%s %s', attivo=%b}", utenteId, username, nome, cognome, attivo);
+        return String.format("Utente{id=%d, username='%s', nome='%s', tipo=%s}", utenteId, username, getNomeCompleto(), tipoUtente);
     }
 
     // endregion

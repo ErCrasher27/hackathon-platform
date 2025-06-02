@@ -2,8 +2,8 @@ package it.unina.hackathon.controller;
 
 import it.unina.hackathon.dao.UtenteDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.UtenteImplementazionePostgresDAO;
-import it.unina.hackathon.model.TipoUtente;
 import it.unina.hackathon.model.Utente;
+import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ExistsResponse;
 import it.unina.hackathon.utils.UtenteResponse;
 
@@ -48,7 +48,7 @@ public class AuthenticationController {
             return esitoValidazione; // Validazione fallita
         }
 
-        // Ricerca Username e Email, (se trovati la registrazione fallisce)
+        // Ricerca Username ed Email, (se trovati la registrazione fallisce)
         ExistsResponse esitoRicercaUsername = utenteDAO.usernameExists(utenteRegisteringIn.getUsername());
         if (esitoRicercaUsername.exists()) {
             return new UtenteResponse(null, esitoRicercaUsername.message());
@@ -59,11 +59,7 @@ public class AuthenticationController {
         }
 
         // Registra
-        UtenteResponse esitoRegistrazione = utenteDAO.saveUtente(utenteRegisteringIn);
-        if (esitoRegistrazione.utente() != null) {
-            iniziaSessione(esitoRegistrazione.utente());
-        }
-        return esitoRegistrazione; // Registrazione riuscita/fallita
+        return utenteDAO.saveUtente(utenteRegisteringIn); // Registrazione riuscita/fallita
     }
 
     private void iniziaSessione(Utente utente) {

@@ -3,10 +3,6 @@ package it.unina.hackathon.model;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta un problema pubblicato per un hackathon.
- * I giudici pubblicano i problemi che i team devono risolvere.
- */
 public class Problema {
 
     // region Proprietà

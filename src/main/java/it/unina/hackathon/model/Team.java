@@ -5,10 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Rappresenta un team di partecipanti in un hackathon.
- * Un team può avere più membri fino alla dimensione massima consentita.
- */
 public class Team {
 
     // region Proprietà

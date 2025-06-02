@@ -1,12 +1,10 @@
 package it.unina.hackathon.model;
 
+import it.unina.hackathon.model.enums.StatoInvito;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta un invito per unirsi a un team.
- * Gestisce gli inviti tra partecipanti per la formazione dei team.
- */
 public class InvitoTeam {
 
     // region Proprietà

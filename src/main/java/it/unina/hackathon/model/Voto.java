@@ -3,10 +3,6 @@ package it.unina.hackathon.model;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta un voto assegnato da un giudice a un team.
- * Il voto è compreso tra 0 e 10 e può includere criteri di valutazione.
- */
 public class Voto {
 
     // region Proprietà

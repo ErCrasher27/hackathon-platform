@@ -1,5 +1,6 @@
 package it.unina.hackathon.model;
 
+import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.UtenteResponse;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class Utente {
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._]+$");
 
     // region Proprietà
+
     private final String username;
     private final String password;
     private int utenteId;
@@ -89,7 +91,7 @@ public class Utente {
 
     // endregion
 
-    // region Business Methods
+    // region Business
 
     public UtenteResponse validaLogin() {
         if (this.username == null || this.username.isEmpty()) {
@@ -106,24 +108,15 @@ public class Utente {
         if (nome == null || nome.isEmpty()) {
             return new UtenteResponse(null, "Nome è obbligatorio!");
         }
-        if (nome.length() < 2) {
-            return new UtenteResponse(null, "Nome deve essere almeno 2 caratteri!");
-        }
 
         // Validazione cognome
         if (cognome == null || cognome.isEmpty()) {
             return new UtenteResponse(null, "Cognome è obbligatorio!");
         }
-        if (cognome.length() < 2) {
-            return new UtenteResponse(null, "Cognome deve essere almeno 2 caratteri!");
-        }
 
         // Validazione username
         if (username == null || username.isEmpty()) {
             return new UtenteResponse(null, "Username è obbligatorio!");
-        }
-        if (username.length() < 3) {
-            return new UtenteResponse(null, "Username deve essere almeno 3 caratteri!");
         }
         if (!USERNAME_PATTERN.matcher(username).matches()) {
             return new UtenteResponse(null, "Username può contenere solo lettere, numeri, punti e underscore!");
@@ -140,9 +133,6 @@ public class Utente {
         // Validazione password
         if (password == null || password.isEmpty()) {
             return new UtenteResponse(null, "Password è obbligatoria!");
-        }
-        if (password.length() < 6) {
-            return new UtenteResponse(null, "Password deve essere almeno 6 caratteri!");
         }
 
         // Validazione conferma password
@@ -165,6 +155,18 @@ public class Utente {
         } else {
             return new UtenteResponse(null, "Password errata!");
         }
+    }
+
+    public boolean isOrganizzatore() {
+        return tipoUtente == TipoUtente.ORGANIZZATORE;
+    }
+
+    public boolean isGiudice() {
+        return tipoUtente == TipoUtente.GIUDICE;
+    }
+
+    public boolean isPartecipante() {
+        return tipoUtente == TipoUtente.PARTECIPANTE;
     }
 
     public String getNomeCompleto() {

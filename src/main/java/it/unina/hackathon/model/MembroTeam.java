@@ -3,17 +3,12 @@ package it.unina.hackathon.model;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta l'appartenenza di un utente a un team.
- * Gestisce il ruolo dell'utente nel team e la data di ingresso.
- */
 public class MembroTeam {
 
     // region Proprietà
 
     private int membroTeamId;
     private LocalDateTime dataIngresso;
-    private RuoloTeam ruoloTeam;
 
     // endregion
 
@@ -21,12 +16,6 @@ public class MembroTeam {
 
     public MembroTeam() {
         this.dataIngresso = LocalDateTime.now();
-        this.ruoloTeam = RuoloTeam.MEMBRO;
-    }
-
-    public MembroTeam(RuoloTeam ruolo) {
-        this();
-        this.ruoloTeam = ruolo;
     }
 
     // endregion
@@ -49,14 +38,6 @@ public class MembroTeam {
         this.dataIngresso = dataIngresso;
     }
 
-    public RuoloTeam getRuoloTeam() {
-        return ruoloTeam;
-    }
-
-    public void setRuoloTeam(RuoloTeam ruoloTeam) {
-        this.ruoloTeam = ruoloTeam;
-    }
-
     // endregion
 
     // region Business
@@ -69,10 +50,6 @@ public class MembroTeam {
     public boolean leaveTeam() {
         // TODO: Implementazione delegata al Controller
         return true;
-    }
-
-    public void promoteToLeader() {
-        this.ruoloTeam = RuoloTeam.LEADER;
     }
 
     // endregion
@@ -94,7 +71,7 @@ public class MembroTeam {
 
     @Override
     public String toString() {
-        return String.format("MembroTeam{id=%d, ruolo=%s}", membroTeamId, ruoloTeam);
+        return String.format("MembroTeam{id=%d}", membroTeamId);
     }
 
     // endregion

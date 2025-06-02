@@ -7,6 +7,9 @@ import it.unina.hackathon.utils.UtenteResponse;
 
 import javax.swing.*;
 
+import static it.unina.hackathon.utils.UtilsUi.showError;
+import static it.unina.hackathon.utils.UtilsUi.showSuccess;
+
 public class LoginGUI {
     private final Controller controller;
     private final NavigationController navigationController;
@@ -58,10 +61,10 @@ public class LoginGUI {
         UtenteResponse response = authenticationController.login(username, password);
 
         if (response.utente() != null) {
-            navigationController.goToHome(frame, response.utente());
-            JOptionPane.showMessageDialog(frame, response.message(), "Successo", JOptionPane.INFORMATION_MESSAGE);
+            navigationController.goToHome(frame, controller.getTipoUtenteUtenteCorrente());
+            showSuccess(frame, response.message());
         } else {
-            JOptionPane.showMessageDialog(frame, response.message(), "Errore", JOptionPane.ERROR_MESSAGE);
+            showError(frame, response.message());
         }
     }
 

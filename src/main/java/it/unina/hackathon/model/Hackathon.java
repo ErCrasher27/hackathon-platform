@@ -1,21 +1,11 @@
 package it.unina.hackathon.model;
 
+import it.unina.hackathon.model.enums.HackathonStatus;
+import it.unina.hackathon.utils.HackathonResponse;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta un evento hackathon.
- * Contiene tutte le informazioni relative all'evento, ai vincoli temporali
- * e ai limiti di partecipazione.
- *
- * <p>Vincoli di business:
- * <ul>
- *   <li>data_inizio < data_fine</li>
- *   <li>data_chiusura_registrazioni < data_inizio (2 giorni prima)</li>
- *   <li>max_iscritti > 0</li>
- *   <li>max_dimensione_team > 0</li>
- * </ul>
- */
 public class Hackathon {
 
     // region Proprietà
@@ -30,6 +20,7 @@ public class Hackathon {
     private int maxIscritti;
     private int maxDimensioneTeam;
     private HackathonStatus status;
+    private int organizzatoreId;
     private LocalDateTime dataCreazione;
 
     // endregion
@@ -37,18 +28,17 @@ public class Hackathon {
     // region Costruttori
 
     public Hackathon() {
-        this.dataCreazione = LocalDateTime.now();
-        this.status = HackathonStatus.REGISTRAZIONI_APERTE;
+        apriRegistrazioni();
     }
 
-    public Hackathon(String titolo, String descrizione, String sede, LocalDateTime dataInizio, LocalDateTime dataFine, LocalDateTime dataChiusuraRegistrazioni, int maxIscritti, int maxDimensioneTeam) {
+    public Hackathon(String titolo, String descrizione, String sede, LocalDateTime dataInizio, LocalDateTime dataFine, int maxIscritti, int maxDimensioneTeam) {
         this();
-        this.titolo = titolo;
-        this.descrizione = descrizione;
-        this.sede = sede;
+        this.titolo = titolo != null ? titolo.trim() : null;
+        this.descrizione = descrizione != null ? descrizione.trim() : null;
+        this.sede = sede != null ? sede.trim() : null;
         this.dataInizio = dataInizio;
         this.dataFine = dataFine;
-        this.dataChiusuraRegistrazioni = dataChiusuraRegistrazioni;
+        this.dataChiusuraRegistrazioni = dataInizio.minusDays(2);
         this.maxIscritti = maxIscritti;
         this.maxDimensioneTeam = maxDimensioneTeam;
     }
@@ -137,6 +127,14 @@ public class Hackathon {
         this.status = status;
     }
 
+    public int getOrganizzatoreId() {
+        return organizzatoreId;
+    }
+
+    public void setOrganizzatoreId(int organizzatoreId) {
+        this.organizzatoreId = organizzatoreId;
+    }
+
     public LocalDateTime getDataCreazione() {
         return dataCreazione;
     }
@@ -149,8 +147,48 @@ public class Hackathon {
 
     // region Business
 
-    public boolean creaHackathon() {
-        return verificaVincoli();
+    public HackathonResponse validaCreating() {
+        // Validazione titolo
+        if (titolo == null || titolo.isEmpty()) {
+            return new HackathonResponse(null, "Titolo è obbligatorio!");
+        }
+
+        // Validazione sede
+        if (sede == null || sede.isEmpty()) {
+            return new HackathonResponse(null, "Sede è obbligatoria!");
+        }
+
+        // Validazione date
+        if (dataInizio == null) {
+            return new HackathonResponse(null, "Data inizio è obbligatoria!");
+        }
+        if (dataFine == null) {
+            return new HackathonResponse(null, "Data fine è obbligatoria!");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (dataInizio.isBefore(now.plusDays(3))) {
+            return new HackathonResponse(null, "L'hackathon deve essere programmato almeno 3 giorni nel futuro!");
+        }
+        if (dataFine.isBefore(dataInizio)) {
+            return new HackathonResponse(null, "Data fine deve essere successiva alla data inizio!");
+        }
+
+        // Validazione numeri
+        if (maxIscritti <= 0) {
+            return new HackathonResponse(null, "Numero massimo iscritti deve essere positivo!");
+        }
+        if (maxIscritti > 1000) {
+            return new HackathonResponse(null, "Numero massimo iscritti non può superare 1000!");
+        }
+        if (maxDimensioneTeam <= 0) {
+            return new HackathonResponse(null, "Dimensione massima team deve essere positiva!");
+        }
+        if (maxDimensioneTeam > 10) {
+            return new HackathonResponse(null, "Dimensione massima team non può superare 10!");
+        }
+
+        return new HackathonResponse(this, "Validazione completata con successo!");
     }
 
     public void apriRegistrazioni() {
@@ -167,29 +205,6 @@ public class Hackathon {
 
     public void terminaHackathon() {
         this.status = HackathonStatus.TERMINATO;
-    }
-
-    public boolean verificaVincoli() {
-        if (dataInizio == null || dataFine == null || dataChiusuraRegistrazioni == null) {
-            return false;
-        }
-        if (!dataInizio.isBefore(dataFine)) {
-            return false;
-        }
-        if (!dataChiusuraRegistrazioni.isBefore(dataInizio)) {
-            return false;
-        }
-        return maxIscritti > 0 && maxDimensioneTeam > 0;
-    }
-
-    public int getNumeroIscritti() {
-        // TODO: Implementazione delegata al DAO
-        return 0;
-    }
-
-    public int getNumeroTeam() {
-        // TODO: Implementazione delegata al DAO
-        return 0;
     }
 
     // endregion

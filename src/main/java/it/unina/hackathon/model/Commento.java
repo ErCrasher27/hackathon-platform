@@ -3,10 +3,6 @@ package it.unina.hackathon.model;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta un commento di un giudice su un progresso di un team.
- * I giudici possono commentare i progressi per fornire feedback.
- */
 public class Commento {
 
     // region Proprietà

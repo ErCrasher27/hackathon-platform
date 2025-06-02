@@ -3,10 +3,13 @@ package it.unina.hackathon.gui.comuni;
 import it.unina.hackathon.controller.AuthenticationController;
 import it.unina.hackathon.controller.Controller;
 import it.unina.hackathon.controller.NavigationController;
-import it.unina.hackathon.model.TipoUtente;
+import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.UtenteResponse;
 
 import javax.swing.*;
+
+import static it.unina.hackathon.utils.UtilsUi.showError;
+import static it.unina.hackathon.utils.UtilsUi.showSuccess;
 
 public class RegistrazioneGUI {
     private final Controller controller;
@@ -66,14 +69,9 @@ public class RegistrazioneGUI {
     }
 
     private void setupRadioButtons() {
-        // Raggruppa i radio button
-        ButtonGroup tipoUtenteGroup = new ButtonGroup();
-        tipoUtenteGroup.add(organizzatoreRb);
-        tipoUtenteGroup.add(giudiceRb);
-        tipoUtenteGroup.add(partecipanteRb);
-
-        // Seleziona partecipante di default
-        partecipanteRb.setSelected(true);
+        partecipanteRb.setText(TipoUtente.PARTECIPANTE.getDisplayName() + " - Posso partecipare agli hackathon");
+        organizzatoreRb.setText(TipoUtente.ORGANIZZATORE.getDisplayName() + " - Posso creare e gestire hackathon");
+        giudiceRb.setText(TipoUtente.GIUDICE.getDisplayName() + " - Posso valutare i team negli hackathon");
     }
 
     private void effettuaRegistrazione() {
@@ -88,10 +86,10 @@ public class RegistrazioneGUI {
         UtenteResponse response = authenticationController.register(nome, cognome, email, username, password, confermaPassword, tipoUtente);
 
         if (response.utente() != null) {
-            navigationController.goToHome(frame, response.utente());
-            JOptionPane.showMessageDialog(frame, response.message(), "Successo", JOptionPane.INFORMATION_MESSAGE);
+            navigationController.goToLogin(frame);
+            showSuccess(frame, response.message());
         } else {
-            JOptionPane.showMessageDialog(frame, response.message(), "Errore", JOptionPane.ERROR_MESSAGE);
+            showError(frame, response.message());
         }
     }
 

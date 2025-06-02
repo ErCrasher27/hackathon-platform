@@ -1,12 +1,10 @@
 package it.unina.hackathon.model;
 
+import it.unina.hackathon.model.enums.StatoInvito;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta l'assegnazione di un giudice a un hackathon.
- * Gestisce l'invito e lo stato di accettazione del giudice.
- */
 public class GiudiceHackathon {
 
     // region Proprietà

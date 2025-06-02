@@ -3,10 +3,6 @@ package it.unina.hackathon.model;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta la registrazione di un utente a un hackathon.
- * Collega un utente a un hackathon con data di registrazione.
- */
 public class Registrazione {
 
     // region Proprietà

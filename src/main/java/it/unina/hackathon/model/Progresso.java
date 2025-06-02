@@ -3,10 +3,6 @@ package it.unina.hackathon.model;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Rappresenta un progresso/documento caricato da un team.
- * I team caricano periodicamente i loro progressi per essere valutati dai giudici.
- */
 public class Progresso {
 
     // region Proprietà

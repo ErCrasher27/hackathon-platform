@@ -1,8 +1,8 @@
 package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.UtenteDAO;
-import it.unina.hackathon.model.TipoUtente;
 import it.unina.hackathon.model.Utente;
+import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.ExistsResponse;
 import it.unina.hackathon.utils.UtenteResponse;
@@ -50,7 +50,7 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
     public UtenteResponse saveUtente(Utente utente) {
         String query = """
                 INSERT INTO utenti (username, email, password, nome, cognome, tipo_utente_id) 
-                VALUES (?, ?, ?, ?, ?, (SELECT role_id FROM user_roles WHERE role_name = ?))
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -59,13 +59,22 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
             ps.setString(3, utente.getPassword());
             ps.setString(4, utente.getNome());
             ps.setString(5, utente.getCognome());
-            ps.setString(6, utente.getTipoUtente().name());
+            ps.setInt(6, utente.getTipoUtente().getId());
 
-            return new UtenteResponse(utente, "Registrazione avvenuta con successo!");
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows > 0) {
+                ResultSet generatedKeys = ps.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    utente.setUtenteId(generatedKeys.getInt(1));
+                }
+                return new UtenteResponse(utente, "Registrazione avvenuta con successo!");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new UtenteResponse(null, "Errore durante la registrazione!");
+            return new UtenteResponse(null, "Errore durante la registrazione: " + e.getMessage());
         }
+        return new UtenteResponse(null, "Errore durante la registrazione!");
     }
 
     @Override
@@ -75,12 +84,19 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new ExistsResponse(rs.getInt(1) > 0, "Username già esistente!");
+                boolean res = rs.getInt(1) > 0;
+                String message;
+                if (res) {
+                    message = "Username già esistente!";
+                } else {
+                    message = "Username non esistente!";
+                }
+                return new ExistsResponse(res, message);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new ExistsResponse(false, "Username non esistente");
+        return new ExistsResponse(false, "Errore durante la ricerca dell'username!");
     }
 
     @Override
@@ -90,12 +106,19 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new ExistsResponse(rs.getInt(1) > 0, "Email già esistente!");
+                boolean res = rs.getInt(1) > 0;
+                String message;
+                if (res) {
+                    message = "Email già esistente!";
+                } else {
+                    message = "Email non esistente!";
+                }
+                return new ExistsResponse(res, message);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new ExistsResponse(false, "Email non esistente");
+        return new ExistsResponse(false, "Errore durante la ricerca dell'email!");
     }
 
     private Utente mapResultSetToUtente(ResultSet rs) throws SQLException {

@@ -2,7 +2,12 @@ package it.unina.hackathon.controller;
 
 import it.unina.hackathon.gui.comuni.LoginGUI;
 import it.unina.hackathon.gui.comuni.RegistrazioneGUI;
-import it.unina.hackathon.model.Utente;
+import it.unina.hackathon.gui.giudice.HomeGiudiceGUI;
+import it.unina.hackathon.gui.organizzatore.CreaHackathonGUI;
+import it.unina.hackathon.gui.organizzatore.GestisciHackathonGUI;
+import it.unina.hackathon.gui.organizzatore.HomeOrganizzatoreGUI;
+import it.unina.hackathon.gui.partecipante.HomePartecipanteGUI;
+import it.unina.hackathon.model.enums.TipoUtente;
 
 import javax.swing.*;
 
@@ -13,47 +18,54 @@ public class NavigationController {
         this.mainController = mainController;
     }
 
-    public void goToHome(JFrame currentFrame, Utente utente) {
-        if (utente == null) {
-            JOptionPane.showMessageDialog(currentFrame, "Errore: utente non valido!");
-            //return;
+    public void goToHome(JFrame currentFrame, TipoUtente tipoUtente) {
+        JFrame newFrame = createHomeFrame(tipoUtente);
+        if (newFrame != null) {
+            showFrame(newFrame);
+            closeFrame(currentFrame);
+        } else {
+            JOptionPane.showMessageDialog(currentFrame, "Errore: tipo utente non riconosciuto!");
         }
-
-//        JFrame newFrame = createHomeFrame(utente.getTipoUtente());
-//        if (newFrame != null) {
-//            showFrame(newFrame);
-//            closeFrame(currentFrame);
-//        } else {
-//            JOptionPane.showMessageDialog(currentFrame, "Errore: tipo utente non riconosciuto!");
-//        }
     }
 
-//    private JFrame createHomeFrame(TipoUtente tipoUtente) {
-//        return switch (tipoUtente) {
-//            case ORGANIZZATORE -> {
-//                HomeOrganizzatoreGUI gui = new HomeOrganizzatoreGUI(mainController);
-//                yield gui.getFrame();
-//            }
-//            case GIUDICE -> {
-//                HomeGiudiceGUI gui = new HomeGiudiceGUI(mainController);
-//                yield gui.getFrame();
-//            }
-//            case PARTECIPANTE -> {
-//                HomePartecipanteGUI gui = new HomePartecipanteGUI(mainController);
-//                yield gui.getFrame();
-//            }
-//        };
-//    }
+    private JFrame createHomeFrame(TipoUtente tipoUtente) {
+        return switch (tipoUtente) {
+            case ORGANIZZATORE -> {
+                HomeOrganizzatoreGUI gui = new HomeOrganizzatoreGUI();
+                yield gui.getFrame();
+            }
+            case GIUDICE -> {
+                HomeGiudiceGUI gui = new HomeGiudiceGUI();
+                yield gui.getFrame();
+            }
+            case PARTECIPANTE -> {
+                HomePartecipanteGUI gui = new HomePartecipanteGUI();
+                yield gui.getFrame();
+            }
+        };
+    }
 
     public void goToLogin(JFrame currentFrame) {
-        LoginGUI loginGUI = new LoginGUI();
-        showFrame(loginGUI.getFrame());
+        LoginGUI newGui = new LoginGUI();
+        showFrame(newGui.getFrame());
         closeFrame(currentFrame);
     }
 
     public void goToRegistrazione(JFrame currentFrame) {
-        RegistrazioneGUI regGUI = new RegistrazioneGUI();
-        showFrame(regGUI.getFrame());
+        RegistrazioneGUI newGui = new RegistrazioneGUI();
+        showFrame(newGui.getFrame());
+        closeFrame(currentFrame);
+    }
+
+    public void goToCreateHackathon(JFrame currentFrame) {
+        CreaHackathonGUI newGui = new CreaHackathonGUI();
+        showFrame(newGui.getFrame());
+        closeFrame(currentFrame);
+    }
+
+    public void goToGestisciHackathon(JFrame currentFrame) {
+        GestisciHackathonGUI newGui = new GestisciHackathonGUI();
+        showFrame(newGui.getFrame());
         closeFrame(currentFrame);
     }
 

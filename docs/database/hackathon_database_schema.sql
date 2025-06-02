@@ -1,41 +1,40 @@
 -- ==================================================
--- TABELLE ENUM (per maggiore flessibilità)
+-- TABELLE ENUM
 -- ==================================================
 
 CREATE TABLE user_roles
 (
-    role_id     SERIAL PRIMARY KEY,
-    role_name   VARCHAR(50) NOT NULL UNIQUE,
-    descrizione TEXT
+    role_id   INTEGER PRIMARY KEY,
+    role_name VARCHAR(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE hackathon_status
 (
-    status_id   SERIAL PRIMARY KEY,
+    status_id   INTEGER PRIMARY KEY,
     status_name VARCHAR(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE invito_status
 (
-    status_id   SERIAL PRIMARY KEY,
+    status_id   INTEGER PRIMARY KEY,
     status_name VARCHAR(50) NOT NULL UNIQUE
 );
 
-INSERT INTO user_roles (role_name, descrizione)
-VALUES ('PARTECIPANTE', 'Utente che partecipa agli hackathon come membro di un team'),
-       ('ORGANIZZATORE', 'Utente che può creare e gestire hackathon'),
-       ('GIUDICE', 'Utente che può valutare i team negli hackathon');
+INSERT INTO user_roles (role_id, role_name)
+VALUES (1, 'ORGANIZZATORE'),
+       (2, 'GIUDICE'),
+       (3, 'PARTECIPANTE');
 
-INSERT INTO hackathon_status (status_name)
-VALUES ('REGISTRAZIONI_APERTE'),
-       ('REGISTRAZIONI_CHIUSE'),
-       ('IN_CORSO'),
-       ('TERMINATO');
+INSERT INTO hackathon_status (status_id, status_name)
+VALUES (1, 'REGISTRAZIONI_APERTE'),
+       (2, 'REGISTRAZIONI_CHIUSE'),
+       (3, 'IN_CORSO'),
+       (4, 'TERMINATO');
 
-INSERT INTO invito_status (status_name)
-VALUES ('PENDING'),
-       ('ACCEPTED'),
-       ('DECLINED');
+INSERT INTO invito_status (status_id, status_name)
+VALUES (1, 'PENDING'),
+       (2, 'ACCEPTED'),
+       (3, 'DECLINED');
 
 -- ==================================================
 -- TABELLE PRINCIPALI
@@ -223,14 +222,13 @@ CREATE
 OR REPLACE FUNCTION check_organizzatore_role()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF
+IF
 NOT EXISTS (
-        SELECT 1 FROM utenti u 
-        JOIN user_roles ur ON u.tipo_utente_id = ur.role_id
-        WHERE u.utente_id = NEW.organizzatore_id 
-        AND ur.role_name = 'ORGANIZZATORE'
-    ) THEN
-        RAISE EXCEPTION 'Solo gli organizzatori possono creare hackathon';
+SELECT 1 FROM utenti u
+WHERE u.utente_id = NEW.organizzatore_id
+AND u.tipo_utente_id = 1  -- 1 = ORGANIZZATORE
+) THEN
+RAISE EXCEPTION 'Solo gli organizzatori possono creare hackathon';
 END IF;
 
 RETURN NEW;
@@ -248,14 +246,13 @@ CREATE
 OR REPLACE FUNCTION check_giudice_role()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF
+IF
 NOT EXISTS (
-        SELECT 1 FROM utenti u 
-        JOIN user_roles ur ON u.tipo_utente_id = ur.role_id
-        WHERE u.utente_id = NEW.giudice_id 
-        AND ur.role_name = 'GIUDICE'
-    ) THEN
-        RAISE EXCEPTION 'Solo gli utenti con ruolo GIUDICE possono essere invitati come giudici';
+SELECT 1 FROM utenti u
+WHERE u.utente_id = NEW.giudice_id
+AND u.tipo_utente_id = 2  -- 2 = GIUDICE
+) THEN
+RAISE EXCEPTION 'Solo gli utenti con ruolo GIUDICE possono essere invitati come giudici';
 END IF;
 
 RETURN NEW;
@@ -390,8 +387,7 @@ FROM hackathon h
          JOIN utenti u_org ON h.organizzatore_id = u_org.utente_id
          LEFT JOIN registrazioni r ON r.hackathon_id = h.hackathon_id
          LEFT JOIN team t ON t.hackathon_id = h.hackathon_id
-         LEFT JOIN giudici_hackathon gh ON gh.hackathon_id = h.hackathon_id AND gh.stato_invito_id =
-                                                                                (SELECT status_id FROM invito_status WHERE status_name = 'ACCEPTED')
+         LEFT JOIN giudici_hackathon gh ON gh.hackathon_id = h.hackathon_id AND gh.stato_invito_id = 2 -- 2 = ACCEPTED
          LEFT JOIN voti v ON v.hackathon_id = h.hackathon_id
 GROUP BY h.hackathon_id, h.titolo, h.sede, h.data_inizio, h.data_fine, hs.status_name, h.max_iscritti, u_org.username;
 
@@ -403,24 +399,20 @@ SELECT ur.role_name                 AS tipo_utente,
 FROM user_roles ur
          LEFT JOIN utenti u ON u.tipo_utente_id = ur.role_id
 GROUP BY ur.role_id, ur.role_name
-ORDER BY ur.role_name;
+ORDER BY ur.role_id;
 
 -- ==================================================
 -- DATI DI ESEMPIO PER TESTING
 -- ==================================================
 
--- Inserimento utenti di esempio con diversi tipi
+-- Inserimento utenti di esempio
 INSERT INTO utenti (username, email, password, nome, cognome, tipo_utente_id)
-VALUES ('mario.organizzatore', 'mario.org@email.com', '123', 'Mario', 'Rossi',
-        (SELECT role_id FROM user_roles WHERE role_name = 'ORGANIZZATORE')),
-       ('giulia.giudice', 'giulia.giudice@email.com', '456', 'Giulia', 'Verdi',
-        (SELECT role_id FROM user_roles WHERE role_name = 'GIUDICE')),
-       ('luca.partecipante', 'luca.part@email.com', '789', 'Luca', 'Bianchi',
-        (SELECT role_id FROM user_roles WHERE role_name = 'PARTECIPANTE')),
-       ('anna.partecipante', 'anna.part@email.com', '101', 'Anna', 'Neri',
-        (SELECT role_id FROM user_roles WHERE role_name = 'PARTECIPANTE')),
-       ('marco.giudice', 'marco.giudice@email.com', '202', 'Marco', 'Blu',
-        (SELECT role_id FROM user_roles WHERE role_name = 'GIUDICE'));
+VALUES ('mario.organizzatore', 'mario.org@email.com', '123', 'Mario', 'Rossi', 1),  -- 1 = ORGANIZZATORE
+       ('giulia.giudice', 'giulia.giudice@email.com', '456', 'Giulia', 'Verdi', 2), -- 2 = GIUDICE
+       ('luca.partecipante', 'luca.part@email.com', '789', 'Luca', 'Bianchi', 3),   -- 3 = PARTECIPANTE
+       ('anna.partecipante', 'anna.part@email.com', '101', 'Anna', 'Neri', 3),      -- 3 = PARTECIPANTE
+       ('marco.giudice', 'marco.giudice@email.com', '202', 'Marco', 'Blu', 2);
+-- 2 = GIUDICE
 
 -- Inserimento hackathon di esempio
 INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni,
@@ -434,7 +426,8 @@ VALUES ('AI Innovation Challenge 2024',
         100,
         4,
         (SELECT utente_id FROM utenti WHERE username = 'mario.organizzatore'),
-        (SELECT status_id FROM hackathon_status WHERE status_name = 'REGISTRAZIONI_APERTE'));
+        1);
+-- 1 = REGISTRAZIONI_APERTE
 
 -- ==================================================
 -- QUERY DI VERIFICA
@@ -447,13 +440,13 @@ FROM utenti_per_tipo;
 -- Verifica organizzatori e loro hackathon
 SELECT u.username, u.nome, u.cognome, COUNT(h.hackathon_id) as hackathon_creati
 FROM utenti u
-         JOIN user_roles ur ON u.tipo_utente_id = ur.role_id
          LEFT JOIN hackathon h ON h.organizzatore_id = u.utente_id
-WHERE ur.role_name = 'ORGANIZZATORE'
+WHERE u.tipo_utente_id = 1 -- 1 = ORGANIZZATORE
 GROUP BY u.utente_id, u.username, u.nome, u.cognome;
 
--- Verifica vincoli di ruolo
--- Questa query dovrebbe fallire se eseguita (utente non organizzatore che crea hackathon)
--- INSERT INTO hackathon (titolo, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) 
--- VALUES ('Test', 'Test', '2024-07-01 09:00:00', '2024-07-02 18:00:00', '2024-06-29 23:59:59', 50, 3, 
---         (SELECT utente_id FROM utenti WHERE username = 'luca.partecipante'), 1);
+-- Verifica hackathon aperti
+SELECT h.titolo, h.sede, h.data_inizio, hs.status_name
+FROM hackathon h
+         JOIN hackathon_status hs ON h.status_id = hs.status_id
+WHERE h.status_id = 1;
+-- 1 = REGISTRAZIONI_APERTE

@@ -2,7 +2,7 @@
 !define ENTITY entity
 !define RELATIONSHIP diamond
 
-title **Schema Entità-Relazione - Hackathon Platform (FINALE AGGIORNATO)**\n**Database PostgreSQL - Gestione Enum Completa**
+title **Schema Entità-Relazione - Hackathon Platform**
 
 ' ====================================
 ' ENTITÀ PRINCIPALI
@@ -137,22 +137,21 @@ entity "INVITI_TEAM" as inviti_team {
 ' ====================================
 
 entity "USER_ROLES" as user_roles {
-    * **role_id** : SERIAL <<PK>>
-    --
-    * role_name : VARCHAR(50) <<UNIQUE>>
-    * descrizione : TEXT
+* role_id : INTEGER <<PK>>
+--
+* role_name : VARCHAR(50) <<UNIQUE>>
 }
 
 entity "HACKATHON_STATUS" as hackathon_status {
-    * **status_id** : SERIAL <<PK>>
-    --
-    * status_name : VARCHAR(50) <<UNIQUE>>
+* status_id : INTEGER <<PK>>
+--
+* status_name : VARCHAR(50) <<UNIQUE>>
 }
 
 entity "INVITO_STATUS" as invito_status {
-    * **status_id** : SERIAL <<PK>>
-    --
-    * status_name : VARCHAR(50) <<UNIQUE>>
+* status_id : INTEGER <<PK>>
+--
+* status_name : VARCHAR(50) <<UNIQUE>>
 }
 
 ' ====================================
@@ -265,11 +264,11 @@ voti }o--|| hackathon : "hackathon_id"
 ' VINCOLI E NOTE
 ' ====================================
 
-note top of user_roles : **USER_ROLES**\n**Tipi Utente:**\n• PARTECIPANTE: Partecipa agli hackathon\n• ORGANIZZATORE: Crea hackathon\n• GIUDICE: Valuta i team\nOgni utente ha UN tipo fisso
+note top of user_roles : USER_ROLES\n1 = ORGANIZZATORE\n2 = GIUDICE\n3 = PARTECIPANTE
 
-note top of hackathon_status : **HACKATHON_STATUS**\n**Stati Hackathon:**\n• REGISTRAZIONI_APERTE\n• REGISTRAZIONI_CHIUSE\n• IN_CORSO\n• TERMINATO
+note top of hackathon_status : HACKATHON_STATUS\n1 = REGISTRAZIONI_APERTE\n2 = REGISTRAZIONI_CHIUSE\n3 = IN_CORSO\n4 = TERMINATO
 
-note top of invito_status : **INVITO_STATUS**\n**Stati Invito:**\n• PENDING (default)\n• ACCEPTED\n• DECLINED\nUsato per inviti giudici e team
+note top of invito_status : INVITO_STATUS\n1 = PENDING\n2 = ACCEPTED\n3 = DECLINED
 
 ' ====================================
 ' CARDINALITÀ E VINCOLI BUSINESS

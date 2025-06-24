@@ -1,0 +1,138 @@
+@startuml sequence-creazione-hackathon
+!define SEQUENCE participant
+
+title **Sequence Diagram - Creazione Hackathon**\n**Architettura BCE + DAO**
+
+' ====================================
+' ATTORI E COMPONENTI
+' ====================================
+
+actor Organizzatore as org
+participant "HomeGUI\n(Boundary)" as gui
+participant "CreaHackathonGUI\n(Boundary)" as createGui
+participant "Controller\n(Control)" as ctrl
+participant "Hackathon\n(Entity)" as hack
+participant "ConnessioneDatabase\n(Utility)" as conn
+participant "HackathonDAO\n(Interface)" as dao
+participant "HackathonImplementazionePostgresDAO\n(Implementation)" as impl
+database "PostgreSQL\nDatabase" as db
+
+' ====================================
+' FLUSSO PRINCIPALE
+' ====================================
+
+== **Avvio Creazione** ==
+org -> gui : clickCreaHackathon()
+activate gui
+
+gui -> createGui : new CreaHackathonGUI(controller, frameChiamante)
+activate createGui
+
+createGui -> createGui : initializeComponents()
+createGui -> gui : setVisible(false)
+createGui -> createGui : setVisible(true)
+
+== **Inserimento Dati** ==
+org -> createGui : inserisciDati(titolo, descrizione, sede, \ndataInizio, dataFine, maxIscritti, maxTeam)
+
+createGui -> createGui : validaInput()
+alt **Dati Non Validi**
+    createGui -> createGui : mostraErrore("Errore validazione")
+    createGui -> org : ❌ Errore visualizzato
+else **Dati Validi**
+    
+    == **Chiamata Controller** ==
+    createGui -> ctrl : creaHackathon(organizzatoreId, titolo, descrizione, \nsede, dataInizio, dataFine, dataChiusura, \nmaxIscritti, maxDimensioneTeam)
+    activate ctrl
+    
+    == **Creazione Entity in Memoria** ==
+    ctrl -> hack : new Hackathon(titolo, descrizione, sede, dataInizio, \ndataFine, dataChiusura, maxIscritti, maxDimensioneTeam)
+    activate hack
+    
+    hack -> hack : validaVincoliTemporali()
+    alt **Vincoli Non Rispettati**
+        hack -> ctrl : ❌ Exception("Vincoli temporali non validi")
+        ctrl -> createGui : ❌ Exception
+        createGui -> org : ❌ "Errore: date non valide"
+    else **Vincoli OK**
+        
+        hack -> hack : setOrganizzatore(organizzatoreId)
+        hack -> hack : setStatus(REGISTRAZIONI_APERTE)
+        hack -> hack : setDataCreazione(now())
+        hack --> ctrl : ✅ hackathon creato in memoria
+        
+        == **Persistenza Database** ==
+        ctrl -> dao : salvaHackathon(hackathon)
+        activate dao
+        
+        dao -> impl : salvaHackathon(hackathon)
+        activate impl
+        
+        impl -> conn : getInstance()
+        activate conn
+        conn --> impl : connection
+        deactivate conn
+        
+        impl -> impl : prepareStatement("INSERT INTO hackathon \n(titolo, descrizione, sede, data_inizio, data_fine, \ndata_chiusura_registrazioni, max_iscritti, \nmax_dimensione_team, organizzatore_id, status_id) \nVALUES (?,?,?,?,?,?,?,?,?,?)")
+        
+        impl -> db : executeUpdate()
+        activate db
+        
+        alt **Insert Successo**
+            db --> impl : ✅ 1 row affected
+            deactivate db
+            
+            impl -> db : getGeneratedKeys()
+            activate db
+            db --> impl : hackathon_id
+            deactivate db
+            
+            impl -> hack : setHackathonId(hackathon_id)
+            impl --> dao : ✅ hackathon salvato
+            deactivate impl
+            dao --> ctrl : ✅ hackathonId
+            deactivate dao
+            
+            == **Aggiornamento Model** ==
+            ctrl -> ctrl : aggiornaListaHackathon(hackathon)
+            ctrl --> createGui : ✅ "Hackathon creato con successo"
+            deactivate ctrl
+            
+            == **Feedback GUI** ==
+            createGui -> createGui : mostraSuccesso("Hackathon creato!")
+            createGui -> gui : setVisible(true)
+            createGui -> createGui : dispose()
+            deactivate createGui
+            
+            gui -> gui : aggiornaListaHackathon()
+            gui -> org : ✅ "Hackathon disponibile in lista"
+            
+        else **Insert Fallito**
+            db --> impl : ❌ SQLException
+            deactivate db
+            impl -> dao : ❌ Exception("Errore salvataggio")
+            deactivate impl
+            dao -> ctrl : ❌ Exception
+            deactivate dao
+            ctrl -> createGui : ❌ "Errore durante salvataggio"
+            deactivate ctrl
+            createGui -> org : ❌ "Operazione fallita"
+        end
+        
+        deactivate hack
+    end
+end
+
+deactivate gui
+
+' ====================================
+' NOTE ESPLICATIVE
+' ====================================
+
+note over org, db : **Pattern BCE + DAO:**\n• Boundary (GUI) gestisce interfaccia\n• Control (Controller) coordina logica\n• Entity (Model) rappresenta dati\n• DAO astrae persistenza
+
+note right of impl : **Implementazione PostgreSQL:**\n• Connection pooling\n• Prepared statements\n• Transaction management\n• Error handling
+
+note left of hack : **Vincoli Business:**\n• data_inizio < data_fine\n• data_chiusura < data_inizio\n• max_iscritti > 0\n• max_dimensione_team > 0
+
+@enduml

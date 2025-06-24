@@ -80,7 +80,6 @@ public class Utente {
         return tipoUtente;
     }
 
-
     public LocalDateTime getDataRegistrazione() {
         return dataRegistrazione;
     }

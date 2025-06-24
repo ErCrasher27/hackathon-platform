@@ -4,7 +4,7 @@ import it.unina.hackathon.dao.UtenteDAO;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
-import it.unina.hackathon.utils.ExistsResponse;
+import it.unina.hackathon.utils.ResponseResult;
 import it.unina.hackathon.utils.UtenteResponse;
 
 import java.sql.Connection;
@@ -78,7 +78,7 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
     }
 
     @Override
-    public ExistsResponse usernameExists(String username) {
+    public ResponseResult usernameExists(String username) {
         String query = "SELECT COUNT(*) FROM utenti WHERE username = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, username);
@@ -91,16 +91,16 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
                 } else {
                     message = "Username non esistente!";
                 }
-                return new ExistsResponse(res, message);
+                return new ResponseResult(res, message);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new ExistsResponse(false, "Errore durante la ricerca dell'username!");
+        return new ResponseResult(false, "Errore durante la ricerca dell'username!");
     }
 
     @Override
-    public ExistsResponse emailExists(String email) {
+    public ResponseResult emailExists(String email) {
         String query = "SELECT COUNT(*) FROM utenti WHERE email = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, email);
@@ -113,12 +113,12 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
                 } else {
                     message = "Email non esistente!";
                 }
-                return new ExistsResponse(res, message);
+                return new ResponseResult(res, message);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new ExistsResponse(false, "Errore durante la ricerca dell'email!");
+        return new ResponseResult(false, "Errore durante la ricerca dell'email!");
     }
 
     private Utente mapResultSetToUtente(ResultSet rs) throws SQLException {

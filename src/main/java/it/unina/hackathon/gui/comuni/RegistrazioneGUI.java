@@ -3,15 +3,15 @@ package it.unina.hackathon.gui.comuni;
 import it.unina.hackathon.controller.AuthenticationController;
 import it.unina.hackathon.controller.Controller;
 import it.unina.hackathon.controller.NavigationController;
+import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.UtenteResponse;
 
 import javax.swing.*;
 
-import static it.unina.hackathon.utils.UtilsUi.showError;
-import static it.unina.hackathon.utils.UtilsUi.showSuccess;
+import static it.unina.hackathon.utils.UtilsUi.*;
 
-public class RegistrazioneGUI {
+public class RegistrazioneGUI implements GUIHandler {
     private final Controller controller;
     private final NavigationController navigationController;
     private final AuthenticationController authenticationController;
@@ -50,28 +50,36 @@ public class RegistrazioneGUI {
         this.controller = Controller.getInstance();
         this.navigationController = controller.getNavigationController();
         this.authenticationController = controller.getAuthController();
+        initializeComponents();
         setupFrame();
         setupEventListeners();
-        setupRadioButtons();
+        loadData();
     }
 
-    private void setupFrame() {
+    @Override
+    public void initializeComponents() {
+        applyStdMargin(registrazionePnl);
+        applyStyleTitleLbl(registerLbl);
+        organizzatoreRb.setText(TipoUtente.ORGANIZZATORE.getDisplayName() + " - Posso creare e gestire hackathon");
+        giudiceRb.setText(TipoUtente.GIUDICE.getDisplayName() + " - Posso valutare i team negli hackathon");
+        partecipanteRb.setText(TipoUtente.PARTECIPANTE.getDisplayName() + " - Posso partecipare agli hackathon");
+    }
+
+    @Override
+    public void setupFrame() {
         frame = new JFrame("Hackathon Platform - Registrazione");
         frame.setContentPane(registrazionePnl);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
+        applyStyleFrame(frame);
     }
 
-    private void setupEventListeners() {
+    @Override
+    public void setupEventListeners() {
         registerBtn.addActionListener(_ -> effettuaRegistrazione());
         loginBtn.addActionListener(_ -> navigationController.goToLogin(frame));
     }
 
-    private void setupRadioButtons() {
-        partecipanteRb.setText(TipoUtente.PARTECIPANTE.getDisplayName() + " - Posso partecipare agli hackathon");
-        organizzatoreRb.setText(TipoUtente.ORGANIZZATORE.getDisplayName() + " - Posso creare e gestire hackathon");
-        giudiceRb.setText(TipoUtente.GIUDICE.getDisplayName() + " - Posso valutare i team negli hackathon");
+    @Override
+    public void loadData() {
     }
 
     private void effettuaRegistrazione() {

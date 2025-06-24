@@ -2,10 +2,15 @@ package it.unina.hackathon.controller;
 
 import it.unina.hackathon.dao.HackathonDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.HackathonImplementazionePostgresDAO;
+import it.unina.hackathon.model.tmp.GiudiceHackathon;
 import it.unina.hackathon.model.Hackathon;
+import it.unina.hackathon.model.enums.HackathonStatus;
 import it.unina.hackathon.utils.HackathonResponse;
+import it.unina.hackathon.utils.ResponseResult;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 public class OrganizzatoreController {
     private final Controller mainController;
@@ -31,5 +36,27 @@ public class OrganizzatoreController {
 
         // Inserisci
         return hackathonDAO.saveHackathon(hackathonCreating);
+    }
+
+    // TODO: I seguenti metodi saranno scritti successivamente
+
+    public List<Hackathon> getAllHackathonByOrganizzatore(int organizzatoreId) {
+        return Collections.emptyList();
+    }
+
+    public List<GiudiceHackathon> getAllGiudiciNonInvitatiInHackathonId(int hackathonId) {
+        return Collections.emptyList();
+    }
+
+    public List<GiudiceHackathon> getAllGiudiciInvitatiInHackathonId(int hackathonId) {
+        return Collections.emptyList();
+    }
+
+    public ResponseResult invitaGiudice(int hackathonId, int giudiceId) {
+        return new ResponseResult(true, "");
+    }
+
+    public ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus stato) {
+        return new ResponseResult(true, "");
     }
 }

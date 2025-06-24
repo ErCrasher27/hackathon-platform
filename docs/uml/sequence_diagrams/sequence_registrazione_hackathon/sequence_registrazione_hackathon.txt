@@ -1,0 +1,211 @@
+@startuml sequence-registrazione-hackathon
+!define SEQUENCE participant
+
+title **Sequence Diagram - Registrazione Utente a Hackathon**\n**Architettura BCE + DAO**
+
+' ====================================
+' ATTORI E COMPONENTI
+' ====================================
+
+actor Partecipante as part
+participant "HomeGUI\n(Boundary)" as home
+participant "RegistrazioneGUI\n(Boundary)" as regGui
+participant "Controller\n(Control)" as ctrl
+participant "Hackathon\n(Entity)" as hack
+participant "Registrazione\n(Entity)" as reg
+participant "ConnessioneDatabase\n(Utility)" as conn
+participant "RegistrazioneDAO\n(Interface)" as regDao
+participant "HackathonDAO\n(Interface)" as hackDao
+participant "RegistrazioneImplementazionePostgresDAO\n(Implementation)" as regImpl
+database "PostgreSQL\nDatabase" as db
+
+' ====================================
+' FLUSSO PRINCIPALE
+' ====================================
+
+== **Visualizzazione Hackathon Disponibili** ==
+part -> home : visualizzaHackathon()
+activate home
+
+home -> ctrl : getHackathonDisponibili()
+activate ctrl
+
+ctrl -> hackDao : getHackathonByStatus(REGISTRAZIONI_APERTE)
+activate hackDao
+
+hackDao -> regImpl : getHackathonByStatus(REGISTRAZIONI_APERTE)
+activate regImpl
+
+regImpl -> conn : getInstance()
+activate conn
+conn --> regImpl : connection
+deactivate conn
+
+regImpl -> db : executeQuery("SELECT * FROM hackathon h \nJOIN hackathon_status hs ON h.status_id = hs.status_id \nWHERE hs.status_name = 'REGISTRAZIONI_APERTE' \nAND h.data_chiusura_registrazioni > NOW()")
+activate db
+db --> regImpl : resultSet
+deactivate db
+
+regImpl -> regImpl : mapResultSetToHackathonList()
+regImpl --> hackDao : List<Hackathon>
+deactivate regImpl
+hackDao --> ctrl : List<Hackathon>
+deactivate hackDao
+
+ctrl --> home : List<Hackathon>
+deactivate ctrl
+
+home -> home : popolaListaHackathon()
+home -> part : 📋 Lista hackathon disponibili
+
+== **Selezione e Apertura Form Registrazione** ==
+part -> home : selezionaHackathon(hackathonId)
+part -> home : clickRegistrati()
+
+home -> regGui : new RegistrazioneGUI(controller, hackathonSelezionato, utenteCorrente)
+activate regGui
+
+regGui -> regGui : initializeComponents()
+regGui -> regGui : caricaDettagliHackathon()
+regGui -> home : setVisible(false)
+regGui -> regGui : setVisible(true)
+
+== **Conferma Registrazione** ==
+part -> regGui : clickConfermaRegistrazione()
+
+regGui -> regGui : validaRegistrazione()
+
+alt **Utente già Registrato**
+    regGui -> ctrl : verificaRegistrazioneEsistente(utenteId, hackathonId)
+    activate ctrl
+    ctrl -> regDao : existsRegistrazione(utenteId, hackathonId)
+    activate regDao
+    regDao -> regImpl : existsRegistrazione(utenteId, hackathonId)
+    activate regImpl
+    regImpl -> db : executeQuery("SELECT COUNT(*) FROM registrazioni \nWHERE utente_id = ? AND hackathon_id = ?")
+    activate db
+    db --> regImpl : count > 0
+    deactivate db
+    regImpl --> regDao : true
+    deactivate regImpl
+    regDao --> ctrl : true
+    deactivate regDao
+    ctrl --> regGui : ❌ true (già registrato)
+    deactivate ctrl
+    regGui -> part : ❌ "Sei già registrato a questo hackathon"
+    
+else **Registrazione Valida**
+    
+    == **Verifica Vincoli** ==
+    regGui -> ctrl : registraUtente(utenteId, hackathonId)
+    activate ctrl
+    
+    ' Verifica hackathon ancora aperto
+    ctrl -> hack : verificaRegistrazioniAperte()
+    activate hack
+    hack -> hack : checkDataChiusura()
+    alt **Registrazioni Chiuse**
+        hack --> ctrl : ❌ Exception("Registrazioni chiuse")
+        ctrl -> regGui : ❌ Exception
+        regGui -> part : ❌ "Registrazioni chiuse per questo hackathon"
+    else **Registrazioni Aperte**
+        
+        ' Verifica posti disponibili
+        hack -> hack : getNumeroIscritti()
+        hack -> hack : checkPostiDisponibili()
+        alt **Nessun Posto Disponibile**
+            hack --> ctrl : ❌ Exception("Hackathon al completo")
+            ctrl -> regGui : ❌ Exception
+            regGui -> part : ❌ "Hackathon al completo"
+        else **Posti Disponibili**
+            
+            hack --> ctrl : ✅ Hackathon disponibile
+            deactivate hack
+            
+            == **Creazione Registrazione** ==
+            ctrl -> reg : new Registrazione(utenteId, hackathonId, dataRegistrazione)
+            activate reg
+            reg -> reg : setDataRegistrazione(now())
+            reg --> ctrl : ✅ registrazione creata in memoria
+            
+            == **Persistenza Database** ==
+            ctrl -> regDao : salvaRegistrazione(registrazione)
+            activate regDao
+            
+            regDao -> regImpl : salvaRegistrazione(registrazione)
+            activate regImpl
+            
+            regImpl -> conn : getInstance()
+            activate conn
+            conn --> regImpl : connection
+            deactivate conn
+            
+            regImpl -> impl : prepareStatement("INSERT INTO registrazioni \n(utente_id, hackathon_id, data_registrazione) \nVALUES (?, ?, ?)")
+            
+            regImpl -> db : executeUpdate()
+            activate db
+            
+            alt **Insert Successo**
+                db --> regImpl : ✅ 1 row affected
+                deactivate db
+                
+                regImpl -> db : getGeneratedKeys()
+                activate db
+                db --> regImpl : registrazione_id
+                deactivate db
+                
+                regImpl -> reg : setRegistrazioneId(registrazione_id)
+                regImpl --> regDao : ✅ registrazione salvata
+                deactivate regImpl
+                regDao --> ctrl : ✅ registrazioneId
+                deactivate regDao
+                
+                == **Aggiornamento Modello** ==
+                ctrl -> ctrl : aggiornaRegistrazioniUtente(registrazione)
+                ctrl -> hack : incrementaNumeroIscritti()
+                ctrl --> regGui : ✅ "Registrazione completata"
+                deactivate ctrl
+                
+                == **Feedback GUI** ==
+                regGui -> regGui : mostraSuccesso("Registrato con successo!")
+                regGui -> regGui : abilitaFormazioneTeam()
+                regGui -> part : ✅ "Ora puoi formare o unirti a un team"
+                
+                regGui -> home : setVisible(true)
+                regGui -> home : aggiornaStatoUtente()
+                regGui -> regGui : dispose()
+                deactivate regGui
+                
+                home -> home : refreshHackathonList()
+                home -> part : 🎉 "Registrazione completata!"
+                
+            else **Insert Fallito**
+                db --> regImpl : ❌ SQLException
+                deactivate db
+                regImpl -> regDao : ❌ Exception("Errore database")
+                deactivate regImpl
+                regDao -> ctrl : ❌ Exception
+                deactivate regDao
+                ctrl -> regGui : ❌ "Errore durante registrazione"
+                deactivate ctrl
+                regGui -> part : ❌ "Operazione fallita, riprova"
+            end
+            
+            deactivate reg
+        end
+    end
+end
+
+deactivate home
+
+' ====================================
+' NOTE ESPLICATIVE
+' ====================================
+
+note over part, db : **Vincoli di Registrazione:**\n• Un utente per hackathon\n• Registrazioni aperte\n• Posti disponibili\n• Data <= data_chiusura
+
+note right of regImpl : **Query Critiche:**\n• Controllo duplicati\n• Verifica posti disponibili\n• Controllo date chiusura\n• Aggiornamento contatori
+
+note left of reg : **Entity Registrazione:**\n• Collega Utente-Hackathon\n• Timestamp registrazione\n• Riferimento opzionale al team
+
+@enduml

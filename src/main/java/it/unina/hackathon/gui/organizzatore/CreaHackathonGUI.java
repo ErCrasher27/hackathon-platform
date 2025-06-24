@@ -57,6 +57,7 @@ public class CreaHackathonGUI implements GUIHandler {
         this.controller = Controller.getInstance();
         this.navigationController = controller.getNavigationController();
         this.organizzatoreController = controller.getOrganizzatoreController();
+        initializeComponents();
         setupFrame();
         setupDateFields();
         setupNumberFields();
@@ -65,7 +66,8 @@ public class CreaHackathonGUI implements GUIHandler {
 
     @Override
     public void initializeComponents() {
-
+        applyStdMargin(creaHackathonPnl);
+        applyStyleTitleLbl(createLbl);
     }
 
     @Override

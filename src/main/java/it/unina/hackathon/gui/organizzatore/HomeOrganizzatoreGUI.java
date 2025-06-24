@@ -53,7 +53,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         // Panel superiore con titolo e pulsanti
         JPanel topPanel = new JPanel(new BorderLayout());
         JLabel titleLabel = new JLabel("Ciao " + controller.getUtenteCorrente().getNome() + "!");
-        applyStdMargin(titleLabel);
+        applyStdMargin(homeOrganizzatorePnl);
         applyStyleTitleLbl(titleLabel);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnAggiungiHackathon = new JButton("+ Nuovo Hackathon");

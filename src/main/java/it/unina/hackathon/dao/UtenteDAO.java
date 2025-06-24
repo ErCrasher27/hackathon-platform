@@ -1,7 +1,7 @@
 package it.unina.hackathon.dao;
 
 import it.unina.hackathon.model.Utente;
-import it.unina.hackathon.utils.ExistsResponse;
+import it.unina.hackathon.utils.ResponseResult;
 import it.unina.hackathon.utils.UtenteResponse;
 
 public interface UtenteDAO {
@@ -9,7 +9,7 @@ public interface UtenteDAO {
 
     UtenteResponse saveUtente(Utente utente);
 
-    ExistsResponse usernameExists(String username);
+    ResponseResult usernameExists(String username);
 
-    ExistsResponse emailExists(String email);
+    ResponseResult emailExists(String email);
 }

@@ -4,7 +4,7 @@ import it.unina.hackathon.dao.UtenteDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.UtenteImplementazionePostgresDAO;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.TipoUtente;
-import it.unina.hackathon.utils.ExistsResponse;
+import it.unina.hackathon.utils.ResponseResult;
 import it.unina.hackathon.utils.UtenteResponse;
 
 public class AuthenticationController {
@@ -49,12 +49,12 @@ public class AuthenticationController {
         }
 
         // Ricerca Username ed Email, (se trovati la registrazione fallisce)
-        ExistsResponse esitoRicercaUsername = utenteDAO.usernameExists(utenteRegisteringIn.getUsername());
-        if (esitoRicercaUsername.exists()) {
+        ResponseResult esitoRicercaUsername = utenteDAO.usernameExists(utenteRegisteringIn.getUsername());
+        if (esitoRicercaUsername.result()) {
             return new UtenteResponse(null, esitoRicercaUsername.message());
         }
-        ExistsResponse esitoRicercaEmail = utenteDAO.emailExists(utenteRegisteringIn.getEmail());
-        if (esitoRicercaEmail.exists()) {
+        ResponseResult esitoRicercaEmail = utenteDAO.emailExists(utenteRegisteringIn.getEmail());
+        if (esitoRicercaEmail.result()) {
             return new UtenteResponse(null, esitoRicercaEmail.message());
         }
 

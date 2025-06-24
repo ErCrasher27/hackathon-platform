@@ -3,6 +3,7 @@ package it.unina.hackathon.gui.organizzatore;
 import it.unina.hackathon.controller.Controller;
 import it.unina.hackathon.controller.NavigationController;
 import it.unina.hackathon.controller.OrganizzatoreController;
+import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.utils.HackathonResponse;
 
 import javax.swing.*;
@@ -13,10 +14,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-import static it.unina.hackathon.utils.UtilsUi.showError;
-import static it.unina.hackathon.utils.UtilsUi.showSuccess;
+import static it.unina.hackathon.utils.UtilsUi.*;
 
-public class CreaHackathonGUI {
+public class CreaHackathonGUI implements GUIHandler {
     private final Controller controller;
     private final NavigationController navigationController;
     private final OrganizzatoreController organizzatoreController;
@@ -63,17 +63,26 @@ public class CreaHackathonGUI {
         setupEventListeners();
     }
 
-    private void setupFrame() {
-        frame = new JFrame("Hackathon Platform - Crea Hackathon");
-        frame.setContentPane(creaHackathonPnl);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
+    @Override
+    public void initializeComponents() {
+
     }
 
-    private void setupEventListeners() {
+    @Override
+    public void setupFrame() {
+        frame = new JFrame("Hackathon Platform - Crea Hackathon");
+        frame.setContentPane(creaHackathonPnl);
+        applyStyleFrame(frame);
+    }
+
+    @Override
+    public void setupEventListeners() {
         createBtn.addActionListener(_ -> creaHackathon());
         cancelBtn.addActionListener(_ -> navigationController.goToHome(frame, controller.getUtenteCorrente().getTipoUtente()));
+    }
+
+    @Override
+    public void loadData() {
     }
 
     private void creaHackathon() {
@@ -150,6 +159,7 @@ public class CreaHackathonGUI {
         }
     }
 
+    @Override
     public JFrame getFrame() {
         return frame;
     }

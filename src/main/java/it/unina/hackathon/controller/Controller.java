@@ -52,6 +52,10 @@ public class Controller {
         return utenteCorrente.getTipoUtente();
     }
 
+    public String getNomeCompletoUtenteCorrente() {
+        return utenteCorrente.getNomeCompleto();
+    }
+
     public void logout() {
         this.utenteCorrente = null;
     }

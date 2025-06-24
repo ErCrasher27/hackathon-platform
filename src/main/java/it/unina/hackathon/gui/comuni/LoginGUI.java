@@ -3,14 +3,14 @@ package it.unina.hackathon.gui.comuni;
 import it.unina.hackathon.controller.AuthenticationController;
 import it.unina.hackathon.controller.Controller;
 import it.unina.hackathon.controller.NavigationController;
+import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.utils.UtenteResponse;
 
 import javax.swing.*;
 
-import static it.unina.hackathon.utils.UtilsUi.showError;
-import static it.unina.hackathon.utils.UtilsUi.showSuccess;
+import static it.unina.hackathon.utils.UtilsUi.*;
 
-public class LoginGUI {
+public class LoginGUI implements GUIHandler {
     private final Controller controller;
     private final NavigationController navigationController;
     private final AuthenticationController authenticationController;
@@ -33,25 +33,43 @@ public class LoginGUI {
         this.controller = Controller.getInstance();
         this.navigationController = controller.getNavigationController();
         this.authenticationController = controller.getAuthController();
+        initializeComponents();
         setupFrame();
         setupEventListeners();
+        loadData();
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LoginGUI().frame.setVisible(true));
     }
 
-    private void setupFrame() {
-        frame = new JFrame("Hackathon Platform - Login");
-        frame.setContentPane(loginPnl);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
+    @Override
+    public void initializeComponents() {
+        applyStdMargin(loginPnl);
+        applyStyleTitleLbl(welcomeLbl);
     }
 
-    private void setupEventListeners() {
+    @Override
+    public void setupFrame() {
+        frame = new JFrame("Hackathon Platform - Login");
+        frame.setContentPane(loginPnl);
+        applyStyleFrame(frame);
+    }
+
+    @Override
+    public void setupEventListeners() {
         loginBtn.addActionListener(_ -> effettuaLogin());
         registerBtn.addActionListener(_ -> navigationController.goToRegistrazione(frame));
+    }
+
+
+    @Override
+    public void loadData() {
+    }
+
+    @Override
+    public JFrame getFrame() {
+        return frame;
     }
 
     private void effettuaLogin() {
@@ -68,7 +86,4 @@ public class LoginGUI {
         }
     }
 
-    public JFrame getFrame() {
-        return frame;
-    }
 }

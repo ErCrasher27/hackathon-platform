@@ -6,6 +6,7 @@ import it.unina.hackathon.controller.OrganizzatoreController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
+import it.unina.hackathon.utils.HackathonListResponse;
 import it.unina.hackathon.utils.ResponseResult;
 
 import javax.swing.*;
@@ -130,8 +131,13 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
     @Override
     public void loadData() {
         try {
-            hackathonList = organizzatoreController.getAllHackathonByOrganizzatore(controller.getIdUtenteCorrente());
-            tableModel.setHackathonList(hackathonList);
+            HackathonListResponse hackathonListResponse = organizzatoreController.getAllHackathonByOrganizzatore(controller.getIdUtenteCorrente());
+            if (hackathonListResponse.hackathons() != null) {
+                hackathonList = hackathonListResponse.hackathons();
+                tableModel.setHackathonList(hackathonList);
+            } else {
+                showError(frame, "Errore nel caricamento degli hackathon: " + hackathonListResponse.message());
+            }
         } catch (Exception e) {
             showError(frame, "Errore nel caricamento degli hackathon: " + e.getMessage());
         }

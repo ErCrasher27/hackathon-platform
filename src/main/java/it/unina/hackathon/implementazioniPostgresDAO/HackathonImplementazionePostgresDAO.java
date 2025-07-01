@@ -4,9 +4,12 @@ import it.unina.hackathon.dao.HackathonDAO;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
 import it.unina.hackathon.utils.ConnessioneDatabase;
+import it.unina.hackathon.utils.HackathonListResponse;
 import it.unina.hackathon.utils.HackathonResponse;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     private Connection connection;
@@ -55,6 +58,36 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
             return new HackathonResponse(null, "Errore durante la creazione dell'Hackathon: " + e.getMessage());
         }
         return new HackathonResponse(null, "Errore durante la creazione dell'Hackathon!");
+    }
+
+    @Override
+    public HackathonListResponse getAllHackathonByOrganizzatore(int organizzatoreId) {
+        String query = """
+                SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
+                       h.data_chiusura_registrazioni, h.max_iscritti, h.max_dimensione_team, 
+                       h.organizzatore_id, h.data_creazione, hs.status_name 
+                FROM hackathon h 
+                JOIN hackathon_status hs ON h.status_id = hs.status_id 
+                WHERE h.organizzatore_id = ?
+                ORDER BY h.data_creazione DESC
+                """;
+
+        List<Hackathon> hackathonList = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, organizzatoreId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                hackathonList.add(mapResultSetToHackathon(rs));
+            }
+
+            return new HackathonListResponse(hackathonList, "Hackathon recuperati con successo!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HackathonListResponse(null, "Errore durante il recupero degli hackathon: " + e.getMessage());
+        }
     }
 
     private Hackathon mapResultSetToHackathon(ResultSet rs) throws SQLException {

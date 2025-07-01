@@ -2,9 +2,10 @@ package it.unina.hackathon.controller;
 
 import it.unina.hackathon.dao.HackathonDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.HackathonImplementazionePostgresDAO;
-import it.unina.hackathon.model.tmp.GiudiceHackathon;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
+import it.unina.hackathon.model.tmp.GiudiceHackathon;
+import it.unina.hackathon.utils.HackathonListResponse;
 import it.unina.hackathon.utils.HackathonResponse;
 import it.unina.hackathon.utils.ResponseResult;
 
@@ -40,8 +41,8 @@ public class OrganizzatoreController {
 
     // TODO: I seguenti metodi saranno scritti successivamente
 
-    public List<Hackathon> getAllHackathonByOrganizzatore(int organizzatoreId) {
-        return Collections.emptyList();
+    public HackathonListResponse getAllHackathonByOrganizzatore(int organizzatoreId) {
+        return hackathonDAO.getAllHackathonByOrganizzatore(organizzatoreId);
     }
 
     public List<GiudiceHackathon> getAllGiudiciNonInvitatiInHackathonId(int hackathonId) {

@@ -1,25 +1,28 @@
 package it.unina.hackathon.controller;
 
+import it.unina.hackathon.dao.GiudiceHackathonDAO;
 import it.unina.hackathon.dao.HackathonDAO;
+import it.unina.hackathon.dao.PartecipanteDAO;
+import it.unina.hackathon.implementazioniPostgresDAO.GiudiceHackathonImplementazionePostgresDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.HackathonImplementazionePostgresDAO;
+import it.unina.hackathon.implementazioniPostgresDAO.PartecipanteImplementazionePostgresDAO;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
-import it.unina.hackathon.model.tmp.GiudiceHackathon;
-import it.unina.hackathon.utils.HackathonListResponse;
-import it.unina.hackathon.utils.HackathonResponse;
-import it.unina.hackathon.utils.ResponseResult;
+import it.unina.hackathon.utils.*;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 
 public class OrganizzatoreController {
     private final Controller mainController;
     private final HackathonDAO hackathonDAO;
+    private final GiudiceHackathonDAO giudiceHackathonDAO;
+    private final PartecipanteDAO partecipanteDAO;
 
     public OrganizzatoreController(Controller mainController) {
         this.mainController = mainController;
         this.hackathonDAO = new HackathonImplementazionePostgresDAO();
+        this.giudiceHackathonDAO = new GiudiceHackathonImplementazionePostgresDAO();
+        this.partecipanteDAO = new PartecipanteImplementazionePostgresDAO();
     }
 
     public HackathonResponse creaHackathon(String title, String description, String site, LocalDateTime startDate, LocalDateTime endDate, int maxSubscription, int maxMemberForTeam) {
@@ -39,25 +42,55 @@ public class OrganizzatoreController {
         return hackathonDAO.saveHackathon(hackathonCreating);
     }
 
-    // TODO: I seguenti metodi saranno scritti successivamente
-
     public HackathonListResponse getAllHackathonByOrganizzatore(int organizzatoreId) {
         return hackathonDAO.getAllHackathonByOrganizzatore(organizzatoreId);
     }
 
-    public List<GiudiceHackathon> getAllGiudiciNonInvitatiInHackathonId(int hackathonId) {
-        return Collections.emptyList();
+    public HackathonResponse getDettagliHackathon(int hackathonId) {
+        return hackathonDAO.getHackathonById(hackathonId);
     }
 
-    public List<GiudiceHackathon> getAllGiudiciInvitatiInHackathonId(int hackathonId) {
-        return Collections.emptyList();
+    public HackathonResponse updateHackathon(Hackathon hackathon) {
+        return hackathonDAO.updateHackathon(hackathon);
+    }
+
+    public ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato) {
+        return hackathonDAO.cambiaStatoHackathon(hackathonId, nuovoStato);
+    }
+
+    public UtenteListResponse getAllGiudiciNonInvitatiInHackathon(int hackathonId) {
+        return giudiceHackathonDAO.getGiudiciNonInvitati(hackathonId);
+    }
+
+    public GiudiceHackathonListResponse getAllGiudiciInvitatiInHackathon(int hackathonId) {
+        return giudiceHackathonDAO.getGiudiciInvitati(hackathonId);
     }
 
     public ResponseResult invitaGiudice(int hackathonId, int giudiceId) {
-        return new ResponseResult(true, "");
+        return giudiceHackathonDAO.invitaGiudice(hackathonId, giudiceId, mainController.getIdUtenteCorrente());
     }
 
-    public ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus stato) {
-        return new ResponseResult(true, "");
+    public ResponseResult rimuoviInvitoGiudice(int hackathonId, int giudiceId) {
+        return giudiceHackathonDAO.rimuoviInvito(hackathonId, giudiceId);
+    }
+
+    public UtenteListResponse getPartecipantiHackathon(int hackathonId) {
+        return partecipanteDAO.getPartecipantiHackathon(hackathonId);
+    }
+
+    public TeamListResponse getTeamHackathon(int hackathonId) {
+        return partecipanteDAO.getTeamHackathon(hackathonId);
+    }
+
+    public ResponseIntResult contaPartecipanti(int hackathonId) {
+        return partecipanteDAO.contaPartecipantiRegistrati(hackathonId);
+    }
+
+    public ResponseIntResult contaTeam(int hackathonId) {
+        return partecipanteDAO.contaTeamFormati(hackathonId);
+    }
+
+    public ResponseIntResult contaGiudiciAccettati(int hackathonId) {
+        return giudiceHackathonDAO.contaGiudiciAccettati(hackathonId);
     }
 }

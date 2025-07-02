@@ -6,6 +6,7 @@ import it.unina.hackathon.model.enums.HackathonStatus;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.HackathonListResponse;
 import it.unina.hackathon.utils.HackathonResponse;
+import it.unina.hackathon.utils.ResponseResult;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -52,12 +53,13 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
                     hackathon.setHackathonId(generatedKeys.getInt(1));
                 }
                 return new HackathonResponse(hackathon, "Hackathon creato con successo!");
+            } else {
+                return new HackathonResponse(null, "Errore durante la creazione dell'hackathon!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new HackathonResponse(null, "Errore durante la creazione dell'Hackathon: " + e.getMessage());
+            return new HackathonResponse(null, "Errore durante la creazione dell'hackathon: " + e.getMessage());
         }
-        return new HackathonResponse(null, "Errore durante la creazione dell'Hackathon!");
     }
 
     @Override
@@ -86,7 +88,89 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return new HackathonListResponse(null, "Errore durante il recupero degli hackathon: " + e.getMessage());
+            return new HackathonListResponse(null, "Errore durante il recupero degli hackathon!");
+        }
+    }
+
+    public HackathonResponse getHackathonById(int hackathonId) {
+        String query = """
+                SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
+                       h.data_chiusura_registrazioni, h.max_iscritti, h.max_dimensione_team, 
+                       h.organizzatore_id, h.data_creazione, hs.status_name 
+                FROM hackathon h 
+                JOIN hackathon_status hs ON h.status_id = hs.status_id 
+                WHERE h.hackathon_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hackathonId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Hackathon hackathon = mapResultSetToHackathon(rs);
+                return new HackathonResponse(hackathon, "Hackathon trovato con successo!");
+            } else {
+                return new HackathonResponse(null, "Hackathon non trovato!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HackathonResponse(null, "Errore durante la ricerca dell'hackathon!");
+        }
+    }
+
+    public HackathonResponse updateHackathon(Hackathon hackathon) {
+        String query = """
+                UPDATE hackathon 
+                SET titolo = ?, descrizione = ?, sede = ?, data_inizio = ?, data_fine = ?, 
+                    data_chiusura_registrazioni = ?, max_iscritti = ?, max_dimensione_team = ?
+                WHERE hackathon_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, hackathon.getTitolo());
+            ps.setString(2, hackathon.getDescrizione());
+            ps.setString(3, hackathon.getSede());
+            ps.setTimestamp(4, Timestamp.valueOf(hackathon.getDataInizio()));
+            ps.setTimestamp(5, Timestamp.valueOf(hackathon.getDataFine()));
+            ps.setTimestamp(6, Timestamp.valueOf(hackathon.getDataChiusuraRegistrazioni()));
+            ps.setInt(7, hackathon.getMaxIscritti());
+            ps.setInt(8, hackathon.getMaxDimensioneTeam());
+            ps.setInt(9, hackathon.getHackathonId());
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows > 0) {
+                return new HackathonResponse(hackathon, "Hackathon aggiornato con successo!");
+            } else {
+                return new HackathonResponse(null, "Hackathon non trovato per l'aggiornamento!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HackathonResponse(null, "Errore durante l'aggiornamento dell'hackathon!");
+        }
+    }
+
+    public ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato) {
+        String query = """
+                UPDATE hackathon 
+                SET status_id = (SELECT status_id FROM hackathon_status WHERE status_name = ?)
+                WHERE hackathon_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, nuovoStato.name());
+            ps.setInt(2, hackathonId);
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows > 0) {
+                return new ResponseResult(true, "Stato hackathon cambiato con successo!");
+            } else {
+                return new ResponseResult(false, "Hackathon non trovato!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseResult(false, "Errore durante il cambio di stato dell'hackathon!");
         }
     }
 

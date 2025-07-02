@@ -2,10 +2,10 @@ package it.unina.hackathon.controller;
 
 import it.unina.hackathon.gui.comuni.LoginGUI;
 import it.unina.hackathon.gui.comuni.RegistrazioneGUI;
-import it.unina.hackathon.gui.tmp.giudice.HomeGiudiceGUI;
 import it.unina.hackathon.gui.organizzatore.CreaHackathonGUI;
 import it.unina.hackathon.gui.organizzatore.GestisciHackathonGUI;
 import it.unina.hackathon.gui.organizzatore.HomeOrganizzatoreGUI;
+import it.unina.hackathon.gui.tmp.giudice.HomeGiudiceGUI;
 import it.unina.hackathon.gui.tmp.partecipante.HomePartecipanteGUI;
 import it.unina.hackathon.model.enums.TipoUtente;
 
@@ -22,8 +22,6 @@ public class NavigationController {
         JFrame newFrame = createHomeFrame(tipoUtente);
         if (newFrame != null) {
             switchFrame(currentFrame, newFrame);
-        } else {
-            JOptionPane.showMessageDialog(currentFrame, "Errore: tipo utente non riconosciuto!");
         }
     }
 
@@ -56,8 +54,8 @@ public class NavigationController {
         switchFrame(currentFrame, new CreaHackathonGUI().getFrame());
     }
 
-    public void goToGestisciHackathon(JFrame currentFrame) {
-        switchFrame(currentFrame, new GestisciHackathonGUI().getFrame());
+    public void goToGestisciHackathon(JFrame currentFrame, int hackathonId) {
+        switchFrame(currentFrame, new GestisciHackathonGUI(hackathonId).getFrame());
     }
 
     private void switchFrame(JFrame currentFrame, JFrame newFrame) {

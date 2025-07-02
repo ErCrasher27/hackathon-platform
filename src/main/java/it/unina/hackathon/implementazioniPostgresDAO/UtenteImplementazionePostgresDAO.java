@@ -38,12 +38,14 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return new UtenteResponse(mapResultSetToUtente(rs), "Username trovato!");
+                return new UtenteResponse(mapResultSetToUtente(rs), "Utente trovato con successo!");
+            } else {
+                return new UtenteResponse(null, "Username non trovato!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return new UtenteResponse(null, "Errore durante la ricerca dell'utente!");
         }
-        return new UtenteResponse(null, "Username trovato!");
     }
 
     @Override
@@ -53,7 +55,7 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
+        try (PreparedStatement ps = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, utente.getUsername());
             ps.setString(2, utente.getEmail());
             ps.setString(3, utente.getPassword());
@@ -69,12 +71,13 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
                     utente.setUtenteId(generatedKeys.getInt(1));
                 }
                 return new UtenteResponse(utente, "Registrazione avvenuta con successo!");
+            } else {
+                return new UtenteResponse(null, "Errore durante la registrazione!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
             return new UtenteResponse(null, "Errore durante la registrazione: " + e.getMessage());
         }
-        return new UtenteResponse(null, "Errore durante la registrazione!");
     }
 
     @Override
@@ -84,19 +87,19 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                boolean res = rs.getInt(1) > 0;
-                String message;
-                if (res) {
-                    message = "Username già esistente!";
+                boolean exists = rs.getInt(1) > 0;
+                if (exists) {
+                    return new ResponseResult(true, "Username già esistente!");
                 } else {
-                    message = "Username non esistente!";
+                    return new ResponseResult(false, "Username disponibile!");
                 }
-                return new ResponseResult(res, message);
+            } else {
+                return new ResponseResult(false, "Errore durante la verifica dell'username!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return new ResponseResult(false, "Errore durante la verifica dell'username!");
         }
-        return new ResponseResult(false, "Errore durante la ricerca dell'username!");
     }
 
     @Override
@@ -106,19 +109,19 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                boolean res = rs.getInt(1) > 0;
-                String message;
-                if (res) {
-                    message = "Email già esistente!";
+                boolean exists = rs.getInt(1) > 0;
+                if (exists) {
+                    return new ResponseResult(true, "Email già esistente!");
                 } else {
-                    message = "Email non esistente!";
+                    return new ResponseResult(false, "Email disponibile!");
                 }
-                return new ResponseResult(res, message);
+            } else {
+                return new ResponseResult(false, "Errore durante la verifica dell'email!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return new ResponseResult(false, "Errore durante la verifica dell'email!");
         }
-        return new ResponseResult(false, "Errore durante la ricerca dell'email!");
     }
 
     private Utente mapResultSetToUtente(ResultSet rs) throws SQLException {

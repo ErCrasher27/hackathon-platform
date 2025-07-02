@@ -1,4 +1,4 @@
-package it.unina.hackathon.model.tmp;
+package it.unina.hackathon.model;
 
 import it.unina.hackathon.model.enums.StatoInvito;
 
@@ -10,8 +10,13 @@ public class GiudiceHackathon {
     // region Proprietà
 
     private int giudiceHackathonId;
+    private int hackathonId;
+    private int giudiceId;
+    private int invitatoDaId;
     private LocalDateTime dataInvito;
     private StatoInvito statoInvito;
+    private Utente giudice;
+    private Utente invitatoDa;
 
     // endregion
 
@@ -20,6 +25,13 @@ public class GiudiceHackathon {
     public GiudiceHackathon() {
         this.dataInvito = LocalDateTime.now();
         this.statoInvito = StatoInvito.PENDING;
+    }
+
+    public GiudiceHackathon(int hackathonId, int giudiceId, int invitatoDaId) {
+        this();
+        this.hackathonId = hackathonId;
+        this.giudiceId = giudiceId;
+        this.invitatoDaId = invitatoDaId;
     }
 
     // endregion
@@ -32,6 +44,30 @@ public class GiudiceHackathon {
 
     public void setGiudiceHackathonId(int giudiceHackathonId) {
         this.giudiceHackathonId = giudiceHackathonId;
+    }
+
+    public int getHackathonId() {
+        return hackathonId;
+    }
+
+    public void setHackathonId(int hackathonId) {
+        this.hackathonId = hackathonId;
+    }
+
+    public int getGiudiceId() {
+        return giudiceId;
+    }
+
+    public void setGiudiceId(int giudiceId) {
+        this.giudiceId = giudiceId;
+    }
+
+    public int getInvitatoDaId() {
+        return invitatoDaId;
+    }
+
+    public void setInvitatoDaId(int invitatoDaId) {
+        this.invitatoDaId = invitatoDaId;
     }
 
     public LocalDateTime getDataInvito() {
@@ -48,6 +84,22 @@ public class GiudiceHackathon {
 
     public void setStatoInvito(StatoInvito statoInvito) {
         this.statoInvito = statoInvito;
+    }
+
+    public Utente getGiudice() {
+        return giudice;
+    }
+
+    public void setGiudice(Utente giudice) {
+        this.giudice = giudice;
+    }
+
+    public Utente getInvitatoDa() {
+        return invitatoDa;
+    }
+
+    public void setInvitatoDa(Utente invitatoDa) {
+        this.invitatoDa = invitatoDa;
     }
 
     // endregion
@@ -76,6 +128,18 @@ public class GiudiceHackathon {
         return false;
     }
 
+    public boolean isPending() {
+        return statoInvito == StatoInvito.PENDING;
+    }
+
+    public boolean isAccepted() {
+        return statoInvito == StatoInvito.ACCEPTED;
+    }
+
+    public boolean isDeclined() {
+        return statoInvito == StatoInvito.DECLINED;
+    }
+
     // endregion
 
     // region Overrides
@@ -95,7 +159,7 @@ public class GiudiceHackathon {
 
     @Override
     public String toString() {
-        return String.format("GiudiceHackathon{id=%d, stato=%s}", giudiceHackathonId, statoInvito);
+        return String.format("GiudiceHackathon{id=%d, hackathonId=%d, giudiceId=%d, stato=%s}", giudiceHackathonId, hackathonId, giudiceId, statoInvito);
     }
 
     // endregion

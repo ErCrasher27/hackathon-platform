@@ -1,5 +1,7 @@
 package it.unina.hackathon.model.tmp;
 
+import it.unina.hackathon.model.Team;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 

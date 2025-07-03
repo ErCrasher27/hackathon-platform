@@ -13,4 +13,8 @@ public interface GUIHandler {
     void loadData();
 
     JFrame getFrame();
+
+    default void showFrame() {
+        getFrame().setVisible(true);
+    }
 }

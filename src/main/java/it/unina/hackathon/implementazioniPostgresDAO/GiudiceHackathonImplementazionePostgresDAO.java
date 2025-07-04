@@ -61,13 +61,13 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
     public GiudiceHackathonListResponse getGiudiciInvitati(int hackathonId) {
         String query = """
                 SELECT gh.giudice_hackathon_id, gh.hackathon_id, gh.giudice_id, gh.data_invito, 
-                       gh.invitato_da, is.status_name as stato_invito,
+                       gh.invitato_da, invs.status_name as stato_invito,
                        u.username, u.nome, u.cognome, u.email,
                        organizzatore.username as invitato_da_username
                 FROM giudici_hackathon gh
                 JOIN utenti u ON gh.giudice_id = u.utente_id
                 JOIN utenti organizzatore ON gh.invitato_da = organizzatore.utente_id
-                JOIN invito_status is ON gh.stato_invito_id = is.status_id
+                JOIN invito_status invs ON gh.stato_invito_id = invs.status_id
                 WHERE gh.hackathon_id = ?
                 ORDER BY gh.data_invito DESC
                 """;
@@ -146,8 +146,8 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
         String query = """
                 SELECT COUNT(*) 
                 FROM giudici_hackathon gh
-                JOIN invito_status is ON gh.stato_invito_id = is.status_id
-                WHERE gh.hackathon_id = ? AND is.status_name = 'ACCEPTED'
+                JOIN invito_status invs ON gh.stato_invito_id = invs.status_id
+                WHERE gh.hackathon_id = ? AND invs.status_name = 'ACCEPTED'
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {

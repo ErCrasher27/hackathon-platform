@@ -81,8 +81,20 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
             while (rs.next()) {
                 GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
                 giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
+                giudiceHackathon.setHackathonId(rs.getInt("hackathon_id"));
+                giudiceHackathon.setGiudiceId(rs.getInt("giudice_id"));
+                giudiceHackathon.setInvitatoDaId(rs.getInt("invitato_da"));
                 giudiceHackathon.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
                 giudiceHackathon.setStatoInvito(StatoInvito.valueOf(rs.getString("stato_invito")));
+
+                Utente giudice = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
+                giudice.setUtenteId(rs.getInt("giudice_id"));
+                giudiceHackathon.setGiudice(giudice);
+
+                Utente invitatoDa = new Utente(rs.getString("invitato_da_username"), "", "", "", "", TipoUtente.ORGANIZZATORE);
+                invitatoDa.setUtenteId(rs.getInt("invitato_da"));
+                giudiceHackathon.setInvitatoDa(invitatoDa);
+
                 giudiciInvitati.add(giudiceHackathon);
             }
             return new GiudiceHackathonListResponse(giudiciInvitati, "Giudici invitati caricati con successo!");

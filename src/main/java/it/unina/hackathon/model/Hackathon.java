@@ -1,7 +1,7 @@
 package it.unina.hackathon.model;
 
 import it.unina.hackathon.model.enums.HackathonStatus;
-import it.unina.hackathon.utils.HackathonResponse;
+import it.unina.hackathon.utils.responses.HackathonResponse;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

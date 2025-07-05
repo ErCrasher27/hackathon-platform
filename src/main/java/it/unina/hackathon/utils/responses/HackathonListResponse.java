@@ -1,4 +1,4 @@
-package it.unina.hackathon.utils;
+package it.unina.hackathon.utils.responses;
 
 import it.unina.hackathon.model.Hackathon;
 

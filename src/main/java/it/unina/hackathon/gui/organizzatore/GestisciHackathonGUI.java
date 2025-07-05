@@ -9,7 +9,12 @@ import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Team;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.HackathonStatus;
-import it.unina.hackathon.utils.*;
+import it.unina.hackathon.utils.responses.GiudiceHackathonListResponse;
+import it.unina.hackathon.utils.responses.HackathonResponse;
+import it.unina.hackathon.utils.responses.TeamListResponse;
+import it.unina.hackathon.utils.responses.UtenteListResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

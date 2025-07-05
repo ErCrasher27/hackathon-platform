@@ -1,7 +1,7 @@
 package it.unina.hackathon.model;
 
 import it.unina.hackathon.model.enums.TipoUtente;
-import it.unina.hackathon.utils.UtenteResponse;
+import it.unina.hackathon.utils.responses.UtenteResponse;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

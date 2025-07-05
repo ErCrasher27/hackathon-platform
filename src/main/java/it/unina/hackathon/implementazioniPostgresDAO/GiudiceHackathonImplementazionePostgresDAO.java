@@ -5,7 +5,11 @@ import it.unina.hackathon.model.GiudiceHackathon;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.StatoInvito;
 import it.unina.hackathon.model.enums.TipoUtente;
-import it.unina.hackathon.utils.*;
+import it.unina.hackathon.utils.ConnessioneDatabase;
+import it.unina.hackathon.utils.responses.GiudiceHackathonListResponse;
+import it.unina.hackathon.utils.responses.UtenteListResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

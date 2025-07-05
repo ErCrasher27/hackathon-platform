@@ -4,7 +4,7 @@ import it.unina.hackathon.controller.Controller;
 import it.unina.hackathon.controller.NavigationController;
 import it.unina.hackathon.controller.OrganizzatoreController;
 import it.unina.hackathon.gui.GUIHandler;
-import it.unina.hackathon.utils.HackathonResponse;
+import it.unina.hackathon.utils.responses.HackathonResponse;
 
 import javax.swing.*;
 import javax.swing.text.DefaultFormatterFactory;

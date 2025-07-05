@@ -4,7 +4,7 @@ import it.unina.hackathon.controller.AuthenticationController;
 import it.unina.hackathon.controller.Controller;
 import it.unina.hackathon.controller.NavigationController;
 import it.unina.hackathon.gui.GUIHandler;
-import it.unina.hackathon.utils.UtenteResponse;
+import it.unina.hackathon.utils.responses.UtenteResponse;
 
 import javax.swing.*;
 import java.awt.*;

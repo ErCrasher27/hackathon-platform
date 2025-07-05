@@ -8,7 +8,9 @@ import it.unina.hackathon.implementazioniPostgresDAO.HackathonImplementazionePos
 import it.unina.hackathon.implementazioniPostgresDAO.PartecipanteImplementazionePostgresDAO;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
-import it.unina.hackathon.utils.*;
+import it.unina.hackathon.utils.responses.*;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.time.LocalDateTime;
 

@@ -5,9 +5,9 @@ import it.unina.hackathon.model.Team;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
-import it.unina.hackathon.utils.ResponseIntResult;
-import it.unina.hackathon.utils.TeamListResponse;
-import it.unina.hackathon.utils.UtenteListResponse;
+import it.unina.hackathon.utils.responses.TeamListResponse;
+import it.unina.hackathon.utils.responses.UtenteListResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

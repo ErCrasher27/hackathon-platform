@@ -6,8 +6,8 @@ import it.unina.hackathon.controller.OrganizzatoreController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
-import it.unina.hackathon.utils.HackathonListResponse;
-import it.unina.hackathon.utils.ResponseResult;
+import it.unina.hackathon.utils.responses.HackathonListResponse;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;

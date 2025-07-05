@@ -2,9 +2,9 @@ package it.unina.hackathon.dao;
 
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
-import it.unina.hackathon.utils.HackathonListResponse;
-import it.unina.hackathon.utils.HackathonResponse;
-import it.unina.hackathon.utils.ResponseResult;
+import it.unina.hackathon.utils.responses.HackathonListResponse;
+import it.unina.hackathon.utils.responses.HackathonResponse;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface HackathonDAO {
     HackathonResponse saveHackathon(Hackathon hackathon);

@@ -4,8 +4,8 @@ import it.unina.hackathon.dao.UtenteDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.UtenteImplementazionePostgresDAO;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.TipoUtente;
-import it.unina.hackathon.utils.ResponseResult;
-import it.unina.hackathon.utils.UtenteResponse;
+import it.unina.hackathon.utils.responses.UtenteResponse;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public class AuthenticationController {
     private final Controller mainController;

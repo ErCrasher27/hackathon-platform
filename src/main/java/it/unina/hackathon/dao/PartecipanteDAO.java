@@ -1,8 +1,8 @@
 package it.unina.hackathon.dao;
 
-import it.unina.hackathon.utils.ResponseIntResult;
-import it.unina.hackathon.utils.TeamListResponse;
-import it.unina.hackathon.utils.UtenteListResponse;
+import it.unina.hackathon.utils.responses.TeamListResponse;
+import it.unina.hackathon.utils.responses.UtenteListResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 
 public interface PartecipanteDAO {
 

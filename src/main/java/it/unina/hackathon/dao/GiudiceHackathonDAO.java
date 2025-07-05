@@ -1,9 +1,9 @@
 package it.unina.hackathon.dao;
 
-import it.unina.hackathon.utils.GiudiceHackathonListResponse;
-import it.unina.hackathon.utils.ResponseIntResult;
-import it.unina.hackathon.utils.ResponseResult;
-import it.unina.hackathon.utils.UtenteListResponse;
+import it.unina.hackathon.utils.responses.GiudiceHackathonListResponse;
+import it.unina.hackathon.utils.responses.UtenteListResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface GiudiceHackathonDAO {
 

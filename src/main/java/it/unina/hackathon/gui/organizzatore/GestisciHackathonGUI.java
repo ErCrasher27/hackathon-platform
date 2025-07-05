@@ -370,15 +370,29 @@ public class GestisciHackathonGUI implements GUIHandler {
 
         // Top panel with buttons
         JPanel giudiciTopPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton invitaButton = new JButton("Invita Giudice");
-        JButton rimuoviButton = new JButton("Rimuovi Invito");
-        JButton aggiornaGiudiciButton = new JButton("Aggiorna");
+
+        // Styling dei pulsanti
+        JButton invitaButton = new JButton("+ Invita Giudice");
+        invitaButton.setBackground(new Color(46, 125, 50)); // Verde
+        invitaButton.setForeground(Color.WHITE);
+        invitaButton.setPreferredSize(new Dimension(140, 35));
+
+        JButton rimuoviButton = new JButton("🗑 Rimuovi Invito");
+        rimuoviButton.setBackground(new Color(211, 47, 47)); // Rosso
+        rimuoviButton.setForeground(Color.WHITE);
+        rimuoviButton.setPreferredSize(new Dimension(150, 35));
+
+        JButton aggiornaGiudiciButton = new JButton("🔄 Aggiorna");
+        aggiornaGiudiciButton.setPreferredSize(new Dimension(120, 35));
+
+        // Inizialmente disabilita il pulsante rimuovi
+        rimuoviButton.setEnabled(false);
 
         giudiciTopPanel.add(invitaButton);
         giudiciTopPanel.add(rimuoviButton);
         giudiciTopPanel.add(aggiornaGiudiciButton);
 
-        // Table
+        // Table setup con listener per abilitare/disabilitare il pulsante rimuovi
         String[] giudiciColumns = {"Nome", "Cognome", "Email", "Stato Invito", "Data Invito"};
         giudiciTableModel = new DefaultTableModel(giudiciColumns, 0) {
             @Override
@@ -390,6 +404,15 @@ public class GestisciHackathonGUI implements GUIHandler {
         giudiciTable = new JTable(giudiciTableModel);
         giudiciTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         giudiciTable.setRowHeight(30);
+
+        // Listener per abilitare/disabilitare pulsante rimuovi
+        giudiciTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                boolean hasSelection = giudiciTable.getSelectedRow() != -1;
+                rimuoviButton.setEnabled(hasSelection);
+            }
+        });
+
         JScrollPane giudiciScrollPane = new JScrollPane(giudiciTable);
         giudiciScrollPane.setBorder(BorderFactory.createTitledBorder("Giudici Invitati"));
 
@@ -611,6 +634,12 @@ public class GestisciHackathonGUI implements GUIHandler {
         }
     }
 
+    private boolean puoRimuovereInvito(String statoInvito) {
+        // Puoi rimuovere inviti solo se sono in stato PENDING o DECLINED
+        // Non permettere rimozione di inviti ACCEPTED per mantenere l'integrità
+        return "In Attesa".equals(statoInvito) || "Rifiutato".equals(statoInvito);
+    }
+
     private void rimuoviGiudiceSelezionato() {
         int selectedRow = giudiciTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -618,11 +647,50 @@ public class GestisciHackathonGUI implements GUIHandler {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(frame, "Sei sicuro di voler rimuovere l'invito a questo giudice?", "Conferma Rimozione", JOptionPane.YES_NO_OPTION);
+        String nomeGiudice = (String) giudiciTableModel.getValueAt(selectedRow, 0);
+        String cognomeGiudice = (String) giudiciTableModel.getValueAt(selectedRow, 1);
+        String emailGiudice = (String) giudiciTableModel.getValueAt(selectedRow, 2);
+        String statoInvito = (String) giudiciTableModel.getValueAt(selectedRow, 3);
+
+        // Validazione dello stato dell'invito
+        if (!puoRimuovereInvito(statoInvito)) {
+            showError(frame, "Non è possibile rimuovere un invito accettato. " + "Il giudice fa già parte dell'hackathon!");
+            return;
+        }
+
+        // Messaggio di conferma personalizzato in base allo stato
+        String messaggioConferma;
+        if ("In Attesa".equals(statoInvito)) {
+            messaggioConferma = String.format("Rimuovere l'invito in attesa per %s %s?\n" + "Il giudice non potrà più accettare questo invito.", nomeGiudice, cognomeGiudice);
+        } else {
+            messaggioConferma = String.format("Rimuovere l'invito rifiutato da %s %s?\n" + "Questo eliminerà definitivamente il record dell'invito.", nomeGiudice, cognomeGiudice);
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(frame, messaggioConferma, "Conferma Rimozione", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            showSuccess(frame, "Funzionalità di rimozione in fase di implementazione!");
-            // TODO: Implementare quando il DAO avrà il metodo
+            try {
+                GiudiceHackathonListResponse giudiciResponse = organizzatoreController.getAllGiudiciInvitatiInHackathon(hackathonId);
+
+                if (giudiciResponse.giudiciHackathon() != null && selectedRow < giudiciResponse.giudiciHackathon().size()) {
+                    GiudiceHackathon giudiceSelezionato = giudiciResponse.giudiciHackathon().get(selectedRow);
+                    int giudiceId = giudiceSelezionato.getGiudiceId();
+
+                    ResponseResult result = organizzatoreController.rimuoviInvitoGiudice(hackathonId, giudiceId);
+
+                    if (result.result()) {
+                        showSuccess(frame, result.message());
+                        caricaGiudiciInvitati();
+                        aggiornaStatistiche();
+                    } else {
+                        showError(frame, "Errore nella rimozione dell'invito: " + result.message());
+                    }
+                } else {
+                    showError(frame, "Errore nel recupero dei dati del giudice selezionato!");
+                }
+            } catch (Exception e) {
+                showError(frame, "Errore imprevisto durante la rimozione: " + e.getMessage());
+            }
         }
     }
 

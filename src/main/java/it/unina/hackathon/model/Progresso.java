@@ -1,4 +1,4 @@
-package it.unina.hackathon.model.tmp;
+package it.unina.hackathon.model;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -8,11 +8,14 @@ public class Progresso {
     // region Proprietà
 
     private int progressoId;
+    private int teamId;
+    private int caricatoDaId;
     private String titolo;
     private String descrizione;
     private String documentoPath;
     private String documentoNome;
     private LocalDateTime dataCaricamento;
+    private Utente caricatoDa;
 
     // endregion
 
@@ -22,10 +25,14 @@ public class Progresso {
         this.dataCaricamento = LocalDateTime.now();
     }
 
-    public Progresso(String titolo, String descrizione, String documentoPath, String documentoNome) {
+    public Progresso(String titolo, String descrizione) {
         this();
         this.titolo = titolo;
         this.descrizione = descrizione;
+    }
+
+    public Progresso(String titolo, String descrizione, String documentoPath, String documentoNome) {
+        this(titolo, descrizione);
         this.documentoPath = documentoPath;
         this.documentoNome = documentoNome;
     }
@@ -40,6 +47,22 @@ public class Progresso {
 
     public void setProgressoId(int progressoId) {
         this.progressoId = progressoId;
+    }
+
+    public int getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(int teamId) {
+        this.teamId = teamId;
+    }
+
+    public int getCaricatoDaId() {
+        return caricatoDaId;
+    }
+
+    public void setCaricatoDaId(int caricatoDaId) {
+        this.caricatoDaId = caricatoDaId;
     }
 
     public String getTitolo() {
@@ -82,6 +105,14 @@ public class Progresso {
         this.dataCaricamento = dataCaricamento;
     }
 
+    public Utente getCaricatoDa() {
+        return caricatoDa;
+    }
+
+    public void setCaricatoDa(Utente caricatoDa) {
+        this.caricatoDa = caricatoDa;
+    }
+
     // endregion
 
     // region Business
@@ -90,22 +121,34 @@ public class Progresso {
         if (titolo == null || titolo.trim().isEmpty()) {
             return false;
         }
-        if (documentoPath == null || documentoPath.trim().isEmpty()) {
-            return false;
-        }
         this.dataCaricamento = LocalDateTime.now();
         return true;
     }
 
-    public void aggiornaDocumento(String path) {
+    public void aggiornaDocumento(String path, String nome) {
         if (path != null && !path.trim().isEmpty()) {
             this.documentoPath = path.trim();
+            this.documentoNome = nome != null ? nome.trim() : "documento";
             this.dataCaricamento = LocalDateTime.now();
         }
     }
 
+    public boolean hasDocumento() {
+        return documentoPath != null && !documentoPath.trim().isEmpty();
+    }
+
     public String getDettagliCaricamento() {
-        return String.format("Documento: %s\nCaricato: %s\nPath: %s", documentoNome, dataCaricamento, documentoPath);
+        return String.format("Documento: %s\nCaricato: %s\nPath: %s", documentoNome != null ? documentoNome : "N/A", dataCaricamento, documentoPath != null ? documentoPath : "N/A");
+    }
+
+    public boolean validaProgresso() {
+        if (titolo == null || titolo.trim().isEmpty()) {
+            return false;
+        }
+        if (teamId <= 0) {
+            return false;
+        }
+        return caricatoDaId > 0;
     }
 
     // endregion
@@ -127,7 +170,7 @@ public class Progresso {
 
     @Override
     public String toString() {
-        return String.format("Progresso{id=%d, titolo='%s', documento='%s'}", progressoId, titolo, documentoNome);
+        return String.format("Progresso{id=%d, titolo='%s', team=%d, caricato=%s}", progressoId, titolo, teamId, dataCaricamento != null ? dataCaricamento.toLocalDate() : "N/A");
     }
 
     // endregion

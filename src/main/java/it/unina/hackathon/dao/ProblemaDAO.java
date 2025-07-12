@@ -13,7 +13,7 @@ public interface ProblemaDAO {
 
     ProblemaListResponse getProblemiByHackathon(int hackathonId);
 
-    ProblemaListResponse getProblemiByGiudice(int giudiceId);
+    ProblemaListResponse getProblemiByGiudice(int giudiceId, int hackathonId);
 
     ProblemaResponse updateProblema(Problema problema);
 

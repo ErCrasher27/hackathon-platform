@@ -111,7 +111,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
     }
 
     @Override
-    public ProblemaListResponse getProblemiByGiudice(int giudiceId) {
+    public ProblemaListResponse getProblemiByGiudice(int giudiceId, int hackathonId) {
         String query = """
                 SELECT p.problema_id, p.hackathon_id, p.titolo, p.descrizione, 
                        p.data_pubblicazione, p.pubblicato_da,
@@ -120,7 +120,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
                 FROM problema p
                 JOIN utenti u ON p.pubblicato_da = u.utente_id
                 JOIN hackathon h ON p.hackathon_id = h.hackathon_id
-                WHERE p.pubblicato_da = ?
+                WHERE p.pubblicato_da = ? AND h.hackathon_id = ?
                 ORDER BY p.data_pubblicazione DESC
                 """;
 
@@ -128,6 +128,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, giudiceId);
+            ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {

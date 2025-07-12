@@ -1,13 +1,12 @@
 package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.PartecipanteDAO;
-import it.unina.hackathon.model.Team;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
-import it.unina.hackathon.utils.responses.TeamListResponse;
 import it.unina.hackathon.utils.responses.UtenteListResponse;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
+import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -55,44 +54,6 @@ public class PartecipanteImplementazionePostgresDAO implements PartecipanteDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new UtenteListResponse(null, "Errore durante il caricamento dei partecipanti!");
-        }
-    }
-
-    @Override
-    public TeamListResponse getTeamHackathon(int hackathonId) {
-        String query = """
-                SELECT t.team_id, t.nome, t.data_creazione, t.definitivo,
-                       COUNT(mt.utente_id) as numero_membri,
-                       h.max_dimensione_team,
-                       STRING_AGG(u.nome || ' ' || u.cognome, ', ') as membri
-                FROM team t
-                JOIN hackathon h ON t.hackathon_id = h.hackathon_id
-                LEFT JOIN membri_team mt ON t.team_id = mt.team_id
-                LEFT JOIN utenti u ON mt.utente_id = u.utente_id
-                WHERE t.hackathon_id = ?
-                GROUP BY t.team_id, t.nome, t.data_creazione, t.definitivo, h.max_dimensione_team
-                ORDER BY t.data_creazione DESC
-                """;
-
-        List<Team> teams = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Team team = new Team();
-                team.setTeamId(rs.getInt("team_id"));
-                team.setNome(rs.getString("nome"));
-                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
-                team.setDefinitivo(rs.getBoolean("definitivo"));
-
-                teams.add(team);
-            }
-            return new TeamListResponse(teams, "Team caricati con successo!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new TeamListResponse(null, "Errore durante il caricamento dei team!");
         }
     }
 
@@ -145,31 +106,105 @@ public class PartecipanteImplementazionePostgresDAO implements PartecipanteDAO {
     }
 
     @Override
-    public UtenteListResponse getMembriTeam(int teamId) {
-        String query = """
-                SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
-                       u.data_registrazione, ur.role_name, mt.ruolo_team, mt.data_ingresso
-                FROM membri_team mt
-                JOIN utenti u ON mt.utente_id = u.utente_id
-                JOIN user_roles ur ON u.tipo_utente_id = ur.role_id
-                WHERE mt.team_id = ?
-                ORDER BY mt.data_ingresso
+    public ResponseResult registratiAdHackathon(int hackathonId, int partecipanteId) {
+        // Prima verifica se è già registrato
+        String checkQuery = """
+                SELECT COUNT(*) 
+                FROM registrazioni 
+                WHERE hackathon_id = ? AND utente_id = ?
                 """;
 
-        List<Utente> membri = new ArrayList<>();
+        try (PreparedStatement checkPs = connection.prepareStatement(checkQuery)) {
+            checkPs.setInt(1, hackathonId);
+            checkPs.setInt(2, partecipanteId);
+            ResultSet rs = checkPs.executeQuery();
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                return new ResponseResult(false, "Utente già registrato a questo hackathon!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseResult(false, "Errore durante la verifica della registrazione!");
+        }
+
+        // Procedi con la registrazione
+        String insertQuery = """
+                INSERT INTO registrazioni (hackathon_id, utente_id, data_registrazione) 
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(insertQuery)) {
+            ps.setInt(1, hackathonId);
+            ps.setInt(2, partecipanteId);
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows > 0) {
+                return new ResponseResult(true, "Registrazione completata con successo!");
+            } else {
+                return new ResponseResult(false, "Errore durante la registrazione!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseResult(false, "Errore durante la registrazione all'hackathon!");
+        }
+    }
+
+    @Override
+    public ResponseResult annullaRegistrazione(int hackathonId, int partecipanteId) {
+        String deleteQuery = """
+                DELETE FROM registrazioni 
+                WHERE hackathon_id = ? AND utente_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(deleteQuery)) {
+            ps.setInt(1, hackathonId);
+            ps.setInt(2, partecipanteId);
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows > 0) {
+                return new ResponseResult(true, "Registrazione annullata con successo!");
+            } else {
+                return new ResponseResult(false, "Nessuna registrazione trovata da annullare!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseResult(false, "Errore durante l'annullamento della registrazione!");
+        }
+    }
+
+    @Override
+    public UtenteListResponse getPartecipantiSenzaTeam(int hackathonId) {
+        String query = """
+                SELECT DISTINCT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
+                       u.data_registrazione, ur.role_name, r.data_registrazione as data_reg_hackathon
+                FROM registrazioni r
+                JOIN utenti u ON r.utente_id = u.utente_id
+                JOIN user_roles ur ON u.tipo_utente_id = ur.role_id
+                LEFT JOIN membri_team mt ON u.utente_id = mt.utente_id
+                LEFT JOIN team t ON mt.team_id = t.team_id AND t.hackathon_id = ?
+                WHERE r.hackathon_id = ? AND t.team_id IS NULL
+                ORDER BY r.data_registrazione DESC
+                """;
+
+        List<Utente> partecipantiSenzaTeam = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, teamId);
+            ps.setInt(1, hackathonId);
+            ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 Utente utente = mapResultSetToUtente(rs);
-                membri.add(utente);
+                partecipantiSenzaTeam.add(utente);
             }
-            return new UtenteListResponse(membri, "Membri del team caricati con successo!");
+            return new UtenteListResponse(partecipantiSenzaTeam, "Partecipanti senza team caricati con successo!");
         } catch (SQLException e) {
             e.printStackTrace();
-            return new UtenteListResponse(null, "Errore durante il caricamento dei membri del team!");
+            return new UtenteListResponse(null, "Errore durante il caricamento dei partecipanti senza team!");
         }
     }
 

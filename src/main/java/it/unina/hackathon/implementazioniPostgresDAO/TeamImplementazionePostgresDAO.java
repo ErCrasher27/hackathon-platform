@@ -5,6 +5,7 @@ import it.unina.hackathon.model.Team;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.TeamListResponse;
 import it.unina.hackathon.utils.responses.TeamResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.*;
@@ -323,6 +324,68 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new ResponseResult(false, "Errore durante la verifica dello spazio disponibile!");
+        }
+    }
+
+    @Override
+    public ResponseIntResult contaMembriTeam(int teamId) {
+        String query = """
+                SELECT COUNT(*) 
+                FROM membri_team 
+                WHERE team_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, teamId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                return new ResponseIntResult(count, "Conteggio membri del team completato con successo!");
+            } else {
+                return new ResponseIntResult(-1, "Errore durante il conteggio dei membri del team!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseIntResult(-1, "Errore durante il conteggio dei membri del team!");
+        }
+    }
+
+    @Override
+    public TeamListResponse getTeamHackathon(int hackathonId) {
+        String query = """
+                SELECT t.team_id, t.nome, t.data_creazione, t.definitivo,
+                       COUNT(mt.utente_id) as numero_membri,
+                       h.max_dimensione_team,
+                       STRING_AGG(u.nome || ' ' || u.cognome, ', ') as membri
+                FROM team t
+                JOIN hackathon h ON t.hackathon_id = h.hackathon_id
+                LEFT JOIN membri_team mt ON t.team_id = mt.team_id
+                LEFT JOIN utenti u ON mt.utente_id = u.utente_id
+                WHERE t.hackathon_id = ?
+                GROUP BY t.team_id, t.nome, t.data_creazione, t.definitivo, h.max_dimensione_team
+                ORDER BY t.data_creazione DESC
+                """;
+
+        List<Team> teams = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hackathonId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Team team = new Team();
+                team.setTeamId(rs.getInt("team_id"));
+                team.setNome(rs.getString("nome"));
+                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
+                team.setDefinitivo(rs.getBoolean("definitivo"));
+
+                teams.add(team);
+            }
+            return new TeamListResponse(teams, "Team caricati con successo!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new TeamListResponse(null, "Errore durante il caricamento dei team!");
         }
     }
 

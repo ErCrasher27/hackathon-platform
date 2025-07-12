@@ -174,8 +174,104 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
         }
     }
 
+    @Override
+    public HackathonListResponse getHackathonByHackathonStatus(HackathonStatus hs) {
+        int hsId = hs.getId();
+        String query = """
+                SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
+                       h.data_chiusura_registrazioni, h.max_iscritti, h.max_dimensione_team, 
+                       h.organizzatore_id, h.data_creazione, hs.status_name 
+                FROM hackathon h 
+                JOIN hackathon_status hs ON h.status_id = hs.status_id 
+                WHERE hs.status_id  = ?
+                ORDER BY h.data_creazione DESC
+                """;
+
+        List<Hackathon> hackathonList = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hsId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                hackathonList.add(mapResultSetToHackathon(rs));
+            }
+
+            return new HackathonListResponse(hackathonList, "Hackathon recuperati con successo!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HackathonListResponse(null, "Errore durante il recupero degli hackathon!");
+        }
+    }
+
+    @Override
+    public HackathonListResponse getHackathonByPartecipante(int partecipanteId) {
+        String query = """
+                SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
+                       h.data_chiusura_registrazioni, h.max_iscritti, h.max_dimensione_team, 
+                       h.organizzatore_id, h.data_creazione, hs.status_name,
+                       r.data_registrazione
+                FROM hackathon h 
+                JOIN hackathon_status hs ON h.status_id = hs.status_id 
+                JOIN registrazioni r ON h.hackathon_id = r.hackathon_id
+                WHERE r.utente_id = ?
+                ORDER BY r.data_registrazione DESC
+                """;
+
+        List<Hackathon> hackathonList = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, partecipanteId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                hackathonList.add(mapResultSetToHackathon(rs));
+            }
+
+            return new HackathonListResponse(hackathonList, "Hackathon recuperati con successo!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HackathonListResponse(null, "Errore durante il recupero degli hackathon!");
+        }
+    }
+
+    @Override
+    public HackathonListResponse getHackathonAccettati(int giudiceId) {
+        String query = """
+                SELECT h.hackathon_id, h.titolo, h.descrizione, h.data_inizio, h.data_fine,
+                       h.sede, h.max_iscritti, h.data_creazione, h.organizzatore_id,
+                       hs.status_name,
+                       organizzatore.username as organizzatore_username, organizzatore.nome as organizzatore_nome,
+                       organizzatore.cognome as organizzatore_cognome
+                FROM hackathon h
+                JOIN giudici_hackathon gh ON h.hackathon_id = gh.hackathon_id
+                JOIN invito_status invs ON gh.stato_invito_id = invs.status_id
+                JOIN utenti organizzatore ON h.organizzatore_id = organizzatore.utente_id
+                JOIN hackathon_status hs ON h.status_id = hs.status_id
+                WHERE gh.giudice_id = ? AND invs.status_name = 'ACCEPTED'
+                ORDER BY h.data_inizio DESC
+                """;
+
+        List<Hackathon> hackathons = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, giudiceId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                hackathons.add(mapResultSetToHackathon(rs));
+            }
+            return new HackathonListResponse(hackathons, "Hackathon accettati caricati con successo!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HackathonListResponse(null, "Errore durante il caricamento degli hackathon accettati!");
+        }
+    }
+
     private Hackathon mapResultSetToHackathon(ResultSet rs) throws SQLException {
-        Hackathon hackathon = new Hackathon(rs.getString("titolo"), rs.getString("descrizione"), rs.getString("sede"), rs.getTimestamp("data_inizio").toLocalDateTime(), rs.getTimestamp("data_fine").toLocalDateTime(), rs.getInt("max_iscritti"), rs.getInt("max_dimensione_team"));
+        Hackathon hackathon = new Hackathon(rs.getString("titolo"), rs.getString("descrizione"), rs.getString("sede"), rs.getTimestamp("data_inizio").toLocalDateTime(), rs.getTimestamp("data_fine").toLocalDateTime(), rs.getInt("max_iscritti"), rs.getInt("max_iscritti"));
         hackathon.setHackathonId(rs.getInt("hackathon_id"));
         hackathon.setStatus(HackathonStatus.valueOf(rs.getString("status_name")));
         hackathon.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());

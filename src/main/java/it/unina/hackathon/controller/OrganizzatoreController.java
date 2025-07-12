@@ -3,9 +3,11 @@ package it.unina.hackathon.controller;
 import it.unina.hackathon.dao.GiudiceHackathonDAO;
 import it.unina.hackathon.dao.HackathonDAO;
 import it.unina.hackathon.dao.PartecipanteDAO;
+import it.unina.hackathon.dao.TeamDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.GiudiceHackathonImplementazionePostgresDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.HackathonImplementazionePostgresDAO;
 import it.unina.hackathon.implementazioniPostgresDAO.PartecipanteImplementazionePostgresDAO;
+import it.unina.hackathon.implementazioniPostgresDAO.TeamImplementazionePostgresDAO;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
 import it.unina.hackathon.utils.responses.*;
@@ -19,12 +21,14 @@ public class OrganizzatoreController {
     private final HackathonDAO hackathonDAO;
     private final GiudiceHackathonDAO giudiceHackathonDAO;
     private final PartecipanteDAO partecipanteDAO;
+    private final TeamDAO teamDao;
 
     public OrganizzatoreController(Controller mainController) {
         this.mainController = mainController;
         this.hackathonDAO = new HackathonImplementazionePostgresDAO();
         this.giudiceHackathonDAO = new GiudiceHackathonImplementazionePostgresDAO();
         this.partecipanteDAO = new PartecipanteImplementazionePostgresDAO();
+        this.teamDao = new TeamImplementazionePostgresDAO();
     }
 
     public HackathonResponse creaHackathon(String title, String description, String site, LocalDateTime startDate, LocalDateTime endDate, int maxSubscription, int maxMemberForTeam) {
@@ -81,7 +85,7 @@ public class OrganizzatoreController {
     }
 
     public TeamListResponse getTeamHackathon(int hackathonId) {
-        return partecipanteDAO.getTeamHackathon(hackathonId);
+        return teamDao.getTeamHackathon(hackathonId);
     }
 
     public ResponseIntResult contaPartecipanti(int hackathonId) {

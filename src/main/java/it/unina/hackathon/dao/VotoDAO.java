@@ -11,7 +11,7 @@ public interface VotoDAO {
 
     VotoResponse getVotoById(int votoId);
 
-    VotoListResponse getVotiByTeam(int teamId, int hackathonId);
+    VotoListResponse getVotiByTeam(int teamId);
 
     VotoListResponse getVotiByGiudice(int giudiceId, int hackathonId);
 
@@ -24,4 +24,6 @@ public interface VotoDAO {
     VotoResponse getVotoByGiudiceTeam(int giudiceId, int teamId, int hackathonId);
 
     ResponseResult verificaVotoEsistente(int giudiceId, int teamId, int hackathonId);
+
+    VotoListResponse getClassificaByHackathon(int hackathonId);
 }

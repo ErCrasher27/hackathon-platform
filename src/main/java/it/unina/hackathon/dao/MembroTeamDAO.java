@@ -25,4 +25,8 @@ public interface MembroTeamDAO {
     MembroTeamResponse getMembroByUtenteTeam(int utenteId, int teamId);
 
     ResponseResult verificaMembroEsistente(int utenteId, int teamId);
+
+    ResponseResult isLeader(int utenteId, int teamId);
+
+    MembroTeamResponse getLeaderByTeam(int teamId);
 }

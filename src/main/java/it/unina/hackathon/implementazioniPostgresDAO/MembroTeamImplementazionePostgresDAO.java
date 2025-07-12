@@ -264,6 +264,63 @@ public class MembroTeamImplementazionePostgresDAO implements MembroTeamDAO {
         }
     }
 
+    @Override
+    public ResponseResult isLeader(int utenteId, int teamId) {
+        String query = """
+                SELECT COUNT(*) 
+                FROM membri_team 
+                WHERE utente_id = ? AND team_id = ? AND ruolo_team = 'LEADER'
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, utenteId);
+            ps.setInt(2, teamId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                boolean isLeader = rs.getInt(1) > 0;
+                if (isLeader) {
+                    return new ResponseResult(true, "L'utente è il leader del team!");
+                } else {
+                    return new ResponseResult(false, "L'utente non è il leader del team!");
+                }
+            } else {
+                return new ResponseResult(false, "Errore durante la verifica!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseResult(false, "Errore durante la verifica del ruolo: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public MembroTeamResponse getLeaderByTeam(int teamId) {
+        String query = """
+                SELECT mt.membro_team_id, mt.team_id, mt.utente_id, mt.data_ingresso, mt.ruolo_team,
+                       u.nome, u.cognome, u.username, u.email,
+                       t.nome as team_nome
+                FROM membri_team mt
+                JOIN utenti u ON mt.utente_id = u.utente_id
+                JOIN team t ON mt.team_id = t.team_id
+                WHERE mt.team_id = ? AND mt.ruolo_team = 'LEADER'
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, teamId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                MembroTeam leader = mapResultSetToMembroTeam(rs);
+                return new MembroTeamResponse(leader, "Leader del team trovato con successo!");
+            } else {
+                return new MembroTeamResponse(null, "Leader del team non trovato!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new MembroTeamResponse(null, "Errore durante la ricerca del leader!");
+        }
+    }
+
     private MembroTeam mapResultSetToMembroTeam(ResultSet rs) throws SQLException {
         MembroTeam membro = new MembroTeam();
         membro.setMembroTeamId(rs.getInt("membro_team_id"));

@@ -9,12 +9,16 @@ public class Controller {
     private final AuthenticationController authController;
     private final NavigationController navigationController;
     private final OrganizzatoreController organizzatoreController;
+    private final GiudiceController giudiceController;
+    private final PartecipanteController partecipanteController;
     private Utente utenteCorrente;
 
     private Controller() {
         this.authController = new AuthenticationController(this);
         this.navigationController = new NavigationController(this);
         this.organizzatoreController = new OrganizzatoreController(this);
+        this.giudiceController = new GiudiceController(this);
+        this.partecipanteController = new PartecipanteController(this);
     }
 
     public static Controller getInstance() {
@@ -34,6 +38,14 @@ public class Controller {
 
     public OrganizzatoreController getOrganizzatoreController() {
         return organizzatoreController;
+    }
+
+    public GiudiceController getGiudiceController() {
+        return giudiceController;
+    }
+
+    public PartecipanteController getPartecipanteController() {
+        return partecipanteController;
     }
 
     public Utente getUtenteCorrente() {

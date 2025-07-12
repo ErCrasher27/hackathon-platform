@@ -7,6 +7,7 @@ import it.unina.hackathon.model.enums.StatoInvito;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.GiudiceHackathonListResponse;
+import it.unina.hackathon.utils.responses.GiudiceHackathonResponse;
 import it.unina.hackathon.utils.responses.UtenteListResponse;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
@@ -181,6 +182,204 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
             return new ResponseIntResult(-1, "Errore durante il conteggio dei giudici accettati!");
         }
     }
+
+    @Override
+    public GiudiceHackathonListResponse getInvitiRicevuti(int giudiceId) {
+        String query = """
+                SELECT gh.giudice_hackathon_id, gh.hackathon_id, gh.giudice_id, gh.data_invito, 
+                       gh.invitato_da, invs.status_name as stato_invito,
+                       h.titolo as hackathon_titolo, h.descrizione as hackathon_descrizione,
+                       h.data_inizio, h.data_fine, h.sede,
+                       organizzatore.username as invitato_da_username, organizzatore.nome as organizzatore_nome,
+                       organizzatore.cognome as organizzatore_cognome
+                FROM giudici_hackathon gh
+                JOIN hackathon h ON gh.hackathon_id = h.hackathon_id
+                JOIN utenti organizzatore ON gh.invitato_da = organizzatore.utente_id
+                JOIN invito_status invs ON gh.stato_invito_id = invs.status_id
+                WHERE gh.giudice_id = ?
+                ORDER BY gh.data_invito DESC
+                """;
+
+        List<GiudiceHackathon> inviti = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, giudiceId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
+                giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
+                giudiceHackathon.setHackathonId(rs.getInt("hackathon_id"));
+                giudiceHackathon.setGiudiceId(rs.getInt("giudice_id"));
+                giudiceHackathon.setInvitatoDaId(rs.getInt("invitato_da"));
+                giudiceHackathon.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
+                giudiceHackathon.setStatoInvito(StatoInvito.valueOf(rs.getString("stato_invito")));
+
+                Utente invitatoDa = new Utente(rs.getString("invitato_da_username"), "", "", rs.getString("organizzatore_nome"), rs.getString("organizzatore_cognome"), TipoUtente.ORGANIZZATORE);
+                invitatoDa.setUtenteId(rs.getInt("invitato_da"));
+                giudiceHackathon.setInvitatoDa(invitatoDa);
+
+                inviti.add(giudiceHackathon);
+            }
+            return new GiudiceHackathonListResponse(inviti, "Inviti ricevuti caricati con successo!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new GiudiceHackathonListResponse(null, "Errore durante il caricamento degli inviti ricevuti!");
+        }
+    }
+
+    @Override
+    public GiudiceHackathonListResponse getInvitiPending(int giudiceId) {
+        String query = """
+                SELECT gh.giudice_hackathon_id, gh.hackathon_id, gh.giudice_id, gh.data_invito, 
+                       gh.invitato_da, invs.status_name as stato_invito,
+                       h.titolo as hackathon_titolo, h.descrizione as hackathon_descrizione,
+                       h.data_inizio, h.data_fine, h.luogo,
+                       organizzatore.username as invitato_da_username, organizzatore.nome as organizzatore_nome,
+                       organizzatore.cognome as organizzatore_cognome
+                FROM giudici_hackathon gh
+                JOIN hackathon h ON gh.hackathon_id = h.hackathon_id
+                JOIN utenti organizzatore ON gh.invitato_da = organizzatore.utente_id
+                JOIN invito_status invs ON gh.stato_invito_id = invs.status_id
+                WHERE gh.giudice_id = ? AND invs.status_name = 'PENDING'
+                ORDER BY gh.data_invito DESC
+                """;
+
+        List<GiudiceHackathon> inviti = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, giudiceId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
+                giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
+                giudiceHackathon.setHackathonId(rs.getInt("hackathon_id"));
+                giudiceHackathon.setGiudiceId(rs.getInt("giudice_id"));
+                giudiceHackathon.setInvitatoDaId(rs.getInt("invitato_da"));
+                giudiceHackathon.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
+                giudiceHackathon.setStatoInvito(StatoInvito.valueOf(rs.getString("stato_invito")));
+
+                Utente invitatoDa = new Utente(rs.getString("invitato_da_username"), "", "", rs.getString("organizzatore_nome"), rs.getString("organizzatore_cognome"), TipoUtente.ORGANIZZATORE);
+                invitatoDa.setUtenteId(rs.getInt("invitato_da"));
+                giudiceHackathon.setInvitatoDa(invitatoDa);
+
+                inviti.add(giudiceHackathon);
+            }
+            return new GiudiceHackathonListResponse(inviti, "Inviti in attesa caricati con successo!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new GiudiceHackathonListResponse(null, "Errore durante il caricamento degli inviti in attesa!");
+        }
+    }
+
+    @Override
+    public ResponseResult rispondiInvito(int giudiceHackathonId, StatoInvito risposta) {
+        String query = """
+                UPDATE giudici_hackathon 
+                SET stato_invito_id = (SELECT status_id FROM invito_status WHERE status_name = ?)
+                WHERE giudice_hackathon_id = ? 
+                AND stato_invito_id = (SELECT status_id FROM invito_status WHERE status_name = 'PENDING')
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, risposta.toString());
+            ps.setInt(2, giudiceHackathonId);
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows > 0) {
+                String message = risposta == StatoInvito.ACCEPTED ? "Invito accettato con successo!" : "Invito rifiutato con successo!";
+                return new ResponseResult(true, message);
+            } else {
+                return new ResponseResult(false, "Invito non trovato o già processato!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseResult(false, "Errore durante la risposta all'invito!");
+        }
+    }
+
+    @Override
+    public ResponseResult accettaInvito(int giudiceHackathonId) {
+        return rispondiInvito(giudiceHackathonId, StatoInvito.ACCEPTED);
+    }
+
+    @Override
+    public ResponseResult rifiutaInvito(int giudiceHackathonId) {
+        return rispondiInvito(giudiceHackathonId, StatoInvito.DECLINED);
+    }
+
+    @Override
+    public GiudiceHackathonResponse getStatoInvito(int hackathonId, int giudiceId) {
+        String query = """
+                SELECT gh.giudice_hackathon_id, gh.hackathon_id, gh.giudice_id, gh.data_invito, 
+                       gh.invitato_da, invs.status_name as stato_invito,
+                       organizzatore.username as invitato_da_username
+                FROM giudici_hackathon gh
+                JOIN utenti organizzatore ON gh.invitato_da = organizzatore.utente_id
+                JOIN invito_status invs ON gh.stato_invito_id = invs.status_id
+                WHERE gh.hackathon_id = ? AND gh.giudice_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hackathonId);
+            ps.setInt(2, giudiceId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
+                giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
+                giudiceHackathon.setHackathonId(rs.getInt("hackathon_id"));
+                giudiceHackathon.setGiudiceId(rs.getInt("giudice_id"));
+                giudiceHackathon.setInvitatoDaId(rs.getInt("invitato_da"));
+                giudiceHackathon.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
+                giudiceHackathon.setStatoInvito(StatoInvito.valueOf(rs.getString("stato_invito")));
+
+                Utente invitatoDa = new Utente(rs.getString("invitato_da_username"), "", "", "", "", TipoUtente.ORGANIZZATORE);
+                invitatoDa.setUtenteId(rs.getInt("invitato_da"));
+                giudiceHackathon.setInvitatoDa(invitatoDa);
+
+                return new GiudiceHackathonResponse(giudiceHackathon, "Stato invito recuperato con successo!");
+            } else {
+                return new GiudiceHackathonResponse(null, "Nessun invito trovato per questo hackathon!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new GiudiceHackathonResponse(null, "Errore durante il recupero dello stato invito!");
+        }
+    }
+
+    @Override
+    public ResponseResult verificaPermessiValutazione(int hackathonId, int giudiceId) {
+        String query = """
+                SELECT invs.status_name as stato_invito
+                FROM giudici_hackathon gh
+                JOIN invito_status invs ON gh.stato_invito_id = invs.status_id
+                WHERE gh.hackathon_id = ? AND gh.giudice_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hackathonId);
+            ps.setInt(2, giudiceId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String statoInvito = rs.getString("stato_invito");
+                if ("ACCEPTED".equals(statoInvito)) {
+                    return new ResponseResult(true, "Il giudice ha i permessi per valutare questo hackathon!");
+                } else {
+                    return new ResponseResult(false, "Il giudice non ha accettato l'invito per questo hackathon!");
+                }
+            } else {
+                return new ResponseResult(false, "Il giudice non è stato invitato a questo hackathon!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseResult(false, "Errore durante la verifica dei permessi di valutazione!");
+        }
+    }
+
 
     private Utente mapResultSetToUtente(ResultSet rs) throws SQLException {
         Utente utente = new Utente(rs.getString("username"), rs.getString("email"), rs.getString("password"), rs.getString("nome"), rs.getString("cognome"), TipoUtente.valueOf(rs.getString("role_name")));

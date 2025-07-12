@@ -3,6 +3,7 @@ package it.unina.hackathon.dao;
 import it.unina.hackathon.model.Team;
 import it.unina.hackathon.utils.responses.TeamListResponse;
 import it.unina.hackathon.utils.responses.TeamResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface TeamDAO {
@@ -28,4 +29,8 @@ public interface TeamDAO {
     TeamResponse getTeamByUtente(int utenteId, int hackathonId);
 
     ResponseResult verificaSpazioDisponibile(int teamId);
+
+    ResponseIntResult contaMembriTeam(int teamId);
+
+    TeamListResponse getTeamHackathon(int hackathonId);
 }

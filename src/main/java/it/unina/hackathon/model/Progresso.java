@@ -25,16 +25,12 @@ public class Progresso {
         this.dataCaricamento = LocalDateTime.now();
     }
 
-    public Progresso(String titolo, String descrizione) {
+    public Progresso(int teamId, String titolo, String descrizione, String documentoPath) {
         this();
+        this.teamId = teamId;
         this.titolo = titolo;
         this.descrizione = descrizione;
-    }
-
-    public Progresso(String titolo, String descrizione, String documentoPath, String documentoNome) {
-        this(titolo, descrizione);
         this.documentoPath = documentoPath;
-        this.documentoNome = documentoNome;
     }
 
     // endregion

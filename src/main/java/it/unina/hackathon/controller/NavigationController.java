@@ -2,11 +2,14 @@ package it.unina.hackathon.controller;
 
 import it.unina.hackathon.gui.comuni.LoginGUI;
 import it.unina.hackathon.gui.comuni.RegistrazioneGUI;
+import it.unina.hackathon.gui.giudice.GestisciProblemiGUI;
+import it.unina.hackathon.gui.giudice.HomeGiudiceGUI;
+import it.unina.hackathon.gui.giudice.ValutazioneProgettoGUI;
 import it.unina.hackathon.gui.organizzatore.CreaHackathonGUI;
 import it.unina.hackathon.gui.organizzatore.GestisciHackathonGUI;
 import it.unina.hackathon.gui.organizzatore.HomeOrganizzatoreGUI;
-import it.unina.hackathon.gui.tmp.giudice.HomeGiudiceGUI;
-import it.unina.hackathon.gui.tmp.partecipante.HomePartecipanteGUI;
+import it.unina.hackathon.gui.partecipante.GestisciProgettoGUI;
+import it.unina.hackathon.gui.partecipante.HomePartecipanteGUI;
 import it.unina.hackathon.model.enums.TipoUtente;
 
 import javax.swing.*;
@@ -56,6 +59,18 @@ public class NavigationController {
 
     public void goToGestisciHackathon(JFrame currentFrame, int hackathonId) {
         switchFrame(currentFrame, new GestisciHackathonGUI(hackathonId).getFrame());
+    }
+
+    public void goToValutaProgetto(JFrame currentFrame, int hackathonId) {
+        switchFrame(currentFrame, new ValutazioneProgettoGUI(hackathonId).getFrame());
+    }
+
+    public void goToGestisciProblemi(JFrame currentFrame, int hackathonId) {
+        switchFrame(currentFrame, new GestisciProblemiGUI(hackathonId).getFrame());
+    }
+
+    public void goToGestisciProgetto(JFrame currentFrame, int hackathonId) {
+        switchFrame(currentFrame, new GestisciProgettoGUI(hackathonId).getFrame());
     }
 
     private void switchFrame(JFrame currentFrame, JFrame newFrame) {

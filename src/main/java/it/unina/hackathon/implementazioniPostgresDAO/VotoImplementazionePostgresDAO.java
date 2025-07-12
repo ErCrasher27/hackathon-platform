@@ -87,7 +87,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     }
 
     @Override
-    public VotoListResponse getVotiByTeam(int teamId, int hackathonId) {
+    public VotoListResponse getVotiByTeam(int teamId) {
         String query = """
                 SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, 
                        v.criteri_valutazione, v.data_voto,
@@ -96,7 +96,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
                 FROM voti v
                 JOIN utenti u ON v.giudice_id = u.utente_id
                 JOIN team t ON v.team_id = t.team_id
-                WHERE v.team_id = ? AND v.hackathon_id = ?
+                WHERE v.team_id = ?
                 ORDER BY v.data_voto DESC
                 """;
 
@@ -104,7 +104,6 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, teamId);
-            ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -280,6 +279,71 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new ResponseResult(false, "Errore durante la verifica del voto!");
+        }
+    }
+
+    @Override
+    public VotoListResponse getClassificaByHackathon(int hackathonId) {
+        String query = """
+                SELECT 
+                    v.team_id,
+                    t.nome as team_nome,
+                    AVG(v.valore) as media_voti,
+                    COUNT(v.voto_id) as numero_voti,
+                    MIN(v.hackathon_id) as hackathon_id,
+                    MIN(v.data_voto) as prima_valutazione,
+                    MAX(v.data_voto) as ultima_valutazione
+                FROM voti v
+                JOIN team t ON v.team_id = t.team_id
+                WHERE v.hackathon_id = ?
+                GROUP BY v.team_id, t.nome
+                ORDER BY media_voti DESC, numero_voti DESC, t.nome ASC
+                """;
+
+        List<Voto> classifica = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hackathonId);
+            ResultSet rs = ps.executeQuery();
+
+            int posizione = 1;
+            while (rs.next()) {
+                // Creo un oggetto Voto "virtuale" che rappresenta la classifica del team
+                Voto votoClassifica = new Voto();
+
+                // Imposto i dati del team
+                votoClassifica.setTeamId(rs.getInt("team_id"));
+                votoClassifica.setHackathonId(rs.getInt("hackathon_id"));
+
+                // Uso il campo valore per memorizzare la media (arrotondata)
+                votoClassifica.setValore((int) Math.round(rs.getDouble("media_voti")));
+
+                // Uso il campo criteri_valutazione per memorizzare info della classifica
+                String infoClassifica = String.format("Posizione: %d | Media: %.2f | Voti ricevuti: %d", posizione++, rs.getDouble("media_voti"), rs.getInt("numero_voti"));
+                votoClassifica.setCriteriValutazione(infoClassifica);
+
+                votoClassifica.setDataVoto(rs.getTimestamp("ultima_valutazione").toLocalDateTime());
+
+                // Creo e imposto il team
+                Team team = new Team();
+                team.setTeamId(rs.getInt("team_id"));
+                team.setNome(rs.getString("team_nome"));
+                votoClassifica.setTeam(team);
+
+                // Non imposto il giudice per la classifica (è un dato aggregato)
+
+                classifica.add(votoClassifica);
+            }
+
+            if (classifica.isEmpty()) {
+                return new VotoListResponse(null, "Nessun voto trovato per questo hackathon!");
+            }
+
+            return new VotoListResponse(classifica, "Classifica caricata con successo!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new VotoListResponse(null, "Errore durante il caricamento della classifica: " + e.getMessage());
         }
     }
 

@@ -481,15 +481,31 @@ CREATE TRIGGER trigger_hackathon_status_for_vote
 CREATE OR REPLACE FUNCTION prevent_definitivo_team_changes()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM team
-        WHERE team_id = NEW.team_id
-        AND definitivo = TRUE
-    ) THEN
-        RAISE EXCEPTION 'Non si possono modificare team definitivi';
+    IF TG_OP = 'INSERT' THEN
+        IF EXISTS (
+            SELECT 1
+            FROM team
+            WHERE team_id = NEW.team_id
+            AND definitivo = TRUE
+        ) THEN
+            RAISE EXCEPTION 'Non si possono modificare team definitivi';
+        END IF;
+        RETURN NEW;
     END IF;
-    RETURN NEW;
+
+    IF TG_OP = 'DELETE' THEN
+        IF EXISTS (
+            SELECT 1
+            FROM team
+            WHERE team_id = OLD.team_id
+            AND definitivo = TRUE
+        ) THEN
+            RAISE EXCEPTION 'Non si possono modificare team definitivi';
+        END IF;
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -499,9 +515,7 @@ CREATE TRIGGER trigger_prevent_definitivo_team_add
 
 CREATE TRIGGER trigger_prevent_definitivo_team_delete
     BEFORE DELETE ON membri_team
-    FOR EACH ROW
-    WHEN (EXISTS (SELECT 1 FROM team WHERE team_id = OLD.team_id AND definitivo = TRUE))
-    EXECUTE FUNCTION prevent_definitivo_team_changes();
+    FOR EACH ROW EXECUTE FUNCTION prevent_definitivo_team_changes();
 
 -- ==================================================
 -- SEZIONE 5: TRIGGER PER CONTROLLI AGGIUNTIVI (SOLO BACKUP LAYER)

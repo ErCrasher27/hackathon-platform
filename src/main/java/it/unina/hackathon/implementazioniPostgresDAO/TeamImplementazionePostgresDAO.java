@@ -381,6 +381,7 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
                 team.setNome(rs.getString("nome"));
                 team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
                 team.setDefinitivo(rs.getBoolean("definitivo"));
+                team.setNumeroMembri(rs.getInt("numero_membri"));
 
                 teams.add(team);
             }
@@ -388,6 +389,41 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new TeamListResponse(null, "Errore durante il caricamento dei team!");
+        }
+    }
+
+    @Override
+    public TeamResponse getTeamByPartecipante(int partecipanteId, int hackathonId) {
+        String query = """
+                SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo,
+                       mt.ruolo_team,
+                       (SELECT COUNT(*) FROM membri_team mt3 WHERE mt3.team_id = t.team_id) as numero_membri
+                FROM membri_team mt
+                JOIN team t ON mt.team_id = t.team_id
+                WHERE mt.utente_id = ? AND t.hackathon_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, partecipanteId);
+            ps.setInt(2, hackathonId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Team team = new Team();
+                team.setTeamId(rs.getInt("team_id"));
+                team.setNome(rs.getString("nome"));
+                team.setHackathonId(rs.getInt("hackathon_id"));
+                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
+                team.setDefinitivo(rs.getBoolean("definitivo"));
+                team.setNumeroMembri(rs.getInt("numero_membri"));
+
+                return new TeamResponse(team, "Team del partecipante trovato con successo!");
+            } else {
+                return new TeamResponse(null, "Il partecipante non fa parte di alcun team per questo hackathon!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new TeamResponse(null, "Errore durante la ricerca del team del partecipante: " + e.getMessage());
         }
     }
 

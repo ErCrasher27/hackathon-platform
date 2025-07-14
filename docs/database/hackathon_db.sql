@@ -254,6 +254,40 @@ CREATE TRIGGER trigger_check_giudice_role
     BEFORE INSERT OR UPDATE ON giudici_hackathon
     FOR EACH ROW EXECUTE FUNCTION check_giudice_role();
 
+-- Verifica che non si possano invitare giudici se l'hackathon è terminato
+CREATE OR REPLACE FUNCTION check_hackathon_not_terminated_for_judge_invite()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM hackathon h
+        WHERE h.hackathon_id = NEW.hackathon_id
+        AND h.status_id = 4  -- TERMINATO
+    ) THEN
+        RAISE EXCEPTION 'Non è possibile invitare giudici per un hackathon terminato';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_check_hackathon_not_terminated_for_judge_invite
+    BEFORE INSERT ON giudici_hackathon
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_judge_invite();
+
+-- Verifica che non si possano rimuovere inviti giudice se hanno accettato
+CREATE OR REPLACE FUNCTION check_judge_invite_not_accepted_for_removal()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.stato_invito_id = 2 THEN  -- ACCEPTED
+        RAISE EXCEPTION 'Non è possibile rimuovere un invito giudice che è stato accettato';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_check_judge_invite_not_accepted_for_removal
+    BEFORE DELETE ON giudici_hackathon
+    FOR EACH ROW EXECUTE FUNCTION check_judge_invite_not_accepted_for_removal();
+
 -- Verifica che un utente sia in un solo team per hackathon
 CREATE OR REPLACE FUNCTION check_single_team_per_hackathon()
 RETURNS TRIGGER AS $$

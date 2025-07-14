@@ -148,6 +148,11 @@ INSERT INTO problema (hackathon_id, titolo, descrizione, pubblicato_da) VALUES
 -- INVITI GIUDICI
 -- ==================================================
 
+BEGIN;
+
+-- DISABILITA TEMPORANEAMENTE I TRIGGER
+ALTER TABLE giudici_hackathon DISABLE TRIGGER ALL;
+
 -- Hackathon 1 (TERMINATO) - tutti accettati
 INSERT INTO giudici_hackathon (hackathon_id, giudice_id, invitato_da, stato_invito_id) VALUES
 (1, 6, 1, 2), -- prof.ferrari - ACCEPTED
@@ -174,6 +179,11 @@ INSERT INTO giudici_hackathon (hackathon_id, giudice_id, invitato_da, stato_invi
 (4, 6, 4, 1), -- prof.ferrari - PENDING
 (4, 8, 4, 1), -- prof.romano - PENDING
 (4, 11, 4, 1); -- dott.fontana - PENDING
+
+-- RIABILITA I TRIGGER
+ALTER TABLE giudici_hackathon ENABLE TRIGGER ALL;
+
+COMMIT;
 
 -- ==================================================
 -- CREAZIONE TEAM

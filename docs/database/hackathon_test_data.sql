@@ -414,7 +414,6 @@ INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, criteri_valutazione
 
 -- Voti Hackathon 2 (IN_CORSO) - solo team definitivi (5, 6, 8)
 INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, criteri_valutazione) VALUES
-(2, 5, 6, 8, 'Smart contract sicuro e ben testato'),
 (2, 5, 9, 9, 'Ottima implementazione DeFi, molto promettente'),
 (2, 5, 13, 8, 'Buon bilanciamento tra complessità e usabilità'),
 (2, 6, 6, 7, 'Progetto interessante ma incompleto'),
@@ -422,3 +421,11 @@ INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, criteri_valutazione
 (2, 8, 6, 9, 'Security-first approach eccellente'),
 (2, 8, 9, 10, 'Il migliore finora! Audit professionale'),
 (2, 8, 13, 9, 'Codice pulito e ben documentato');
+
+-- ==================================================
+-- RESET DELLE SEQUENZE DOPO POPOLAMENTO MANUALE
+-- ==================================================
+
+SELECT setval('utenti_utente_id_seq', (SELECT MAX(utente_id) FROM utenti));
+SELECT setval('hackathon_hackathon_id_seq', (SELECT MAX(hackathon_id) FROM hackathon));
+SELECT setval('team_team_id_seq', (SELECT MAX(team_id) FROM team));

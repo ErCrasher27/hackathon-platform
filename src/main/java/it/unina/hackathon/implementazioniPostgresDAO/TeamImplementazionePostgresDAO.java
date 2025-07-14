@@ -2,6 +2,7 @@ package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.TeamDAO;
 import it.unina.hackathon.model.Team;
+import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.TeamListResponse;
 import it.unina.hackathon.utils.responses.TeamResponse;
@@ -197,15 +198,16 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     }
 
     @Override
-    public ResponseResult aggiungiMembro(int teamId, int utenteId) {
+    public ResponseResult aggiungiMembro(int teamId, int utenteId, RuoloTeam ruoloTeam) {
         String query = """
                 INSERT INTO membri_team (team_id, utente_id, data_ingresso, ruolo_team) 
-                VALUES (?, ?, CURRENT_TIMESTAMP, 'MEMBRO')
+                VALUES (?, ?, CURRENT_TIMESTAMP, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, teamId);
             ps.setInt(2, utenteId);
+            ps.setString(3, ruoloTeam.getDisplayName().toUpperCase());
 
             int affectedRows = ps.executeUpdate();
 

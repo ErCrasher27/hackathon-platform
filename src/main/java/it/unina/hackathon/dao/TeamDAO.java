@@ -1,6 +1,7 @@
 package it.unina.hackathon.dao;
 
 import it.unina.hackathon.model.Team;
+import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.utils.responses.TeamListResponse;
 import it.unina.hackathon.utils.responses.TeamResponse;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
@@ -20,7 +21,7 @@ public interface TeamDAO {
 
     ResponseResult deleteTeam(int teamId);
 
-    ResponseResult aggiungiMembro(int teamId, int utenteId);
+    ResponseResult aggiungiMembro(int teamId, int utenteId, RuoloTeam ruoloTeam);
 
     ResponseResult rimuoviMembro(int teamId, int utenteId);
 

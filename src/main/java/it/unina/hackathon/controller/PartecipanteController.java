@@ -73,7 +73,7 @@ public class PartecipanteController {
 
         TeamResponse teamResponse = teamDAO.saveTeam(nuovoTeam);
         if (teamResponse.team() != null) {
-            teamDAO.aggiungiMembro(teamResponse.team().getTeamId(), creatorId);
+            teamDAO.aggiungiMembro(teamResponse.team().getTeamId(), creatorId, RuoloTeam.LEADER);
         }
         return teamResponse;
     }
@@ -99,7 +99,7 @@ public class PartecipanteController {
 
     public ResponseResult accettaInTeam(int teamId) {
         int partecipanteId = mainController.getIdUtenteCorrente();
-        return teamDAO.aggiungiMembro(teamId, partecipanteId);
+        return teamDAO.aggiungiMembro(teamId, partecipanteId, RuoloTeam.MEMBRO);
     }
 
     public ResponseResult abbandonaTeam(int teamId) {
@@ -202,6 +202,10 @@ public class PartecipanteController {
 
     public ResponseResult rendiTeamDefinitivo(int teamId) {
         return teamDAO.rendiDefinitivo(teamId);
+    }
+
+    public ResponseIntResult contaPartecipanti(int hackathonId) {
+        return partecipanteDAO.contaPartecipantiRegistrati(hackathonId);
     }
 
     // endregion

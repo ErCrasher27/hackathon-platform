@@ -241,7 +241,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     public HackathonListResponse getHackathonAccettati(int giudiceId) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.data_inizio, h.data_fine,
-                       h.sede, h.max_iscritti, h.data_creazione, h.organizzatore_id,
+                       h.sede, h.max_iscritti, h.max_dimensione_team, h.data_creazione, h.organizzatore_id,
                        hs.status_name,
                        organizzatore.username as organizzatore_username, organizzatore.nome as organizzatore_nome,
                        organizzatore.cognome as organizzatore_cognome
@@ -271,7 +271,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     }
 
     private Hackathon mapResultSetToHackathon(ResultSet rs) throws SQLException {
-        Hackathon hackathon = new Hackathon(rs.getString("titolo"), rs.getString("descrizione"), rs.getString("sede"), rs.getTimestamp("data_inizio").toLocalDateTime(), rs.getTimestamp("data_fine").toLocalDateTime(), rs.getInt("max_iscritti"), rs.getInt("max_iscritti"));
+        Hackathon hackathon = new Hackathon(rs.getString("titolo"), rs.getString("descrizione"), rs.getString("sede"), rs.getTimestamp("data_inizio").toLocalDateTime(), rs.getTimestamp("data_fine").toLocalDateTime(), rs.getInt("max_iscritti"), rs.getInt("max_dimensione_team"));
         hackathon.setHackathonId(rs.getInt("hackathon_id"));
         hackathon.setStatus(HackathonStatus.valueOf(rs.getString("status_name")));
         hackathon.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());

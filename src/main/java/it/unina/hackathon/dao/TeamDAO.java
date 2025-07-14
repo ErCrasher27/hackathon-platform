@@ -34,4 +34,6 @@ public interface TeamDAO {
     ResponseIntResult contaMembriTeam(int teamId);
 
     TeamListResponse getTeamHackathon(int hackathonId);
+
+    TeamResponse getTeamByPartecipante(int partecipanteId, int hackathonId);
 }

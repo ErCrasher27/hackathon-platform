@@ -95,4 +95,8 @@ public class OrganizzatoreController {
     public ResponseIntResult contaGiudiciAccettati(int hackathonId) {
         return giudiceHackathonDAO.contaGiudiciAccettati(hackathonId);
     }
+
+    public TeamResponse getTeamByPartecipante(int partecipanteId, int hackathonId) {
+        return teamDao.getTeamByPartecipante(partecipanteId, hackathonId);
+    }
 }

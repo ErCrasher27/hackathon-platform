@@ -4,14 +4,8 @@ import it.unina.hackathon.controller.Controller;
 import it.unina.hackathon.controller.NavigationController;
 import it.unina.hackathon.controller.OrganizzatoreController;
 import it.unina.hackathon.gui.GUIHandler;
-import it.unina.hackathon.model.GiudiceHackathon;
-import it.unina.hackathon.model.Hackathon;
-import it.unina.hackathon.model.Team;
-import it.unina.hackathon.model.Utente;
-import it.unina.hackathon.utils.responses.GiudiceHackathonListResponse;
-import it.unina.hackathon.utils.responses.HackathonResponse;
-import it.unina.hackathon.utils.responses.TeamListResponse;
-import it.unina.hackathon.utils.responses.UtenteListResponse;
+import it.unina.hackathon.model.*;
+import it.unina.hackathon.utils.responses.*;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
@@ -139,6 +133,7 @@ public class GestisciHackathonGUI implements GUIHandler {
             caricaGiudiciInvitati();
             caricaPartecipanti();
             caricaTeam();
+            caricaClassifica();
 
         } catch (Exception e) {
             showError(frame, "Errore imprevisto: " + e.getMessage());
@@ -151,50 +146,67 @@ public class GestisciHackathonGUI implements GUIHandler {
     }
 
     private void createStatisticheTab() {
-        statistichePanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(20, 20, 20, 20);
-        gbc.anchor = GridBagConstraints.WEST;
+        statistichePanel = new JPanel(new BorderLayout());
 
-        Font statisticFont = new Font(Font.SANS_SERIF, Font.BOLD, 16);
+        // Top panel con statistiche esistenti
+        JPanel statsTopPanel = new JPanel(new GridBagLayout());
+        statsTopPanel.setBorder(BorderFactory.createTitledBorder("Statistiche Generali"));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
 
         // Iscritti
+        JLabel iscrittiTitleLabel = new JLabel("Partecipanti iscritti:");
+        applyStyleTitleLbl(iscrittiTitleLabel);
+        iscrittiLabel = new JLabel("Caricamento...");
+
         gbc.gridx = 0;
         gbc.gridy = 0;
-        statistichePanel.add(new JLabel("Partecipanti iscritti:"), gbc);
+        gbc.anchor = GridBagConstraints.WEST;
+        statsTopPanel.add(iscrittiTitleLabel, gbc);
         gbc.gridx = 1;
-        iscrittiLabel = new JLabel("0 / 0");
-        iscrittiLabel.setFont(statisticFont);
-        iscrittiLabel.setForeground(Color.BLUE);
-        statistichePanel.add(iscrittiLabel, gbc);
+        statsTopPanel.add(iscrittiLabel, gbc);
 
         // Team
+        JLabel teamTitleLabel = new JLabel("Team formati:");
+        applyStyleTitleLbl(teamTitleLabel);
+        teamLabel = new JLabel("Caricamento...");
+
         gbc.gridx = 0;
         gbc.gridy = 1;
-        statistichePanel.add(new JLabel("Team formati:"), gbc);
+        statsTopPanel.add(teamTitleLabel, gbc);
         gbc.gridx = 1;
-        teamLabel = new JLabel("0");
-        teamLabel.setFont(statisticFont);
-        teamLabel.setForeground(Color.GREEN);
-        statistichePanel.add(teamLabel, gbc);
+        statsTopPanel.add(teamLabel, gbc);
 
         // Giudici
+        JLabel giudiciTitleLabel = new JLabel("Giudici accettati:");
+        applyStyleTitleLbl(giudiciTitleLabel);
+        giudiciLabel = new JLabel("Caricamento...");
+
         gbc.gridx = 0;
         gbc.gridy = 2;
-        statistichePanel.add(new JLabel("Giudici confermati:"), gbc);
+        statsTopPanel.add(giudiciTitleLabel, gbc);
         gbc.gridx = 1;
-        giudiciLabel = new JLabel("0");
-        giudiciLabel.setFont(statisticFont);
-        giudiciLabel.setForeground(Color.ORANGE);
-        statistichePanel.add(giudiciLabel, gbc);
+        statsTopPanel.add(giudiciLabel, gbc);
 
-        // Refresh button
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        JButton refreshStatsButton = new JButton("Aggiorna Statistiche");
-        refreshStatsButton.addActionListener(_ -> aggiornaStatistiche());
-        statistichePanel.add(refreshStatsButton, gbc);
+        // Sezione classifica
+        JPanel classificaPanel = createClassificaPanel();
+
+        // Button panel per aggiornare
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton aggiornaStatsButton = new JButton("Aggiorna Statistiche");
+        buttonPanel.add(aggiornaStatsButton);
+
+        // Layout principale
+        statistichePanel.add(statsTopPanel, BorderLayout.NORTH);
+        statistichePanel.add(classificaPanel, BorderLayout.CENTER);
+        statistichePanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Event listener
+        aggiornaStatsButton.addActionListener(_ -> {
+            aggiornaStatistiche();
+            caricaClassifica();
+        });
     }
 
     private void createGiudiciTab() {
@@ -254,7 +266,10 @@ public class GestisciHackathonGUI implements GUIHandler {
         // Event listeners
         invitaButton.addActionListener(_ -> apriDialogInvitaGiudice());
         rimuoviButton.addActionListener(_ -> rimuoviGiudiceSelezionato());
-        aggiornaGiudiciButton.addActionListener(_ -> caricaGiudiciInvitati());
+        aggiornaGiudiciButton.addActionListener(_ -> {
+            caricaGiudiciInvitati();
+            caricaClassifica();
+        });
     }
 
     private void createPartecipantiTab() {
@@ -264,7 +279,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
         // Partecipanti table (top)
-        String[] partecipantiColumns = {"Nome", "Cognome", "Username", "Email", "Data Registrazione"};
+        String[] partecipantiColumns = {"Nome", "Cognome", "Username", "Email", "Team", "Data Registrazione"};
         partecipantiTableModel = new DefaultTableModel(partecipantiColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -311,7 +326,101 @@ public class GestisciHackathonGUI implements GUIHandler {
         aggiornaPartecipantiButton.addActionListener(_ -> {
             caricaPartecipanti();
             caricaTeam();
+            caricaClassifica();
         });
+    }
+
+    private JTable classificaTable;
+    private DefaultTableModel classificaTableModel;
+
+    // NUOVO: Metodo per creare il panel della classifica
+    private JPanel createClassificaPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Classifica"));
+
+        // Tabella classifica
+        String[] classificaColumns = {"Posizione", "Team", "Media Voti", "Numero Voti", "Ultima Valutazione"};
+        classificaTableModel = new DefaultTableModel(classificaColumns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        classificaTable = new JTable(classificaTableModel);
+        classificaTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        classificaTable.setRowHeight(30);
+
+        // Imposta larghezza colonne
+        classificaTable.getColumnModel().getColumn(0).setPreferredWidth(80);  // Posizione
+        classificaTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Team
+        classificaTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Media
+        classificaTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Numero Voti
+        classificaTable.getColumnModel().getColumn(4).setPreferredWidth(150); // Data
+
+        JScrollPane scrollPane = new JScrollPane(classificaTable);
+        scrollPane.setPreferredSize(new Dimension(0, 250));
+
+        // Info panel
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel infoLabel = new JLabel("La classifica mostra solo i team definitivi che hanno ricevuto almeno un voto");
+        infoLabel.setFont(infoLabel.getFont().deriveFont(Font.ITALIC, 11f));
+        infoPanel.add(infoLabel);
+
+        panel.add(infoPanel, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    // NUOVO: Metodo per caricare la classifica
+    private void caricaClassifica() {
+        try {
+            classificaTableModel.setRowCount(0);
+
+            // Utilizziamo il GiudiceController per accedere alla classifica
+            VotoListResponse response = controller.getGiudiceController().getClassificaHackathon(hackathonId);
+
+            if (response.voti() != null && !response.voti().isEmpty()) {
+                int posizione = 1;
+                for (Voto votoClassifica : response.voti()) {
+                    // I dati sono già calcolati dal DAO
+                    String nomeTeam = votoClassifica.getTeam() != null ? votoClassifica.getTeam().getNome() : "N/A";
+
+                    // Estraiamo la media dai criteri di valutazione
+                    String criteriInfo = votoClassifica.getCriteriValutazione();
+                    String mediaVoti = "N/A";
+                    String numeroVoti = "0";
+
+                    if (criteriInfo != null && criteriInfo.contains("Media: ")) {
+                        // Parsing della stringa "Posizione: X | Media: Y.YY | Voti ricevuti: Z"
+                        String[] parts = criteriInfo.split("\\|");
+                        for (String part : parts) {
+                            part = part.trim();
+                            if (part.startsWith("Media: ")) {
+                                mediaVoti = part.substring(7);
+                            } else if (part.startsWith("Voti ricevuti: ")) {
+                                numeroVoti = part.substring(15);
+                            }
+                        }
+                    }
+
+                    String dataUltimaValutazione = votoClassifica.getDataVoto() != null ? votoClassifica.getDataVoto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "N/A";
+
+                    Object[] row = {posizione++, nomeTeam, mediaVoti, numeroVoti, dataUltimaValutazione};
+                    classificaTableModel.addRow(row);
+                }
+            } else {
+                // Aggiungi riga informativa se non ci sono voti
+                Object[] row = {"--", "Nessun team votato", "--", "--", "--"};
+                classificaTableModel.addRow(row);
+            }
+        } catch (Exception e) {
+            showError(frame, "Errore nel caricamento classifica: " + e.getMessage());
+            // Aggiungi riga di errore
+            Object[] row = {"--", "Errore nel caricamento", "--", "--", "--"};
+            classificaTableModel.addRow(row);
+        }
     }
 
     private void aggiornaStatistiche() {
@@ -359,7 +468,8 @@ public class GestisciHackathonGUI implements GUIHandler {
 
             if (response.utenti() != null) {
                 for (Utente partecipante : response.utenti()) {
-                    Object[] row = {partecipante.getNome(), partecipante.getCognome(), partecipante.getUsername(), partecipante.getEmail(), partecipante.getDataRegistrazione() != null ? partecipante.getDataRegistrazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
+                    TeamResponse team = organizzatoreController.getTeamByPartecipante(partecipante.getUtenteId(), hackathonId);
+                    Object[] row = {partecipante.getNome(), partecipante.getCognome(), partecipante.getUsername(), partecipante.getEmail(), team.team() != null ? team.team().getNome() : "N/A", partecipante.getDataRegistrazione() != null ? partecipante.getDataRegistrazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
                     partecipantiTableModel.addRow(row);
                 }
             }

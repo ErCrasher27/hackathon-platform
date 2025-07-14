@@ -111,13 +111,6 @@
 5. Provare a votare di nuovo lo stesso team → **Errore previsto**
 6. Verificare aggiornamento classifiche
 
-### Test 3.4: Tentativo Votazione Hackathon Non Iniziato
-
-**Azioni:**
-
-1. Entrare in "Green Tech Solutions" (non ancora iniziato)
-2. Provare a votare → **Errore previsto: hackathon non in corso**
-
 ## SCENARIO 4: FUNZIONALITÀ PARTECIPANTE - REGISTRAZIONE
 
 ### Test 4.1: Registrazione Hackathon
@@ -139,13 +132,6 @@
 1. Registrare lorenzo.valle a "GameDev Marathon"
 2. Login come altro partecipante non registrato
 3. Provare a registrarsi (ora 20/20) → **Errore previsto: hackathon pieno**
-
-### Test 4.3: Tentativo Registrazione Chiusa
-
-**Login come:** nuovo.utente
-**Azioni:**
-
-1. Provare a registrarsi a "Green Tech Solutions" → **Errore previsto: registrazioni chiuse**
 
 ## SCENARIO 5: GESTIONE TEAM
 

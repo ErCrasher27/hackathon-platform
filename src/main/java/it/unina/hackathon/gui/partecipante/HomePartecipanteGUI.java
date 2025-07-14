@@ -7,6 +7,7 @@ import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Team;
 import it.unina.hackathon.utils.responses.HackathonListResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -456,12 +457,13 @@ public class HomePartecipanteGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             Hackathon hackathon = hackathonDisponibili.get(rowIndex);
+            ResponseIntResult numPartecipanti = partecipanteController.contaPartecipanti(hackathon.getHackathonId());
             return switch (columnIndex) {
                 case 0 -> hackathon.getTitolo();
                 case 1 -> hackathon.getSede();
                 case 2 -> hackathon.getDataInizio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 3 -> hackathon.getDataFine().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                case 4 -> hackathon.getMaxIscritti() + "/" + hackathon.getMaxIscritti();
+                case 4 -> numPartecipanti.result() + "/" + hackathon.getMaxIscritti();
                 case 5 -> hackathon.getStatus().getDisplayName();
                 default -> "";
             };

@@ -2,6 +2,12 @@
 -- HACKATHON DATABASE
 -- ==================================================
 
+-- Crea il database
+CREATE DATABASE hackathon_db;
+
+-- Connettiti al database
+\c hackathon_db;
+
 -- ==================================================
 -- SEZIONE 1: TABELLE ENUM
 -- ==================================================

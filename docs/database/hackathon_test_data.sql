@@ -7,71 +7,71 @@
 -- ==================================================
 
 -- Organizzatori (ID: 1-5)
-INSERT INTO utenti (username, email, password, nome, cognome, tipo_utente_id) VALUES
-('mario.rossi', 'mario.rossi@email.com', 'password123', 'Mario', 'Rossi', 1),
-('giulia.verdi', 'giulia.verdi@email.com', 'password123', 'Giulia', 'Verdi', 1),
-('luigi.bianchi', 'luigi.bianchi@email.com', 'password123', 'Luigi', 'Bianchi', 1),
-('sara.neri', 'sara.neri@email.com', 'password123', 'Sara', 'Neri', 1),
-('paolo.gialli', 'paolo.gialli@email.com', 'password123', 'Paolo', 'Gialli', 1);
+INSERT INTO utenti (utente_id, username, email, password, nome, cognome, tipo_utente_id) VALUES
+(1, 'mario.rossi', 'mario.rossi@email.com', 'password123', 'Mario', 'Rossi', 1),
+(2, 'giulia.verdi', 'giulia.verdi@email.com', 'password123', 'Giulia', 'Verdi', 1),
+(3, 'luigi.bianchi', 'luigi.bianchi@email.com', 'password123', 'Luigi', 'Bianchi', 1),
+(4, 'sara.neri', 'sara.neri@email.com', 'password123', 'Sara', 'Neri', 1),
+(5, 'paolo.gialli', 'paolo.gialli@email.com', 'password123', 'Paolo', 'Gialli', 1);
 
 -- Giudici (ID: 6-15)
-INSERT INTO utenti (username, email, password, nome, cognome, tipo_utente_id) VALUES
-('prof.ferrari', 'prof.ferrari@unina.it', 'password123', 'Andrea', 'Ferrari', 2),
-('prof.russo', 'prof.russo@unina.it', 'password123', 'Maria', 'Russo', 2),
-('prof.romano', 'prof.romano@unina.it', 'password123', 'Giuseppe', 'Romano', 2),
-('prof.gallo', 'prof.gallo@unina.it', 'password123', 'Anna', 'Gallo', 2),
-('prof.costa', 'prof.costa@unina.it', 'password123', 'Francesco', 'Costa', 2),
-('dott.fontana', 'dott.fontana@azienda.it', 'password123', 'Laura', 'Fontana', 2),
-('dott.ricci', 'dott.ricci@azienda.it', 'password123', 'Marco', 'Ricci', 2),
-('ing.lombardi', 'ing.lombardi@tech.it', 'password123', 'Silvia', 'Lombardi', 2),
-('ing.moretti', 'ing.moretti@tech.it', 'password123', 'Roberto', 'Moretti', 2),
-('arch.barbieri', 'arch.barbieri@studio.it', 'password123', 'Elena', 'Barbieri', 2);
+INSERT INTO utenti (utente_id, username, email, password, nome, cognome, tipo_utente_id) VALUES
+(6, 'prof.ferrari', 'prof.ferrari@unina.it', 'password123', 'Andrea', 'Ferrari', 2),
+(7, 'prof.russo', 'prof.russo@unina.it', 'password123', 'Maria', 'Russo', 2),
+(8, 'prof.romano', 'prof.romano@unina.it', 'password123', 'Giuseppe', 'Romano', 2),
+(9, 'prof.gallo', 'prof.gallo@unina.it', 'password123', 'Anna', 'Gallo', 2),
+(10, 'prof.costa', 'prof.costa@unina.it', 'password123', 'Francesco', 'Costa', 2),
+(11, 'dott.fontana', 'dott.fontana@azienda.it', 'password123', 'Laura', 'Fontana', 2),
+(12, 'dott.ricci', 'dott.ricci@azienda.it', 'password123', 'Marco', 'Ricci', 2),
+(13, 'ing.lombardi', 'ing.lombardi@tech.it', 'password123', 'Silvia', 'Lombardi', 2),
+(14, 'ing.moretti', 'ing.moretti@tech.it', 'password123', 'Roberto', 'Moretti', 2),
+(15, 'arch.barbieri', 'arch.barbieri@studio.it', 'password123', 'Elena', 'Barbieri', 2);
 
 -- Partecipanti (ID: 16-50)
-INSERT INTO utenti (username, email, password, nome, cognome, tipo_utente_id) VALUES
-('alessandro.conti', 'alessandro.conti@student.it', 'password123', 'Alessandro', 'Conti', 3),
-('beatrice.leone', 'beatrice.leone@student.it', 'password123', 'Beatrice', 'Leone', 3),
-('carlo.marini', 'carlo.marini@student.it', 'password123', 'Carlo', 'Marini', 3),
-('diana.greco', 'diana.greco@student.it', 'password123', 'Diana', 'Greco', 3),
-('enrico.santoro', 'enrico.santoro@student.it', 'password123', 'Enrico', 'Santoro', 3),
-('federica.rinaldi', 'federica.rinaldi@student.it', 'password123', 'Federica', 'Rinaldi', 3),
-('giorgio.caruso', 'giorgio.caruso@student.it', 'password123', 'Giorgio', 'Caruso', 3),
-('helena.ferrara', 'helena.ferrara@student.it', 'password123', 'Helena', 'Ferrara', 3),
-('ivan.gatti', 'ivan.gatti@student.it', 'password123', 'Ivan', 'Gatti', 3),
-('jessica.mancini', 'jessica.mancini@student.it', 'password123', 'Jessica', 'Mancini', 3),
-('kevin.testa', 'kevin.testa@student.it', 'password123', 'Kevin', 'Testa', 3),
-('lisa.guerra', 'lisa.guerra@student.it', 'password123', 'Lisa', 'Guerra', 3),
-('matteo.serra', 'matteo.serra@student.it', 'password123', 'Matteo', 'Serra', 3),
-('nicole.ferri', 'nicole.ferri@student.it', 'password123', 'Nicole', 'Ferri', 3),
-('oscar.riva', 'oscar.riva@student.it', 'password123', 'Oscar', 'Riva', 3),
-('paola.sala', 'paola.sala@student.it', 'password123', 'Paola', 'Sala', 3),
-('quinn.orlando', 'quinn.orlando@student.it', 'password123', 'Quinn', 'Orlando', 3),
-('rita.piras', 'rita.piras@student.it', 'password123', 'Rita', 'Piras', 3),
-('stefano.longo', 'stefano.longo@student.it', 'password123', 'Stefano', 'Longo', 3),
-('teresa.vitale', 'teresa.vitale@student.it', 'password123', 'Teresa', 'Vitale', 3),
-('umberto.amato', 'umberto.amato@student.it', 'password123', 'Umberto', 'Amato', 3),
-('valeria.pellegrini', 'valeria.pellegrini@student.it', 'password123', 'Valeria', 'Pellegrini', 3),
-('walter.giuliani', 'walter.giuliani@student.it', 'password123', 'Walter', 'Giuliani', 3),
-('xenia.colombo', 'xenia.colombo@student.it', 'password123', 'Xenia', 'Colombo', 3),
-('yuri.messina', 'yuri.messina@student.it', 'password123', 'Yuri', 'Messina', 3),
-('zara.palumbo', 'zara.palumbo@student.it', 'password123', 'Zara', 'Palumbo', 3),
-('alberto.sanna', 'alberto.sanna@student.it', 'password123', 'Alberto', 'Sanna', 3),
-('bianca.farina', 'bianca.farina@student.it', 'password123', 'Bianca', 'Farina', 3),
-('claudio.rizzi', 'claudio.rizzi@student.it', 'password123', 'Claudio', 'Rizzi', 3),
-('daniela.monti', 'daniela.monti@student.it', 'password123', 'Daniela', 'Monti', 3),
-('emanuele.villa', 'emanuele.villa@student.it', 'password123', 'Emanuele', 'Villa', 3),
-('francesca.gentile', 'francesca.gentile@student.it', 'password123', 'Francesca', 'Gentile', 3),
-('giovanni.serra', 'giovanni.serra@student.it', 'password123', 'Giovanni', 'Serra', 3),
-('ilaria.costa', 'ilaria.costa@student.it', 'password123', 'Ilaria', 'Costa', 3),
-('lorenzo.valle', 'lorenzo.valle@student.it', 'password123', 'Lorenzo', 'Valle', 3);
+INSERT INTO utenti (utente_id, username, email, password, nome, cognome, tipo_utente_id) VALUES
+(16, 'alessandro.conti', 'alessandro.conti@student.it', 'password123', 'Alessandro', 'Conti', 3),
+(17, 'beatrice.leone', 'beatrice.leone@student.it', 'password123', 'Beatrice', 'Leone', 3),
+(18, 'carlo.marini', 'carlo.marini@student.it', 'password123', 'Carlo', 'Marini', 3),
+(19, 'diana.greco', 'diana.greco@student.it', 'password123', 'Diana', 'Greco', 3),
+(20, 'enrico.santoro', 'enrico.santoro@student.it', 'password123', 'Enrico', 'Santoro', 3),
+(21, 'federica.rinaldi', 'federica.rinaldi@student.it', 'password123', 'Federica', 'Rinaldi', 3),
+(22, 'giorgio.caruso', 'giorgio.caruso@student.it', 'password123', 'Giorgio', 'Caruso', 3),
+(23, 'helena.ferrara', 'helena.ferrara@student.it', 'password123', 'Helena', 'Ferrara', 3),
+(24, 'ivan.gatti', 'ivan.gatti@student.it', 'password123', 'Ivan', 'Gatti', 3),
+(25, 'jessica.mancini', 'jessica.mancini@student.it', 'password123', 'Jessica', 'Mancini', 3),
+(26, 'kevin.testa', 'kevin.testa@student.it', 'password123', 'Kevin', 'Testa', 3),
+(27, 'lisa.guerra', 'lisa.guerra@student.it', 'password123', 'Lisa', 'Guerra', 3),
+(28, 'matteo.serra', 'matteo.serra@student.it', 'password123', 'Matteo', 'Serra', 3),
+(29, 'nicole.ferri', 'nicole.ferri@student.it', 'password123', 'Nicole', 'Ferri', 3),
+(30, 'oscar.riva', 'oscar.riva@student.it', 'password123', 'Oscar', 'Riva', 3),
+(31, 'paola.sala', 'paola.sala@student.it', 'password123', 'Paola', 'Sala', 3),
+(32, 'quinn.orlando', 'quinn.orlando@student.it', 'password123', 'Quinn', 'Orlando', 3),
+(33, 'rita.piras', 'rita.piras@student.it', 'password123', 'Rita', 'Piras', 3),
+(34, 'stefano.longo', 'stefano.longo@student.it', 'password123', 'Stefano', 'Longo', 3),
+(35, 'teresa.vitale', 'teresa.vitale@student.it', 'password123', 'Teresa', 'Vitale', 3),
+(36, 'umberto.amato', 'umberto.amato@student.it', 'password123', 'Umberto', 'Amato', 3),
+(37, 'valeria.pellegrini', 'valeria.pellegrini@student.it', 'password123', 'Valeria', 'Pellegrini', 3),
+(38, 'walter.giuliani', 'walter.giuliani@student.it', 'password123', 'Walter', 'Giuliani', 3),
+(39, 'xenia.colombo', 'xenia.colombo@student.it', 'password123', 'Xenia', 'Colombo', 3),
+(40, 'yuri.messina', 'yuri.messina@student.it', 'password123', 'Yuri', 'Messina', 3),
+(41, 'zara.palumbo', 'zara.palumbo@student.it', 'password123', 'Zara', 'Palumbo', 3),
+(42, 'alberto.sanna', 'alberto.sanna@student.it', 'password123', 'Alberto', 'Sanna', 3),
+(43, 'bianca.farina', 'bianca.farina@student.it', 'password123', 'Bianca', 'Farina', 3),
+(44, 'claudio.rizzi', 'claudio.rizzi@student.it', 'password123', 'Claudio', 'Rizzi', 3),
+(45, 'daniela.monti', 'daniela.monti@student.it', 'password123', 'Daniela', 'Monti', 3),
+(46, 'emanuele.villa', 'emanuele.villa@student.it', 'password123', 'Emanuele', 'Villa', 3),
+(47, 'francesca.gentile', 'francesca.gentile@student.it', 'password123', 'Francesca', 'Gentile', 3),
+(48, 'giovanni.serra', 'giovanni.serra@student.it', 'password123', 'Giovanni', 'Serra', 3),
+(49, 'ilaria.costa', 'ilaria.costa@student.it', 'password123', 'Ilaria', 'Costa', 3),
+(50, 'lorenzo.valle', 'lorenzo.valle@student.it', 'password123', 'Lorenzo', 'Valle', 3);
 
 -- ==================================================
 -- CREAZIONE HACKATHONS
 -- ==================================================
 
 -- Hackathon 1: TERMINATO
-INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
-('AI Innovation Challenge 2024', 
+INSERT INTO hackathon (hackathon_id, titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
+(1, 'AI Innovation Challenge 2024',
  'Hackathon dedicato all''innovazione nell''intelligenza artificiale. I team dovranno sviluppare soluzioni AI innovative per problemi reali.',
  'Milano - Università Bocconi', 
  '2024-11-15 09:00:00', 
@@ -83,8 +83,8 @@ INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_c
  4); -- TERMINATO
 
 -- Hackathon 2: IN_CORSO
-INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
-('Web3 Blockchain Hackathon', 
+INSERT INTO hackathon (hackathon_id, titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
+(2, 'Web3 Blockchain Hackathon',
  'Sviluppa la prossima applicazione decentralizzata! Focus su smart contracts, DeFi e NFTs.',
  'Roma - LUISS', 
  CURRENT_DATE + INTERVAL '-1 day' + TIME '09:00:00', 
@@ -96,8 +96,8 @@ INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_c
  3); -- IN_CORSO
 
 -- Hackathon 3: REGISTRAZIONI_CHIUSE
-INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
-('Green Tech Solutions', 
+INSERT INTO hackathon (hackathon_id, titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
+(3, 'Green Tech Solutions',
  'Hackathon focalizzato su soluzioni tecnologiche per la sostenibilità ambientale.',
  'Torino - Politecnico', 
  CURRENT_DATE + INTERVAL '2 days' + TIME '09:00:00', 
@@ -109,8 +109,8 @@ INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_c
  2); -- REGISTRAZIONI_CHIUSE
 
 -- Hackathon 4: REGISTRAZIONI_APERTE
-INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
-('HealthTech Innovation 2025', 
+INSERT INTO hackathon (hackathon_id, titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
+(4, 'HealthTech Innovation 2025',
  'Rivoluziona il settore sanitario con soluzioni digitali innovative.',
  'Napoli - Federico II', 
  CURRENT_DATE + INTERVAL '30 days' + TIME '09:00:00', 
@@ -122,8 +122,8 @@ INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_c
  1); -- REGISTRAZIONI_APERTE
 
 -- Hackathon 5: REGISTRAZIONI_APERTE
-INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
-('GameDev Marathon', 
+INSERT INTO hackathon (hackathon_id, titolo, descrizione, sede, data_inizio, data_fine, data_chiusura_registrazioni, max_iscritti, max_dimensione_team, organizzatore_id, status_id) VALUES
+(5, 'GameDev Marathon',
  'Crea il prossimo videogioco di successo in 48 ore!',
  'Bologna - Università', 
  CURRENT_DATE + INTERVAL '15 days' + TIME '09:00:00', 
@@ -216,133 +216,98 @@ INSERT INTO team (nome, hackathon_id, definitivo) VALUES
 -- REGISTRAZIONI E MEMBRI TEAM
 -- ==================================================
 
--- Hackathon 1 (TERMINATO) - Team completi
--- Team 1: AI Wizards (4 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(16, 1, 1), (17, 1, 1), (18, 1, 1), (19, 1, 1);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(1, 16, 'LEADER'), (1, 17, 'MEMBRO'), (1, 18, 'MEMBRO'), (1, 19, 'MEMBRO');
+BEGIN;
 
--- Team 2: Neural Network Ninjas (4 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(20, 1, 2), (21, 1, 2), (22, 1, 2), (23, 1, 2);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(2, 20, 'LEADER'), (2, 21, 'MEMBRO'), (2, 22, 'MEMBRO'), (2, 23, 'MEMBRO');
+-- DISABILITA TEMPORANEAMENTE I TRIGGER
+ALTER TABLE registrazioni DISABLE TRIGGER ALL;
+ALTER TABLE membri_team DISABLE TRIGGER ALL;
 
--- Team 3: Deep Learning Dragons (3 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(24, 1, 3), (25, 1, 3), (26, 1, 3);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(3, 24, 'LEADER'), (3, 25, 'MEMBRO'), (3, 26, 'MEMBRO');
-
--- Team 4: Machine Learning Masters (4 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
+-- Hackathon 1 (TERMINATO)
+INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES
+(16, 1, 1), (17, 1, 1), (18, 1, 1), (19, 1, 1),
+(20, 1, 2), (21, 1, 2), (22, 1, 2), (23, 1, 2),
+(24, 1, 3), (25, 1, 3), (26, 1, 3),
 (27, 1, 4), (28, 1, 4), (29, 1, 4), (30, 1, 4);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(4, 27, 'LEADER'), (4, 28, 'MEMBRO'), (4, 29, 'MEMBRO'), (4, 30, 'MEMBRO');
 
--- Alcuni utenti registrati senza team
-INSERT INTO registrazioni (utente_id, hackathon_id) VALUES 
+INSERT INTO registrazioni (utente_id, hackathon_id) VALUES
 (31, 1), (32, 1);
 
--- Hackathon 2 (IN_CORSO) - Mix di team pieni e parziali
--- Team 5: Blockchain Builders (3/3 membri - pieno)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(16, 2, 5), (17, 2, 5), (18, 2, 5);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(5, 16, 'LEADER'), (5, 17, 'MEMBRO'), (5, 18, 'MEMBRO');
+INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES
+(1, 16, 'LEADER'), (1, 17, 'MEMBRO'), (1, 18, 'MEMBRO'), (1, 19, 'MEMBRO'),
+(2, 20, 'LEADER'), (2, 21, 'MEMBRO'), (2, 22, 'MEMBRO'), (2, 23, 'MEMBRO'),
+(3, 24, 'LEADER'), (3, 25, 'MEMBRO'), (3, 26, 'MEMBRO'),
+(4, 27, 'LEADER'), (4, 28, 'MEMBRO'), (4, 29, 'MEMBRO'), (4, 30, 'MEMBRO');
 
--- Team 6: Crypto Crusaders (2/3 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(19, 2, 6), (20, 2, 6);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(6, 19, 'LEADER'), (6, 20, 'MEMBRO');
+-- Hackathon 2 (IN_CORSO)
+INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES
+(33, 2, 5), (34, 2, 5), (35, 2, 5),
+(36, 2, 6), (37, 2, 6),
+(38, 2, 7),
+(39, 2, 8), (40, 2, 8), (41, 2, 8);
 
--- Team 7: DeFi Developers (1/3 membri - non definitivo)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(21, 2, 7);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(7, 21, 'LEADER');
+INSERT INTO registrazioni (utente_id, hackathon_id) VALUES
+(42, 2), (43, 2), (44, 2);
 
--- Team 8: Smart Contract Squad (3/3 membri - pieno)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(22, 2, 8), (23, 2, 8), (24, 2, 8);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(8, 22, 'LEADER'), (8, 23, 'MEMBRO'), (8, 24, 'MEMBRO');
+INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES
+(5, 33, 'LEADER'), (5, 34, 'MEMBRO'), (5, 35, 'MEMBRO'),
+(6, 36, 'LEADER'), (6, 37, 'MEMBRO'),
+(7, 38, 'LEADER'),
+(8, 39, 'LEADER'), (8, 40, 'MEMBRO'), (8, 41, 'MEMBRO');
 
--- Utenti registrati senza team
-INSERT INTO registrazioni (utente_id, hackathon_id) VALUES 
-(25, 2), (26, 2), (27, 2);
+-- Hackathon 3 (REGISTRAZIONI_CHIUSE)
+INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES
+(45, 3, 9), (46, 3, 9),
+(47, 3, 10);
 
--- Hackathon 3 (REGISTRAZIONI_CHIUSE) - Team in formazione
--- Team 9: Green Innovators (2/5 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(28, 3, 9), (29, 3, 9);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(9, 28, 'LEADER'), (9, 29, 'MEMBRO');
+INSERT INTO registrazioni (utente_id, hackathon_id) VALUES
+(48, 3), (49, 3), (50, 3), (16, 3), (17, 3);
 
--- Team 10: Eco Warriors (1/5 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(30, 3, 10);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(10, 30, 'LEADER');
+INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES
+(9, 45, 'LEADER'), (9, 46, 'MEMBRO'),
+(10, 47, 'LEADER');
 
--- Team 11: Sustainable Solutions (0 membri - vuoto)
--- Nessun membro ancora
+-- Hackathon 4 (REGISTRAZIONI_APERTE)
+INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES
+(18, 4, 12), (19, 4, 12);
 
--- Utenti registrati senza team
-INSERT INTO registrazioni (utente_id, hackathon_id) VALUES 
-(31, 3), (32, 3), (33, 3), (34, 3), (35, 3);
+INSERT INTO registrazioni (utente_id, hackathon_id) VALUES
+(20, 4), (21, 4), (22, 4);
 
--- Hackathon 4 (REGISTRAZIONI_APERTE) - Poche registrazioni
--- Team 12: Health Hackers (2/4 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(36, 4, 12), (37, 4, 12);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(12, 36, 'LEADER'), (12, 37, 'MEMBRO');
+INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES
+(12, 18, 'LEADER'), (12, 19, 'MEMBRO');
 
--- Utenti registrati senza team
-INSERT INTO registrazioni (utente_id, hackathon_id) VALUES 
-(38, 4), (39, 4), (40, 4);
+-- Hackathon 5 (REGISTRAZIONI_APERTE)
+INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES
+(23, 5, 14), (24, 5, 14), (25, 5, 14),
+(26, 5, 15), (27, 5, 15), (28, 5, 15),
+(29, 5, 16), (30, 5, 16), (31, 5, 16),
+(32, 5, 17), (33, 5, 17),
+(34, 5, 18), (35, 5, 18), (36, 5, 18);
 
--- Hackathon 5 (REGISTRAZIONI_APERTE - quasi pieno) - 18/20 posti
--- Team 14: Pixel Pirates (3/3 membri - pieno)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(16, 5, 14), (17, 5, 14), (18, 5, 14);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(14, 16, 'LEADER'), (14, 17, 'MEMBRO'), (14, 18, 'MEMBRO');
+INSERT INTO registrazioni (utente_id, hackathon_id) VALUES
+(37, 5), (38, 5), (39, 5);
 
--- Team 15: Game Changers (3/3 membri - pieno)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(19, 5, 15), (20, 5, 15), (21, 5, 15);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(15, 19, 'LEADER'), (15, 20, 'MEMBRO'), (15, 21, 'MEMBRO');
+INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES
+(14, 23, 'LEADER'), (14, 24, 'MEMBRO'), (14, 25, 'MEMBRO'),
+(15, 26, 'LEADER'), (15, 27, 'MEMBRO'), (15, 28, 'MEMBRO'),
+(16, 29, 'LEADER'), (16, 30, 'MEMBRO'), (16, 31, 'MEMBRO'),
+(17, 32, 'LEADER'), (17, 33, 'MEMBRO'),
+(18, 34, 'LEADER'), (18, 35, 'MEMBRO'), (18, 36, 'MEMBRO');
 
--- Team 16: Code Warriors (3/3 membri - pieno)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(22, 5, 16), (23, 5, 16), (24, 5, 16);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(16, 22, 'LEADER'), (16, 23, 'MEMBRO'), (16, 24, 'MEMBRO');
+-- RIABILITA I TRIGGER
+ALTER TABLE registrazioni ENABLE TRIGGER ALL;
+ALTER TABLE membri_team ENABLE TRIGGER ALL;
 
--- Team 17: Digital Dreams (2/3 membri)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(25, 5, 17), (26, 5, 17);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(17, 25, 'LEADER'), (17, 26, 'MEMBRO');
-
--- Team 18: Arcade Legends (3/3 membri - pieno)
-INSERT INTO registrazioni (utente_id, hackathon_id, team_id) VALUES 
-(27, 5, 18), (28, 5, 18), (29, 5, 18);
-INSERT INTO membri_team (team_id, utente_id, ruolo_team) VALUES 
-(18, 27, 'LEADER'), (18, 28, 'MEMBRO'), (18, 29, 'MEMBRO');
-
--- Utenti registrati senza team (totale 18 registrati)
-INSERT INTO registrazioni (utente_id, hackathon_id) VALUES 
-(30, 5), (31, 5), (32, 5);
+COMMIT;
 
 -- ==================================================
 -- INVITI TEAM
 -- ==================================================
+
+BEGIN;
+
+-- DISABILITA TEMPORANEAMENTE I TRIGGER
+ALTER TABLE inviti_team DISABLE TRIGGER ALL;
 
 -- Inviti per Hackathon 2 (IN_CORSO)
 -- Team 6 cerca un terzo membro
@@ -367,9 +332,19 @@ INSERT INTO inviti_team (team_id, invitante_id, invitato_id, messaggio_motivazio
 (12, 36, 38, 'Stiamo sviluppando una app per la telemedicina', 1), -- PENDING
 (12, 36, 39, 'Cerchiamo un data scientist per analisi mediche', 2); -- ACCEPTED
 
+-- RIABILITA I TRIGGER
+ALTER TABLE inviti_team ENABLE TRIGGER ALL;
+
+COMMIT;
+
 -- ==================================================
 -- PROGRESSI CARICATI DAI TEAM
 -- ==================================================
+
+BEGIN;
+
+-- DISABILITA TEMPORANEAMENTE I TRIGGER
+ALTER TABLE progressi DISABLE TRIGGER ALL;
 
 -- Progressi Hackathon 1 (TERMINATO)
 INSERT INTO progressi (team_id, titolo, descrizione, documento_path, documento_nome, caricato_da) VALUES
@@ -387,6 +362,11 @@ INSERT INTO progressi (team_id, titolo, descrizione, documento_path, documento_n
 (5, 'Frontend React', 'Interfaccia utente della DApp', '/uploads/h2/team5/frontend.zip', 'dapp_frontend.zip', 17),
 (6, 'Whitepaper', 'Documento tecnico del progetto', '/uploads/h2/team6/whitepaper.pdf', 'crypto_crusaders_wp.pdf', 19),
 (8, 'Audit Security', 'Report di sicurezza smart contract', '/uploads/h2/team8/audit.pdf', 'security_audit.pdf', 22);
+
+-- RIABILITA I TRIGGER
+ALTER TABLE progressi ENABLE TRIGGER ALL;
+
+COMMIT;
 
 -- ==================================================
 -- COMMENTI DEI GIUDICI
@@ -442,15 +422,3 @@ INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, criteri_valutazione
 (2, 8, 6, 9, 'Security-first approach eccellente'),
 (2, 8, 9, 10, 'Il migliore finora! Audit professionale'),
 (2, 8, 13, 9, 'Codice pulito e ben documentato');
-
--- ==================================================
--- NOTE FINALI
--- ==================================================
--- Questo script crea uno scenario completo con:
--- - 50 utenti (5 organizzatori, 10 giudici, 35 partecipanti)
--- - 5 hackathon in stati diversi
--- - 18 team con vari livelli di completamento
--- - Inviti in stati diversi (pending, accepted, declined)
--- - Progressi caricati e commentati
--- - Voti completi per mostrare classifiche
--- - Situazioni limite (hackathon quasi pieni, team vuoti, etc.)

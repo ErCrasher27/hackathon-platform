@@ -86,7 +86,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         aggiornaButton = new JButton("Aggiorna");
-        dettagliButton = new JButton("Dettagli/Modifica");
+        dettagliButton = new JButton("Dettagli");
         nuovoHackathonButton = new JButton("+ Nuovo Hackathon");
 
         // Style buttons
@@ -323,7 +323,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
     }
 
     // Status ComboBox Renderer
-    private class StatusComboBoxRenderer extends JComboBox<HackathonStatus> implements TableCellRenderer {
+    private static class StatusComboBoxRenderer extends JComboBox<HackathonStatus> implements TableCellRenderer {
         public StatusComboBoxRenderer() {
             super(HackathonStatus.values());
         }
@@ -348,7 +348,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
     }
 
     // Status ComboBox Editor
-    private class StatusComboBoxEditor extends DefaultCellEditor {
+    private static class StatusComboBoxEditor extends DefaultCellEditor {
         public StatusComboBoxEditor() {
             super(new JComboBox<>(HackathonStatus.values()));
         }

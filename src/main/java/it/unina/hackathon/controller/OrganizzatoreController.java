@@ -56,10 +56,6 @@ public class OrganizzatoreController {
         return hackathonDAO.getHackathonById(hackathonId);
     }
 
-    public HackathonResponse updateHackathon(Hackathon hackathon) {
-        return hackathonDAO.updateHackathon(hackathon);
-    }
-
     public ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato) {
         return hackathonDAO.cambiaStatoHackathon(hackathonId, nuovoStato);
     }

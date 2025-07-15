@@ -34,8 +34,6 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, progresso.getTeamId());
-            ps.setString(2, progresso.getTitolo());
-            ps.setString(3, progresso.getDescrizione());
             ps.setString(4, progresso.getDocumentoPath());
             ps.setString(5, progresso.getDocumentoNome());
             ps.setTimestamp(6, Timestamp.valueOf(progresso.getDataCaricamento()));
@@ -152,8 +150,6 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setString(1, progresso.getTitolo());
-            ps.setString(2, progresso.getDescrizione());
             ps.setString(3, progresso.getDocumentoPath());
             ps.setString(4, progresso.getDocumentoNome());
             ps.setInt(5, progresso.getProgressoId());
@@ -259,8 +255,6 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
         Progresso progresso = new Progresso();
         progresso.setProgressoId(rs.getInt("progresso_id"));
         progresso.setTeamId(rs.getInt("team_id"));
-        progresso.setTitolo(rs.getString("titolo"));
-        progresso.setDescrizione(rs.getString("descrizione"));
         progresso.setDocumentoPath(rs.getString("documento_path"));
         progresso.setDocumentoNome(rs.getString("documento_nome"));
         progresso.setDataCaricamento(rs.getTimestamp("data_caricamento").toLocalDateTime());

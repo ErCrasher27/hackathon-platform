@@ -1092,7 +1092,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     private void eliminaProgresso() {
         if (progressoSelezionato == null) return;
 
-        int confirm = JOptionPane.showConfirmDialog(frame, "Sei sicuro di voler eliminare il progresso '" + progressoSelezionato.getTitolo() + "'?", "Conferma Eliminazione", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        int confirm = JOptionPane.showConfirmDialog(frame, "Sei sicuro di voler eliminare il progresso?", "Conferma Eliminazione", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
@@ -1127,7 +1127,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         if (selectedRow != -1) {
             Progresso documento = documentiList.get(selectedRow);
 
-            String message = "Documento: " + documento.getDocumentoNome() + "\n\n" + "Progresso: " + documento.getTitolo() + "\n" + "Caricato: " + documento.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" + "Autore: " + (documento.getCaricatoDa() != null ? documento.getCaricatoDa().getNomeCompleto() : "N/A");
+            String message = "Documento: " + documento.getDocumentoNome() + "\n\n" + "Caricato: " + documento.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" + "Autore: " + (documento.getCaricatoDa() != null ? documento.getCaricatoDa().getNomeCompleto() : "N/A");
 
             JOptionPane.showMessageDialog(frame, message, "Dettagli Documento", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -1187,9 +1187,6 @@ public class GestisciProgettoGUI implements GUIHandler {
     // region Form Management
     private void popolaFormProgresso() {
         if (progressoSelezionato == null) return;
-
-        titoloProgressoField.setText(progressoSelezionato.getTitolo());
-        descrizioneProgressoArea.setText(progressoSelezionato.getDescrizione());
 
         if (progressoSelezionato.getDocumentoNome() != null) {
             fileSelezionatoLabel.setText(progressoSelezionato.getDocumentoNome());
@@ -1369,10 +1366,9 @@ public class GestisciProgettoGUI implements GUIHandler {
         public Object getValueAt(int rowIndex, int columnIndex) {
             Progresso progresso = progressiList.get(rowIndex);
             return switch (columnIndex) {
-                case 0 -> progresso.getTitolo();
-                case 1 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                case 2 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
-                case 3 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
+                case 0 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                case 1 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
+                case 2 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
                 default -> "";
             };
         }
@@ -1401,8 +1397,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             Progresso documento = documentiList.get(rowIndex);
             return switch (columnIndex) {
                 case 0 -> documento.getDocumentoNome();
-                case 1 -> documento.getTitolo();
-                case 2 -> documento.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                case 1 -> documento.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 default -> "";
             };
         }

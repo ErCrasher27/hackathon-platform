@@ -163,7 +163,7 @@ public class PartecipanteController {
     }
 
     public ProgressoResponse caricaProgresso(int teamId, String titolo, String descrizione, String url) {
-        Progresso progresso = new Progresso(teamId, titolo, descrizione, url);
+        Progresso progresso = new Progresso(teamId, url);
         progresso.setCaricatoDaId(mainController.getIdUtenteCorrente());
         return progressoDAO.saveProgresso(progresso);
     }
@@ -172,8 +172,6 @@ public class PartecipanteController {
         ProgressoResponse progressoResponse = progressoDAO.getProgressoById(progressoId);
         if (progressoResponse.progresso() != null) {
             Progresso progresso = progressoResponse.progresso();
-            progresso.setTitolo(titolo);
-            progresso.setDescrizione(descrizione);
             progresso.setDocumentoPath(url);
             return progressoDAO.updateProgresso(progresso);
         }

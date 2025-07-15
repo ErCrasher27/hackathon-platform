@@ -53,6 +53,8 @@ public class GestisciHackathonGUI implements GUIHandler {
 
     // Action buttons
     private JButton backButton;
+    private JTable classificaTable;
+    private DefaultTableModel classificaTableModel;
 
     public GestisciHackathonGUI(int hackathonId) {
         this.hackathonId = hackathonId;
@@ -330,10 +332,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         });
     }
 
-    private JTable classificaTable;
-    private DefaultTableModel classificaTableModel;
-
-    // NUOVO: Metodo per creare il panel della classifica
+    // Metodo per creare il panel della classifica
     private JPanel createClassificaPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Classifica"));
@@ -373,7 +372,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         return panel;
     }
 
-    // NUOVO: Metodo per caricare la classifica
+    // Metodo per caricare la classifica
     private void caricaClassifica() {
         try {
             classificaTableModel.setRowCount(0);

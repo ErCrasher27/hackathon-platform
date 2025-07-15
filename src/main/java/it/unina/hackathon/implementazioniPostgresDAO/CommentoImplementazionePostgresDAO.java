@@ -237,7 +237,6 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
         // Mappa il progresso
         Progresso progresso = new Progresso();
         progresso.setProgressoId(rs.getInt("progresso_id"));
-        progresso.setTitolo(rs.getString("progresso_titolo"));
         commento.setProgresso(progresso);
 
         return commento;

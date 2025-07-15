@@ -28,8 +28,8 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoResponse saveVoto(Voto voto) {
         String query = """
-                INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, criteri_valutazione, data_voto) 
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, data_voto) 
+                VALUES (?, ?, ?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
@@ -37,8 +37,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
             ps.setInt(2, voto.getTeamId());
             ps.setInt(3, voto.getGiudiceId());
             ps.setInt(4, voto.getValore());
-            ps.setString(5, voto.getCriteriValutazione());
-            ps.setTimestamp(6, Timestamp.valueOf(voto.getDataVoto()));
+            ps.setTimestamp(5, Timestamp.valueOf(voto.getDataVoto()));
 
             int affectedRows = ps.executeUpdate();
 
@@ -60,8 +59,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoResponse getVotoById(int votoId) {
         String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, 
-                       v.criteri_valutazione, v.data_voto,
+                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
                        u.nome, u.cognome, u.username, u.email,
                        t.nome as team_nome
                 FROM voti v
@@ -89,8 +87,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoListResponse getVotiByTeam(int teamId) {
         String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, 
-                       v.criteri_valutazione, v.data_voto,
+                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
                        u.nome, u.cognome, u.username, u.email,
                        t.nome as team_nome
                 FROM voti v
@@ -119,8 +116,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoListResponse getVotiByGiudice(int giudiceId, int hackathonId) {
         String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, 
-                       v.criteri_valutazione, v.data_voto,
+                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
                        u.nome, u.cognome, u.username, u.email,
                        t.nome as team_nome
                 FROM voti v
@@ -150,8 +146,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoListResponse getVotiByHackathon(int hackathonId) {
         String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, 
-                       v.criteri_valutazione, v.data_voto,
+                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
                        u.nome, u.cognome, u.username, u.email,
                        t.nome as team_nome,
                        AVG(v.valore) OVER (PARTITION BY v.team_id) as media_team
@@ -182,15 +177,14 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     public VotoResponse updateVoto(Voto voto) {
         String query = """
                 UPDATE voti 
-                SET valore = ?, criteri_valutazione = ?, data_voto = ?
+                SET valore = ?, data_voto = ?
                 WHERE voto_id = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, voto.getValore());
-            ps.setString(2, voto.getCriteriValutazione());
-            ps.setTimestamp(3, Timestamp.valueOf(voto.getDataVoto()));
-            ps.setInt(4, voto.getVotoId());
+            ps.setTimestamp(2, Timestamp.valueOf(voto.getDataVoto()));
+            ps.setInt(3, voto.getVotoId());
 
             int affectedRows = ps.executeUpdate();
 
@@ -228,8 +222,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoResponse getVotoByGiudiceTeam(int giudiceId, int teamId, int hackathonId) {
         String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, 
-                       v.criteri_valutazione, v.data_voto,
+                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
                        u.nome, u.cognome, u.username, u.email,
                        t.nome as team_nome
                 FROM voti v
@@ -282,7 +275,6 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         }
     }
 
-    @Override
     public VotoListResponse getClassificaByHackathon(int hackathonId) {
         String query = """
                 SELECT 
@@ -290,9 +282,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
                     t.nome as team_nome,
                     AVG(v.valore) as media_voti,
                     COUNT(v.voto_id) as numero_voti,
-                    MIN(v.hackathon_id) as hackathon_id,
-                    MIN(v.data_voto) as prima_valutazione,
-                    MAX(v.data_voto) as ultima_valutazione
+                    MIN(v.hackathon_id) as hackathon_id
                 FROM voti v
                 JOIN team t ON v.team_id = t.team_id
                 WHERE v.hackathon_id = ?
@@ -308,29 +298,22 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
 
             int posizione = 1;
             while (rs.next()) {
-                // Creo un oggetto Voto "virtuale" che rappresenta la classifica del team
                 Voto votoClassifica = new Voto();
 
-                // Imposto i dati del team
+                // Dati base
                 votoClassifica.setTeamId(rs.getInt("team_id"));
                 votoClassifica.setHackathonId(rs.getInt("hackathon_id"));
 
-                // Uso il campo valore per memorizzare la media (arrotondata)
-                votoClassifica.setValore((int) Math.round(rs.getDouble("media_voti")));
+                // Dati specifici della classifica
+                votoClassifica.setPosizione(posizione++);
+                votoClassifica.setMediaVoti(rs.getDouble("media_voti"));
+                votoClassifica.setNumeroVoti(rs.getInt("numero_voti"));
 
-                // Uso il campo criteri_valutazione per memorizzare info della classifica
-                String infoClassifica = String.format("Posizione: %d | Media: %.2f | Voti ricevuti: %d", posizione++, rs.getDouble("media_voti"), rs.getInt("numero_voti"));
-                votoClassifica.setCriteriValutazione(infoClassifica);
-
-                votoClassifica.setDataVoto(rs.getTimestamp("ultima_valutazione").toLocalDateTime());
-
-                // Creo e imposto il team
+                // Team
                 Team team = new Team();
                 team.setTeamId(rs.getInt("team_id"));
                 team.setNome(rs.getString("team_nome"));
                 votoClassifica.setTeam(team);
-
-                // Non imposto il giudice per la classifica (è un dato aggregato)
 
                 classifica.add(votoClassifica);
             }
@@ -354,7 +337,6 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         voto.setTeamId(rs.getInt("team_id"));
         voto.setGiudiceId(rs.getInt("giudice_id"));
         voto.setValore(rs.getInt("valore"));
-        voto.setCriteriValutazione(rs.getString("criteri_valutazione"));
         voto.setDataVoto(rs.getTimestamp("data_voto").toLocalDateTime());
 
         // Mappa il giudice

@@ -12,10 +12,14 @@ public class Voto {
     private int teamId;
     private int giudiceId;
     private int valore;
-    private String criteriValutazione;
     private LocalDateTime dataVoto;
     private Utente giudice;
     private Team team;
+
+    // Campi per la classifica
+    private Integer posizione;
+    private Double mediaVoti;
+    private Integer numeroVoti;
 
     // endregion
 
@@ -25,14 +29,13 @@ public class Voto {
         this.dataVoto = LocalDateTime.now();
     }
 
-    public Voto(int valore, String criteriValutazione) {
+    public Voto(int valore) {
         this();
         this.valore = valore;
-        this.criteriValutazione = criteriValutazione;
     }
 
-    public Voto(int hackathonId, int teamId, int giudiceId, int valore, String criteriValutazione) {
-        this(valore, criteriValutazione);
+    public Voto(int hackathonId, int teamId, int giudiceId, int valore) {
+        this(valore);
         this.hackathonId = hackathonId;
         this.teamId = teamId;
         this.giudiceId = giudiceId;
@@ -82,14 +85,6 @@ public class Voto {
         this.valore = valore;
     }
 
-    public String getCriteriValutazione() {
-        return criteriValutazione;
-    }
-
-    public void setCriteriValutazione(String criteriValutazione) {
-        this.criteriValutazione = criteriValutazione;
-    }
-
     public LocalDateTime getDataVoto() {
         return dataVoto;
     }
@@ -114,6 +109,32 @@ public class Voto {
         this.team = team;
     }
 
+    // Per la classifica
+
+    public Integer getPosizione() {
+        return posizione;
+    }
+
+    public void setPosizione(Integer posizione) {
+        this.posizione = posizione;
+    }
+
+    public Double getMediaVoti() {
+        return mediaVoti;
+    }
+
+    public void setMediaVoti(Double mediaVoti) {
+        this.mediaVoti = mediaVoti;
+    }
+
+    public Integer getNumeroVoti() {
+        return numeroVoti;
+    }
+
+    public void setNumeroVoti(Integer numeroVoti) {
+        this.numeroVoti = numeroVoti;
+    }
+
     // endregion
 
     // region Business
@@ -128,11 +149,7 @@ public class Voto {
     }
 
     public boolean assegnaVoto(int valore, String criteri) {
-        if (!assegnaVoto(valore)) {
-            return false;
-        }
-        this.criteriValutazione = criteri != null ? criteri.trim() : "";
-        return true;
+        return assegnaVoto(valore);
     }
 
     public boolean modificaVoto(int nuovoValore) {
@@ -145,11 +162,7 @@ public class Voto {
     }
 
     public boolean modificaVoto(int nuovoValore, String nuoviCriteri) {
-        if (!modificaVoto(nuovoValore)) {
-            return false;
-        }
-        this.criteriValutazione = nuoviCriteri != null ? nuoviCriteri.trim() : "";
-        return true;
+        return modificaVoto(nuovoValore);
     }
 
     public boolean validaValore(int valore) {
@@ -164,7 +177,7 @@ public class Voto {
     }
 
     public String getDettagliVoto() {
-        return String.format("Voto: %d/10\nCriteri: %s\nData: %s\nGiudice: %s\nTeam: %s", valore, criteriValutazione != null ? criteriValutazione : "Nessun criterio specificato", dataVoto, giudice != null ? giudice.getNomeCompleto() : "N/A", team != null ? team.getNome() : "N/A");
+        return String.format("Voto: %d/10\nCriteri: %s\nData: %s\nGiudice: %s\nTeam: %s", valore, dataVoto, giudice != null ? giudice.getNomeCompleto() : "N/A", team != null ? team.getNome() : "N/A");
     }
 
     public String getValutazioneTestuale() {

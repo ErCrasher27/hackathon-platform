@@ -181,13 +181,12 @@ CREATE TABLE commenti
 -- Voti dei giudici ai team
 CREATE TABLE voti
 (
-    voto_id             SERIAL PRIMARY KEY,
-    hackathon_id        INTEGER NOT NULL REFERENCES hackathon (hackathon_id) ON DELETE CASCADE,
-    team_id             INTEGER NOT NULL REFERENCES team (team_id) ON DELETE CASCADE,
-    giudice_id          INTEGER NOT NULL REFERENCES utenti (utente_id),
-    valore              INTEGER NOT NULL CHECK (valore >= 1 AND valore <= 10),
-    criteri_valutazione TEXT,
-    data_voto           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    voto_id      SERIAL PRIMARY KEY,
+    hackathon_id INTEGER NOT NULL REFERENCES hackathon (hackathon_id) ON DELETE CASCADE,
+    team_id      INTEGER NOT NULL REFERENCES team (team_id) ON DELETE CASCADE,
+    giudice_id   INTEGER NOT NULL REFERENCES utenti (utente_id),
+    valore       INTEGER NOT NULL CHECK (valore >= 1 AND valore <= 10),
+    data_voto    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     -- Un giudice può votare un team una sola volta per hackathon
     UNIQUE (hackathon_id, team_id, giudice_id)

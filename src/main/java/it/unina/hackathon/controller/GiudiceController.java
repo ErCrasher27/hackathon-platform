@@ -109,9 +109,9 @@ public class GiudiceController {
         return teamDAO.getTeamByHackathon(hackathonId);
     }
 
-    public VotoResponse assegnaVoto(int hackathonId, int teamId, int valore, String criteri) {
+    public VotoResponse assegnaVoto(int hackathonId, int teamId, int valore) {
         int giudiceId = mainController.getIdUtenteCorrente();
-        Voto voto = new Voto(hackathonId, teamId, giudiceId, valore, criteri);
+        Voto voto = new Voto(hackathonId, teamId, giudiceId, valore);
 
         if (!voto.validaVoto()) {
             return new VotoResponse(null, "Voto non valido! Valore deve essere tra 0 e 10.");

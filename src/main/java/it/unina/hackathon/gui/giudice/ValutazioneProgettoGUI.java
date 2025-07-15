@@ -89,9 +89,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     private JLabel votoLabel;
     private JSlider votoSlider;
     private JLabel votoValueLabel;
-    private JLabel criteriLabel;
-    private JTextArea criteriArea;
-    private JScrollPane criteriScrollPane;
 
     // endregion
 
@@ -401,22 +398,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         UtilsUi.applyStyleTitleLbl(votoValueLabel);
         sliderPanel.add(votoValueLabel, gbc);
 
-        // Criteri
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        criteriLabel = new JLabel("Criteri:");
-        sliderPanel.add(criteriLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weighty = 1.0;
-        criteriArea = new JTextArea(4, 0);
-        criteriArea.setLineWrap(true);
-        criteriArea.setWrapStyleWord(true);
-        criteriScrollPane = new JScrollPane(criteriArea);
-        sliderPanel.add(criteriScrollPane, gbc);
-
         // Buttons
         JPanel votoButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         assegnaVotoButton = new JButton("Assegna Voto");
@@ -663,10 +644,9 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         }
 
         int valore = votoSlider.getValue();
-        String criteri = criteriArea.getText().trim();
 
         try {
-            VotoResponse response = giudiceController.assegnaVoto(hackathonId, teamSelezionato.getTeamId(), valore, criteri);
+            VotoResponse response = giudiceController.assegnaVoto(hackathonId, teamSelezionato.getTeamId(), valore);
             if (response.voto() != null) {
                 showInfoMessage("Voto assegnato con successo!");
                 loadVotoData();
@@ -708,12 +688,10 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             votoCorrenteLabel.setText("Nessun voto assegnato");
             assegnaVotoButton.setEnabled(true);
             votoSlider.setValue(6);
-            criteriArea.setText("");
         } else {
             votoCorrenteLabel.setText("Voto: " + votoCorrente.getValore() + "/10 - " + votoCorrente.getValutazioneTestuale());
             assegnaVotoButton.setEnabled(false);
             votoSlider.setValue(votoCorrente.getValore());
-            criteriArea.setText(votoCorrente.getCriteriValutazione() != null ? votoCorrente.getCriteriValutazione() : "");
         }
     }
 

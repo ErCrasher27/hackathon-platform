@@ -500,33 +500,34 @@ VALUES (8, 6, 'Smart contract ben scritto, attenzione alle gas fees.'),
 -- ==================================================
 
 -- Voti Hackathon 1 (TERMINATO) - tutti i team sono votabili
-INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, criteri_valutazione)
-VALUES (1, 1, 6, 9, 'Innovazione: 10/10, Implementazione: 9/10, Presentazione: 8/10'),
-       (1, 1, 7, 8, 'Ottimo lavoro complessivo, margini di miglioramento sulla documentazione'),
-       (1, 1, 8, 9, 'Progetto molto promettente con applicazioni reali'),
-       (1, 1, 11, 10, 'Eccellente! Uno dei migliori progetti che ho visto'),
-       (1, 2, 6, 7, 'Buona esecuzione ma manca originalità'),
-       (1, 2, 7, 8, 'Solido progetto, ben implementato'),
-       (1, 2, 8, 7, 'Chatbot funzionale ma features limitate'),
-       (1, 2, 11, 8, 'Buon lavoro di squadra e presentazione'),
-       (1, 3, 6, 8, 'Approccio research-oriented interessante'),
-       (1, 3, 7, 9, 'Eccellente dal punto di vista accademico'),
-       (1, 3, 8, 8, 'Implementazione da migliorare ma teoria solida'),
-       (1, 3, 11, 7, 'Manca un po'' di praticità ma ottima ricerca'),
-       (1, 4, 6, 10, 'Progetto completo e ben eseguito!'),
-       (1, 4, 7, 9, 'Ottima integrazione di diverse tecnologie ML'),
-       (1, 4, 8, 10, 'Il migliore del lotto! Complimenti'),
-       (1, 4, 11, 9, 'Professionale e ready-to-market');
+INSERT INTO voti (hackathon_id, team_id, giudice_id, valore)
+VALUES (1, 1, 6, 9),
+       (1, 1, 7, 8),
+       (1, 1, 8, 9),
+       (1, 1, 11, 10),
+       (1, 2, 6, 7),
+       (1, 2, 7, 8),
+       (1, 2, 8, 7),
+       (1, 2, 11, 8),
+       (1, 3, 6, 8),
+       (1, 3, 7, 9),
+       (1, 3, 8, 8),
+       (1, 3, 11, 7),
+       (1, 4, 6, 10),
+       (1, 4, 7, 9),
+       (1, 4, 8, 10),
+       (1, 4, 11, 9);
 
 -- Voti Hackathon 2 (IN_CORSO) - solo team definitivi (5, 6, 8)
-INSERT INTO voti (hackathon_id, team_id, giudice_id, valore, criteri_valutazione)
-VALUES (2, 5, 9, 9, 'Ottima implementazione DeFi, molto promettente'),
-       (2, 5, 13, 8, 'Buon bilanciamento tra complessità e usabilità'),
-       (2, 6, 6, 7, 'Progetto interessante ma incompleto'),
-       (2, 6, 9, 6, 'Manca il terzo membro si sente, ma buon effort'),
-       (2, 8, 6, 9, 'Security-first approach eccellente'),
-       (2, 8, 9, 10, 'Il migliore finora! Audit professionale'),
-       (2, 8, 13, 9, 'Codice pulito e ben documentato');
+INSERT
+INTO voti (hackathon_id, team_id, giudice_id, valore)
+VALUES (2, 5, 9, 9),
+       (2, 5, 13, 8),
+       (2, 6, 6, 7),
+       (2, 6, 9, 6),
+       (2, 8, 6, 9),
+       (2, 8, 9, 10),
+       (2, 8, 13, 9);
 
 -- ==================================================
 -- RESET DELLE SEQUENZE DOPO POPOLAMENTO MANUALE

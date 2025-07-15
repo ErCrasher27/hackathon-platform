@@ -338,7 +338,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         panel.setBorder(BorderFactory.createTitledBorder("Classifica"));
 
         // Tabella classifica
-        String[] classificaColumns = {"Posizione", "Team", "Media Voti", "Numero Voti", "Ultima Valutazione"};
+        String[] classificaColumns = {"Posizione", "Team", "Media Voti", "Numero Voti"};
         classificaTableModel = new DefaultTableModel(classificaColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -355,7 +355,6 @@ public class GestisciHackathonGUI implements GUIHandler {
         classificaTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Team
         classificaTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Media
         classificaTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Numero Voti
-        classificaTable.getColumnModel().getColumn(4).setPreferredWidth(150); // Data
 
         JScrollPane scrollPane = new JScrollPane(classificaTable);
         scrollPane.setPreferredSize(new Dimension(0, 250));
@@ -381,32 +380,14 @@ public class GestisciHackathonGUI implements GUIHandler {
             VotoListResponse response = controller.getGiudiceController().getClassificaHackathon(hackathonId);
 
             if (response.voti() != null && !response.voti().isEmpty()) {
-                int posizione = 1;
                 for (Voto votoClassifica : response.voti()) {
-                    // I dati sono già calcolati dal DAO
+                    // Ora possiamo accedere direttamente ai campi
+                    Integer posizione = votoClassifica.getPosizione();
                     String nomeTeam = votoClassifica.getTeam() != null ? votoClassifica.getTeam().getNome() : "N/A";
+                    String mediaVoti = votoClassifica.getMediaVoti() != null ? String.format("%.2f", votoClassifica.getMediaVoti()) : "N/A";
+                    String numeroVoti = votoClassifica.getNumeroVoti() != null ? votoClassifica.getNumeroVoti().toString() : "0";
 
-                    // Estraiamo la media dai criteri di valutazione
-                    String criteriInfo = votoClassifica.getCriteriValutazione();
-                    String mediaVoti = "N/A";
-                    String numeroVoti = "0";
-
-                    if (criteriInfo != null && criteriInfo.contains("Media: ")) {
-                        // Parsing della stringa "Posizione: X | Media: Y.YY | Voti ricevuti: Z"
-                        String[] parts = criteriInfo.split("\\|");
-                        for (String part : parts) {
-                            part = part.trim();
-                            if (part.startsWith("Media: ")) {
-                                mediaVoti = part.substring(7);
-                            } else if (part.startsWith("Voti ricevuti: ")) {
-                                numeroVoti = part.substring(15);
-                            }
-                        }
-                    }
-
-                    String dataUltimaValutazione = votoClassifica.getDataVoto() != null ? votoClassifica.getDataVoto().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "N/A";
-
-                    Object[] row = {posizione++, nomeTeam, mediaVoti, numeroVoti, dataUltimaValutazione};
+                    Object[] row = {posizione, nomeTeam, mediaVoti, numeroVoti};
                     classificaTableModel.addRow(row);
                 }
             } else {

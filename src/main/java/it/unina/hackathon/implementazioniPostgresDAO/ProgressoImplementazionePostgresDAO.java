@@ -86,7 +86,7 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     @Override
     public ProgressoListResponse getProgressiByTeam(int teamId) {
         String query = """
-                SELECT p.progresso_id, p.team_id, p.titolo, p.descrizione, p.documento_path, 
+                SELECT p.progresso_id, p.team_id, p.documento_path, 
                        p.documento_nome, p.data_caricamento, p.caricato_da,
                        u.nome, u.cognome, u.username, u.email
                 FROM progressi p

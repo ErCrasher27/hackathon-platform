@@ -1,9 +1,5 @@
 -- ==================================================
--- HACKATHON DATABASE
--- ==================================================
-
--- ==================================================
--- SEZIONE 1: TABELLE ENUM
+-- TABELLE ENUM (LOOKUP TABLES)
 -- ==================================================
 
 CREATE TABLE user_roles
@@ -42,7 +38,7 @@ VALUES (1, 'PENDING'),
        (3, 'DECLINED');
 
 -- ==================================================
--- SEZIONE 2: TABELLE PRINCIPALI
+-- TABELLE ENTITÀ PRINCIPALI
 -- ==================================================
 
 -- Tabella utenti
@@ -57,13 +53,13 @@ CREATE TABLE utenti
     tipo_utente_id     INTEGER      NOT NULL REFERENCES user_roles (role_id),
     data_registrazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    -- Vincolo formato email
+    -- Vincoli di validazione
     CONSTRAINT check_email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
 ) ,
-    -- Vincolo lunghezza username
-    CONSTRAINT check_username_length CHECK (LENGTH(username) >= 3),
-    -- Vincolo lunghezza password
-    CONSTRAINT check_password_length CHECK (LENGTH(password) >= 6)
+    CONSTRAINT check_username_length
+        CHECK (LENGTH(username) >= 3),
+    CONSTRAINT check_password_length
+        CHECK (LENGTH(password) >= 6)
 );
 
 -- Tabella hackathon
@@ -85,7 +81,6 @@ CREATE TABLE hackathon
     -- Vincoli temporali
     CONSTRAINT check_date_order CHECK (data_inizio < data_fine),
     CONSTRAINT check_registration_deadline CHECK (data_chiusura_registrazioni <= data_inizio),
-    -- Vincolo dimensione team minima
     CONSTRAINT check_min_team_size CHECK (max_dimensione_team >= 2)
 );
 
@@ -98,7 +93,7 @@ CREATE TABLE team
     data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     definitivo     BOOLEAN   DEFAULT FALSE,
 
-    -- Ogni team ha nome univoco per hackathon
+    -- Nome team univoco per hackathon
     UNIQUE (nome, hackathon_id)
 );
 
@@ -114,7 +109,7 @@ CREATE TABLE problema
 );
 
 -- ==================================================
--- SEZIONE 3: TABELLE DI RELAZIONE
+-- TABELLE DI RELAZIONE
 -- ==================================================
 
 -- Registrazioni utenti agli hackathon
@@ -211,10 +206,10 @@ CREATE TABLE inviti_team
 ) );
 
 -- ==================================================
--- SEZIONE 4: TRIGGER PER CONTROLLI DI BUSINESS LOGIC
+-- TRIGGER PER CONTROLLO RUOLI E PERMESSI
 -- ==================================================
 
--- Verifica che solo organizzatori possano creare hackathon
+-- TR01: Solo organizzatori possono creare hackathon
 CREATE
 OR REPLACE FUNCTION check_organizzatore_role()
 RETURNS TRIGGER AS $$
@@ -232,11 +227,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_check_organizzatore_role
+CREATE TRIGGER tr01_check_organizzatore_role
     BEFORE INSERT OR
 UPDATE ON hackathon FOR EACH ROW EXECUTE FUNCTION check_organizzatore_role();
 
--- Verifica che solo giudici possano essere invitati come giudici
+-- TR02: Solo utenti con ruolo GIUDICE possono essere invitati come giudici
 CREATE
 OR REPLACE FUNCTION check_giudice_role()
 RETURNS TRIGGER AS $$
@@ -254,65 +249,132 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_check_giudice_role
+CREATE TRIGGER tr02_check_giudice_role
     BEFORE INSERT OR
 UPDATE ON giudici_hackathon FOR EACH ROW EXECUTE FUNCTION check_giudice_role();
 
--- Verifica che non si possano invitare giudici se l'hackathon è terminato
+-- TR03: Solo membri del team possono caricare progressi
 CREATE
-OR REPLACE FUNCTION check_hackathon_not_terminated_for_judge_invite()
+OR REPLACE FUNCTION check_team_member_progress()
 RETURNS TRIGGER AS $$
 BEGIN
     IF
-EXISTS (
-        SELECT 1 FROM hackathon h
-        WHERE h.hackathon_id = NEW.hackathon_id
-        AND h.status_id = 4  -- TERMINATO
+NOT EXISTS (
+        SELECT 1 FROM membri_team
+        WHERE team_id = NEW.team_id
+        AND utente_id = NEW.caricato_da
     ) THEN
-        RAISE EXCEPTION 'Non è possibile invitare giudici per un hackathon terminato';
+        RAISE EXCEPTION 'Solo i membri del team possono caricare progressi';
 END IF;
 RETURN NEW;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_check_hackathon_not_terminated_for_judge_invite
+CREATE TRIGGER tr03_team_member_progress
     BEFORE INSERT
-    ON giudici_hackathon
-    FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_judge_invite();
+    ON progressi
+    FOR EACH ROW EXECUTE FUNCTION check_team_member_progress();
 
--- Verifica che non si possano rimuovere inviti giudice se hanno accettato
+-- TR04: Solo giudici accettati possono commentare
 CREATE
-OR REPLACE FUNCTION check_judge_invite_not_accepted_for_removal()
+OR REPLACE FUNCTION check_judge_can_comment()
 RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
 BEGIN
-    IF
-OLD.stato_invito_id = 2 THEN  -- ACCEPTED
-        RAISE EXCEPTION 'Non è possibile rimuovere un invito giudice che è stato accettato';
+    -- Ottieni l'hackathon_id dal progresso
+SELECT h.hackathon_id
+INTO hack_id
+FROM progressi p
+         JOIN team t ON t.team_id = p.team_id
+         JOIN hackathon h ON h.hackathon_id = t.hackathon_id
+WHERE p.progresso_id = NEW.progresso_id;
+
+-- Verifica che sia un giudice accettato
+IF
+NOT EXISTS (
+        SELECT 1 FROM giudici_hackathon
+        WHERE hackathon_id = hack_id
+        AND giudice_id = NEW.giudice_id
+        AND stato_invito_id = 2  -- ACCEPTED
+    ) THEN
+        RAISE EXCEPTION 'Solo i giudici accettati possono commentare i progressi';
 END IF;
-RETURN OLD;
+RETURN NEW;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_check_judge_invite_not_accepted_for_removal
-    BEFORE DELETE
-    ON giudici_hackathon
-    FOR EACH ROW EXECUTE FUNCTION check_judge_invite_not_accepted_for_removal();
+CREATE TRIGGER tr04_judge_can_comment
+    BEFORE INSERT
+    ON commenti
+    FOR EACH ROW EXECUTE FUNCTION check_judge_can_comment();
 
--- Verifica che un utente sia in un solo team per hackathon
+-- TR05: Solo giudici accettati possono votare
+CREATE
+OR REPLACE FUNCTION check_judge_can_vote()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+NOT EXISTS (
+        SELECT 1 FROM giudici_hackathon
+        WHERE hackathon_id = NEW.hackathon_id
+        AND giudice_id = NEW.giudice_id
+        AND stato_invito_id = 2  -- ACCEPTED
+    ) THEN
+        RAISE EXCEPTION 'Solo i giudici accettati possono votare';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr05_judge_can_vote
+    BEFORE INSERT
+    ON voti
+    FOR EACH ROW EXECUTE FUNCTION check_judge_can_vote();
+
+-- TR06: Solo il leader del team può invitare membri
+CREATE
+OR REPLACE FUNCTION check_team_leader_invite()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+NOT EXISTS (
+        SELECT 1 FROM membri_team
+        WHERE team_id = NEW.team_id
+        AND utente_id = NEW.invitante_id
+        AND ruolo_team = 'LEADER'
+    ) THEN
+        RAISE EXCEPTION 'Solo il leader del team può invitare nuovi membri';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr06_team_leader_invite
+    BEFORE INSERT
+    ON inviti_team
+    FOR EACH ROW EXECUTE FUNCTION check_team_leader_invite();
+
+-- ==================================================
+-- TRIGGER PER GESTIONE TEAM E MEMBRI
+-- ==================================================
+
+-- TR07: Un utente può essere in un solo team per hackathon
 CREATE
 OR REPLACE FUNCTION check_single_team_per_hackathon()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Verifica se l'utente è già in un altro team per lo stesso hackathon
     IF
 EXISTS (
-        SELECT 1 
+        SELECT 1
         FROM membri_team mt
         JOIN team t ON mt.team_id = t.team_id
         JOIN team new_team ON new_team.team_id = NEW.team_id
-        WHERE mt.utente_id = NEW.utente_id 
+        WHERE mt.utente_id = NEW.utente_id
         AND t.hackathon_id = new_team.hackathon_id
         AND mt.team_id != NEW.team_id
     ) THEN
@@ -323,11 +385,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_single_team_per_hackathon
+CREATE TRIGGER tr07_single_team_per_hackathon
     BEFORE INSERT OR
 UPDATE ON membri_team FOR EACH ROW EXECUTE FUNCTION check_single_team_per_hackathon();
 
--- Verifica limiti dimensione team
+-- TR08: Verifica limiti dimensione team
 CREATE
 OR REPLACE FUNCTION check_team_size_limit()
 RETURNS TRIGGER AS $$
@@ -360,12 +422,12 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_team_size_limit
+CREATE TRIGGER tr08_team_size_limit
     BEFORE INSERT
     ON membri_team
     FOR EACH ROW EXECUTE FUNCTION check_team_size_limit();
 
--- Verifica che l'utente sia registrato all'hackathon prima di unirsi a un team
+-- TR09: Utente deve essere registrato all'hackathon prima di unirsi a un team
 CREATE
 OR REPLACE FUNCTION check_registration_before_team()
 RETURNS TRIGGER AS $$
@@ -381,8 +443,7 @@ WHERE team_id = NEW.team_id;
 -- Verifica che l'utente sia registrato
 IF
 NOT EXISTS (
-        SELECT 1
-        FROM registrazioni
+        SELECT 1 FROM registrazioni
         WHERE utente_id = NEW.utente_id
         AND hackathon_id = hack_id
     ) THEN
@@ -394,174 +455,12 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_registration_before_team
+CREATE TRIGGER tr09_registration_before_team
     BEFORE INSERT
     ON membri_team
     FOR EACH ROW EXECUTE FUNCTION check_registration_before_team();
 
--- Aggiorna automaticamente il team_id in registrazioni quando un utente si unisce a un team
-CREATE
-OR REPLACE FUNCTION update_registration_team()
-RETURNS TRIGGER AS $$
-DECLARE
-hack_id INTEGER;
-BEGIN
-    -- Ottieni l'hackathon_id dal team
-SELECT hackathon_id
-INTO hack_id
-FROM team
-WHERE team_id = NEW.team_id;
-
--- Aggiorna la registrazione
-UPDATE registrazioni
-SET team_id = NEW.team_id
-WHERE utente_id = NEW.utente_id
-  AND hackathon_id = hack_id;
-
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_update_registration_team
-    AFTER INSERT
-    ON membri_team
-    FOR EACH ROW EXECUTE FUNCTION update_registration_team();
-
--- Verifica che solo membri del team possano caricare progressi
-CREATE
-OR REPLACE FUNCTION check_team_member_progress()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF
-NOT EXISTS (
-        SELECT 1
-        FROM membri_team
-        WHERE team_id = NEW.team_id
-        AND utente_id = NEW.caricato_da
-    ) THEN
-        RAISE EXCEPTION 'Solo i membri del team possono caricare progressi';
-END IF;
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_team_member_progress
-    BEFORE INSERT
-    ON progressi
-    FOR EACH ROW EXECUTE FUNCTION check_team_member_progress();
-
--- Verifica che solo giudici accettati possano commentare
-CREATE
-OR REPLACE FUNCTION check_judge_can_comment()
-RETURNS TRIGGER AS $$
-DECLARE
-hack_id INTEGER;
-BEGIN
-    -- Ottieni l'hackathon_id dal progresso
-SELECT h.hackathon_id
-INTO hack_id
-FROM progressi p
-         JOIN team t ON t.team_id = p.team_id
-         JOIN hackathon h ON h.hackathon_id = t.hackathon_id
-WHERE p.progresso_id = NEW.progresso_id;
-
--- Verifica che sia un giudice accettato
-IF
-NOT EXISTS (
-        SELECT 1
-        FROM giudici_hackathon
-        WHERE hackathon_id = hack_id
-        AND giudice_id = NEW.giudice_id
-        AND stato_invito_id = 2  -- ACCEPTED
-    ) THEN
-        RAISE EXCEPTION 'Solo i giudici accettati possono commentare i progressi';
-END IF;
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_judge_can_comment
-    BEFORE INSERT
-    ON commenti
-    FOR EACH ROW EXECUTE FUNCTION check_judge_can_comment();
-
--- Verifica che solo giudici accettati possano votare
-CREATE
-OR REPLACE FUNCTION check_judge_can_vote()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF
-NOT EXISTS (
-        SELECT 1
-        FROM giudici_hackathon
-        WHERE hackathon_id = NEW.hackathon_id
-        AND giudice_id = NEW.giudice_id
-        AND stato_invito_id = 2  -- ACCEPTED
-    ) THEN
-        RAISE EXCEPTION 'Solo i giudici accettati possono votare';
-END IF;
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_judge_can_vote
-    BEFORE INSERT
-    ON voti
-    FOR EACH ROW EXECUTE FUNCTION check_judge_can_vote();
-
--- Verifica che il team sia definitivo prima di poter essere votato
-CREATE
-OR REPLACE FUNCTION check_team_definitivo_for_vote()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF
-NOT EXISTS (
-        SELECT 1
-        FROM team
-        WHERE team_id = NEW.team_id
-        AND definitivo = TRUE
-    ) THEN
-        RAISE EXCEPTION 'Si possono votare solo team definitivi';
-END IF;
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_team_definitivo_for_vote
-    BEFORE INSERT
-    ON voti
-    FOR EACH ROW EXECUTE FUNCTION check_team_definitivo_for_vote();
-
--- Verifica che l'hackathon sia in corso per poter votare
-CREATE
-OR REPLACE FUNCTION check_hackathon_status_for_vote()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF
-NOT EXISTS (
-        SELECT 1
-        FROM hackathon
-        WHERE hackathon_id = NEW.hackathon_id
-        AND status_id IN (3, 4)  -- IN_CORSO o TERMINATO
-    ) THEN
-        RAISE EXCEPTION 'Si può votare solo durante o dopo l''hackathon';
-END IF;
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_hackathon_status_for_vote
-    BEFORE INSERT
-    ON voti
-    FOR EACH ROW EXECUTE FUNCTION check_hackathon_status_for_vote();
-
--- Verifica che non si possa modificare un team definitivo
+-- TR10: Non si possono modificare team definitivi
 CREATE
 OR REPLACE FUNCTION prevent_definitivo_team_changes()
 RETURNS TRIGGER AS $$
@@ -569,8 +468,7 @@ BEGIN
     IF
 TG_OP = 'INSERT' THEN
         IF EXISTS (
-            SELECT 1
-            FROM team
+            SELECT 1 FROM team
             WHERE team_id = NEW.team_id
             AND definitivo = TRUE
         ) THEN
@@ -582,8 +480,7 @@ END IF;
     IF
 TG_OP = 'DELETE' THEN
         IF EXISTS (
-            SELECT 1
-            FROM team
+            SELECT 1 FROM team
             WHERE team_id = OLD.team_id
             AND definitivo = TRUE
         ) THEN
@@ -597,17 +494,193 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_prevent_definitivo_team_add
+CREATE TRIGGER tr10a_prevent_definitivo_team_add
     BEFORE INSERT
     ON membri_team
     FOR EACH ROW EXECUTE FUNCTION prevent_definitivo_team_changes();
 
-CREATE TRIGGER trigger_prevent_definitivo_team_delete
+CREATE TRIGGER tr10b_prevent_definitivo_team_delete
     BEFORE DELETE
     ON membri_team
     FOR EACH ROW EXECUTE FUNCTION prevent_definitivo_team_changes();
 
--- Verifica che si possano gestire problemi solo se l'hackathon è in corso
+-- TR11: Si possono votare solo team definitivi
+CREATE
+OR REPLACE FUNCTION check_team_definitivo_for_vote()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+NOT EXISTS (
+        SELECT 1 FROM team
+        WHERE team_id = NEW.team_id
+        AND definitivo = TRUE
+    ) THEN
+        RAISE EXCEPTION 'Si possono votare solo team definitivi';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr11_team_definitivo_for_vote
+    BEFORE INSERT
+    ON voti
+    FOR EACH ROW EXECUTE FUNCTION check_team_definitivo_for_vote();
+
+-- TR12: L'invitato deve essere registrato all'hackathon
+CREATE
+OR REPLACE FUNCTION check_invitee_registered()
+RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
+BEGIN
+SELECT hackathon_id
+INTO hack_id
+FROM team
+WHERE team_id = NEW.team_id;
+
+IF
+NOT EXISTS (
+        SELECT 1 FROM registrazioni
+        WHERE utente_id = NEW.invitato_id
+        AND hackathon_id = hack_id
+    ) THEN
+        RAISE EXCEPTION 'L''utente invitato deve essere registrato all''hackathon';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr12_invitee_registered
+    BEFORE INSERT
+    ON inviti_team
+    FOR EACH ROW EXECUTE FUNCTION check_invitee_registered();
+
+-- ==================================================
+-- TRIGGER PER CONTROLLO STATO HACKATHON
+-- ==================================================
+
+-- TR13: No registrazioni dopo la deadline
+CREATE
+OR REPLACE FUNCTION check_registration_deadline()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+EXISTS (
+        SELECT 1 FROM hackathon
+        WHERE hackathon_id = NEW.hackathon_id
+        AND data_chiusura_registrazioni < CURRENT_TIMESTAMP
+    ) THEN
+        RAISE EXCEPTION 'Le registrazioni per questo hackathon sono chiuse';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr13_registration_deadline
+    BEFORE INSERT
+    ON registrazioni
+    FOR EACH ROW EXECUTE FUNCTION check_registration_deadline();
+
+-- TR14: Verifica limite massimo partecipanti
+CREATE
+OR REPLACE FUNCTION check_hackathon_max_participants()
+RETURNS TRIGGER AS $$
+DECLARE
+current_count INTEGER;
+    max_count
+INTEGER;
+BEGIN
+SELECT COUNT(*), h.max_iscritti
+INTO current_count, max_count
+FROM registrazioni r
+         JOIN hackathon h ON h.hackathon_id = r.hackathon_id
+WHERE r.hackathon_id = NEW.hackathon_id
+GROUP BY h.max_iscritti;
+
+IF
+current_count >= max_count THEN
+        RAISE EXCEPTION 'Raggiunto il numero massimo di iscritti per questo hackathon';
+END IF;
+
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr14_max_participants
+    BEFORE INSERT
+    ON registrazioni
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_max_participants();
+
+-- TR15: No inviti giudici se hackathon terminato
+CREATE
+OR REPLACE FUNCTION check_hackathon_not_terminated_for_judge_invite()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+EXISTS (
+        SELECT 1 FROM hackathon h
+        WHERE h.hackathon_id = NEW.hackathon_id
+        AND h.status_id = 4  -- TERMINATO
+    ) THEN
+        RAISE EXCEPTION 'Non è possibile invitare giudici per un hackathon terminato';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr15_hackathon_not_terminated_for_judge_invite
+    BEFORE INSERT
+    ON giudici_hackathon
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_judge_invite();
+
+-- TR16: No rimozione inviti giudice accettati
+CREATE
+OR REPLACE FUNCTION check_judge_invite_not_accepted_for_removal()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+OLD.stato_invito_id = 2 THEN  -- ACCEPTED
+        RAISE EXCEPTION 'Non è possibile rimuovere un invito giudice che è stato accettato';
+END IF;
+RETURN OLD;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr16_check_judge_invite_not_accepted_for_removal
+    BEFORE DELETE
+    ON giudici_hackathon
+    FOR EACH ROW EXECUTE FUNCTION check_judge_invite_not_accepted_for_removal();
+
+-- TR17: Si può votare solo durante o dopo l'hackathon
+CREATE
+OR REPLACE FUNCTION check_hackathon_status_for_vote()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+NOT EXISTS (
+        SELECT 1 FROM hackathon
+        WHERE hackathon_id = NEW.hackathon_id
+        AND status_id IN (3, 4)  -- IN_CORSO o TERMINATO
+    ) THEN
+        RAISE EXCEPTION 'Si può votare solo durante o dopo l''hackathon';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr17_hackathon_status_for_vote
+    BEFORE INSERT
+    ON voti
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_status_for_vote();
+
+-- TR18: Problemi solo quando hackathon in corso
 CREATE
 OR REPLACE FUNCTION check_hackathon_in_corso_for_problema()
 RETURNS TRIGGER AS $$
@@ -643,132 +716,271 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_hackathon_in_corso_for_problema_insert
+CREATE TRIGGER tr18a_hackathon_in_corso_for_problema_insert
     BEFORE INSERT
     ON problema
     FOR EACH ROW EXECUTE FUNCTION check_hackathon_in_corso_for_problema();
 
-CREATE TRIGGER trigger_hackathon_in_corso_for_problema_delete
+CREATE TRIGGER tr18b_hackathon_in_corso_for_problema_delete
     BEFORE DELETE
     ON problema
     FOR EACH ROW EXECUTE FUNCTION check_hackathon_in_corso_for_problema();
 
--- ==================================================
--- SEZIONE 5: TRIGGER PER CONTROLLI AGGIUNTIVI (SOLO BACKUP LAYER)
--- ==================================================
-
--- Verifica che non si possano registrare utenti dopo la chiusura registrazioni
+-- TR19: Cancellazione registrazione solo se registrazioni aperte
 CREATE
-OR REPLACE FUNCTION check_registration_deadline()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF
-EXISTS (
-        SELECT 1
-        FROM hackathon
-        WHERE hackathon_id = NEW.hackathon_id
-        AND data_chiusura_registrazioni < CURRENT_TIMESTAMP
-    ) THEN
-        RAISE EXCEPTION 'Le registrazioni per questo hackathon sono chiuse';
-END IF;
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_registration_deadline
-    BEFORE INSERT
-    ON registrazioni
-    FOR EACH ROW EXECUTE FUNCTION check_registration_deadline();
-
--- Verifica limite iscritti hackathon
-CREATE
-OR REPLACE FUNCTION check_hackathon_max_participants()
-RETURNS TRIGGER AS $$
-DECLARE
-current_count INTEGER;
-    max_count
-INTEGER;
-BEGIN
-SELECT COUNT(*), h.max_iscritti
-INTO current_count, max_count
-FROM registrazioni r
-         JOIN hackathon h ON h.hackathon_id = r.hackathon_id
-WHERE r.hackathon_id = NEW.hackathon_id
-GROUP BY h.max_iscritti;
-
-IF
-current_count >= max_count THEN
-        RAISE EXCEPTION 'Raggiunto il numero massimo di iscritti per questo hackathon';
-END IF;
-
-RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_max_participants
-    BEFORE INSERT
-    ON registrazioni
-    FOR EACH ROW EXECUTE FUNCTION check_hackathon_max_participants();
-
--- Verifica che solo il leader del team possa invitare membri
-CREATE
-OR REPLACE FUNCTION check_team_leader_invite()
+OR REPLACE FUNCTION check_cancellation_allowed()
 RETURNS TRIGGER AS $$
 BEGIN
     IF
 NOT EXISTS (
-        SELECT 1
-        FROM membri_team
-        WHERE team_id = NEW.team_id
-        AND utente_id = NEW.invitante_id
-        AND ruolo_team = 'LEADER'
+        SELECT 1 FROM hackathon h
+        WHERE h.hackathon_id = OLD.hackathon_id
+        AND h.status_id = 1  -- REGISTRAZIONI_APERTE
     ) THEN
-        RAISE EXCEPTION 'Solo il leader del team può invitare nuovi membri';
+        RAISE EXCEPTION 'Non è possibile annullare la registrazione se l''hackathon non è in fase di registrazioni aperte';
 END IF;
-RETURN NEW;
+RETURN OLD;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_team_leader_invite
-    BEFORE INSERT
-    ON inviti_team
-    FOR EACH ROW EXECUTE FUNCTION check_team_leader_invite();
+CREATE TRIGGER tr19_check_cancellation_allowed
+    BEFORE DELETE
+    ON registrazioni
+    FOR EACH ROW EXECUTE FUNCTION check_cancellation_allowed();
 
--- Verifica che l'invitato sia registrato all'hackathon
+-- TR20: Inviti team solo se registrazioni aperte
 CREATE
-OR REPLACE FUNCTION check_invitee_registered()
+OR REPLACE FUNCTION check_registration_open_for_invite()
 RETURNS TRIGGER AS $$
 DECLARE
 hack_id INTEGER;
 BEGIN
+    -- Ottieni l'hackathon_id dal team
 SELECT hackathon_id
 INTO hack_id
 FROM team
 WHERE team_id = NEW.team_id;
 
+-- Verifica che le registrazioni siano ancora aperte
 IF
 NOT EXISTS (
-        SELECT 1
-        FROM registrazioni
-        WHERE utente_id = NEW.invitato_id
-        AND hackathon_id = hack_id
+        SELECT 1 FROM hackathon
+        WHERE hackathon_id = hack_id
+        AND status_id = 1  -- REGISTRAZIONI_APERTE
     ) THEN
-        RAISE EXCEPTION 'L''utente invitato deve essere registrato all''hackathon';
+        RAISE EXCEPTION 'Non è possibile invitare membri quando le registrazioni sono chiuse';
 END IF;
+
 RETURN NEW;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_invitee_registered
+CREATE TRIGGER tr20_registration_open_for_invite
     BEFORE INSERT
     ON inviti_team
-    FOR EACH ROW EXECUTE FUNCTION check_invitee_registered();
+    FOR EACH ROW EXECUTE FUNCTION check_registration_open_for_invite();
 
--- Aggiorna data_risposta quando si accetta/rifiuta un invito
+-- TR21: No progressi se hackathon terminato
+CREATE
+OR REPLACE FUNCTION check_hackathon_not_terminated_for_progress()
+RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
+BEGIN
+    -- Per INSERT e UPDATE
+    IF
+TG_OP IN ('INSERT', 'UPDATE') THEN
+        -- Ottieni l'hackathon_id dal team
+SELECT h.hackathon_id
+INTO hack_id
+FROM team t
+         JOIN hackathon h ON h.hackathon_id = t.hackathon_id
+WHERE t.team_id = NEW.team_id;
+
+IF
+EXISTS (
+            SELECT 1 FROM hackathon
+            WHERE hackathon_id = hack_id
+            AND status_id = 4  -- TERMINATO
+        ) THEN
+            RAISE EXCEPTION 'Non è possibile gestire progressi per un hackathon terminato';
+END IF;
+RETURN NEW;
+END IF;
+
+    -- Per DELETE
+    IF
+TG_OP = 'DELETE' THEN
+        -- Ottieni l'hackathon_id dal team
+SELECT h.hackathon_id
+INTO hack_id
+FROM team t
+         JOIN hackathon h ON h.hackathon_id = t.hackathon_id
+WHERE t.team_id = OLD.team_id;
+
+IF
+EXISTS (
+            SELECT 1 FROM hackathon
+            WHERE hackathon_id = hack_id
+            AND status_id = 4  -- TERMINATO
+        ) THEN
+            RAISE EXCEPTION 'Non è possibile eliminare progressi per un hackathon terminato';
+END IF;
+RETURN OLD;
+END IF;
+
+RETURN NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr21a_hackathon_not_terminated_for_progress_insert
+    BEFORE INSERT OR
+UPDATE ON progressi FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_progress();
+
+CREATE TRIGGER tr21b_hackathon_not_terminated_for_progress_delete
+    BEFORE DELETE
+    ON progressi
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_progress();
+
+-- TR22: No modifiche team se hackathon terminato
+CREATE
+OR REPLACE FUNCTION check_hackathon_not_terminated_for_team()
+RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
+BEGIN
+    -- Per UPDATE del team
+    IF
+TG_OP = 'UPDATE' THEN
+        hack_id := NEW.hackathon_id;
+END IF;
+
+    -- Per DELETE del team
+    IF
+TG_OP = 'DELETE' THEN
+        hack_id := OLD.hackathon_id;
+END IF;
+
+    -- Verifica che l'hackathon non sia terminato
+    IF
+EXISTS (
+        SELECT 1 FROM hackathon
+        WHERE hackathon_id = hack_id
+        AND status_id = 4  -- TERMINATO
+    ) THEN
+        RAISE EXCEPTION 'Non è possibile modificare team per un hackathon terminato';
+END IF;
+
+    IF
+TG_OP = 'UPDATE' THEN
+        RETURN NEW;
+ELSE
+        RETURN OLD;
+END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr22a_hackathon_not_terminated_for_team_update
+    BEFORE UPDATE
+    ON team
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_team();
+
+CREATE TRIGGER tr22b_hackathon_not_terminated_for_team_delete
+    BEFORE DELETE
+    ON team
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_team();
+
+-- TR23: No modifiche membri team se hackathon terminato
+CREATE
+OR REPLACE FUNCTION check_hackathon_not_terminated_for_team_members()
+RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
+    team_id_check
+INTEGER;
+BEGIN
+    -- Determina il team_id da controllare
+    IF
+TG_OP IN ('INSERT', 'UPDATE') THEN
+        team_id_check := NEW.team_id;
+ELSE
+        team_id_check := OLD.team_id;
+END IF;
+
+    -- Ottieni l'hackathon_id dal team
+SELECT h.hackathon_id
+INTO hack_id
+FROM team t
+         JOIN hackathon h ON h.hackathon_id = t.hackathon_id
+WHERE t.team_id = team_id_check;
+
+-- Verifica che l'hackathon non sia terminato
+IF
+EXISTS (
+        SELECT 1 FROM hackathon
+        WHERE hackathon_id = hack_id
+        AND status_id = 4  -- TERMINATO
+    ) THEN
+        RAISE EXCEPTION 'Non è possibile modificare i membri del team per un hackathon terminato';
+END IF;
+
+    IF
+TG_OP IN ('INSERT', 'UPDATE') THEN
+        RETURN NEW;
+ELSE
+        RETURN OLD;
+END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr23a_hackathon_not_terminated_for_team_members_insert
+    BEFORE INSERT OR
+UPDATE ON membri_team FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_team_members();
+
+CREATE TRIGGER tr23b_hackathon_not_terminated_for_team_members_delete
+    BEFORE DELETE
+    ON membri_team
+    FOR EACH ROW EXECUTE FUNCTION check_hackathon_not_terminated_for_team_members();
+
+-- ==================================================
+-- TRIGGER PER AUTOMAZIONE E SINCRONIZZAZIONE
+-- ==================================================
+
+-- TR24: Aggiorna team_id in registrazioni quando utente si unisce a team
+CREATE
+OR REPLACE FUNCTION update_registration_team()
+RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
+BEGIN
+    -- Ottieni l'hackathon_id dal team
+SELECT hackathon_id
+INTO hack_id
+FROM team
+WHERE team_id = NEW.team_id;
+
+-- Aggiorna la registrazione
+UPDATE registrazioni
+SET team_id = NEW.team_id
+WHERE utente_id = NEW.utente_id
+  AND hackathon_id = hack_id;
+
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr24_update_registration_team
+    AFTER INSERT
+    ON membri_team
+    FOR EACH ROW EXECUTE FUNCTION update_registration_team();
+
+-- TR25: Aggiorna data risposta quando si accetta/rifiuta invito
 CREATE
 OR REPLACE FUNCTION update_invite_response_date()
 RETURNS TRIGGER AS $$
@@ -782,71 +994,237 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_invite_response_date
+CREATE TRIGGER tr25_invite_response_date
     BEFORE UPDATE
     ON inviti_team
     FOR EACH ROW EXECUTE FUNCTION update_invite_response_date();
 
--- Automaticamente unisci al team quando l'invito viene accettato
+-- TR26: Auto-join team quando si accetta invito
 CREATE
 OR REPLACE FUNCTION auto_join_team_on_accept()
 RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
+    team_size
+INTEGER;
+    max_size
+INTEGER;
 BEGIN
+    -- Solo se l'invito passa da PENDING ad ACCEPTED
     IF
 NEW.stato_invito_id = 2 AND OLD.stato_invito_id = 1 THEN
-        INSERT INTO membri_team (team_id, utente_id, ruolo_team)
-        VALUES (NEW.team_id, NEW.invitato_id, 'MEMBRO')
-        ON CONFLICT DO NOTHING;
+
+        -- Ottieni l'hackathon_id e verifica la dimensione del team
+SELECT t.hackathon_id, h.max_dimensione_team, COUNT(mt.utente_id)
+INTO hack_id, max_size, team_size
+FROM team t
+         JOIN hackathon h ON h.hackathon_id = t.hackathon_id
+         LEFT JOIN membri_team mt ON mt.team_id = t.team_id
+WHERE t.team_id = NEW.team_id
+GROUP BY t.hackathon_id, h.max_dimensione_team;
+
+-- Verifica che il team non sia pieno
+IF
+team_size >= max_size THEN
+            RAISE EXCEPTION 'Impossibile accettare l''invito: il team ha raggiunto la dimensione massima';
 END IF;
+
+        -- Verifica che l'utente non sia già in un altro team per questo hackathon
+        IF
+EXISTS (
+            SELECT 1
+            FROM membri_team mt
+            JOIN team t ON mt.team_id = t.team_id
+            WHERE mt.utente_id = NEW.invitato_id
+            AND t.hackathon_id = hack_id
+        ) THEN
+            RAISE EXCEPTION 'L''utente è già membro di un team per questo hackathon';
+END IF;
+
+        -- Aggiungi l'utente al team
+INSERT INTO membri_team (team_id, utente_id, ruolo_team, data_ingresso)
+VALUES (NEW.team_id, NEW.invitato_id, 'MEMBRO', CURRENT_TIMESTAMP);
+
+-- Log opzionale
+RAISE
+NOTICE 'Utente % aggiunto automaticamente al team % dopo accettazione invito',
+                     NEW.invitato_id, NEW.team_id;
+
+    -- Gestisci anche il caso di rifiuto
+    ELSIF
+NEW.stato_invito_id = 3 AND OLD.stato_invito_id = 1 THEN
+        RAISE NOTICE 'Invito rifiutato dall''utente % per il team %',
+                     NEW.invitato_id, NEW.team_id;
+END IF;
+
 RETURN NEW;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_auto_join_team
-    AFTER UPDATE
+CREATE TRIGGER tr26_auto_join_team
+    AFTER UPDATE OF stato_invito_id
     ON inviti_team
     FOR EACH ROW EXECUTE FUNCTION auto_join_team_on_accept();
 
--- Verifica che ci sia almeno un leader per team
+-- TR27: Scioglie team se il leader lo abbandona
 CREATE
-OR REPLACE FUNCTION ensure_team_has_leader()
+OR REPLACE FUNCTION handle_leader_leaving_team()
 RETURNS TRIGGER AS $$
 DECLARE
-leader_count INTEGER;
+hack_id INTEGER;
 BEGIN
+    -- Verifica se l'utente che sta lasciando è un leader
     IF
 OLD.ruolo_team = 'LEADER' THEN
-SELECT COUNT(*)
-INTO leader_count
+        -- Ottieni l'hackathon_id
+SELECT hackathon_id
+INTO hack_id
+FROM team
+WHERE team_id = OLD.team_id;
+
+-- Aggiorna le registrazioni di tutti i membri rimuovendo il riferimento al team
+UPDATE registrazioni
+SET team_id = NULL
+WHERE team_id = OLD.team_id
+  AND hackathon_id = hack_id;
+
+-- Rimuovi tutti i membri dal team (questo attiverà la cancellazione automatica del team vuoto)
+DELETE
 FROM membri_team
 WHERE team_id = OLD.team_id
-  AND ruolo_team = 'LEADER'
   AND utente_id != OLD.utente_id;
+-- Gli altri membri, non quello corrente
 
-IF
-leader_count = 0 THEN
-            RAISE EXCEPTION 'Il team deve avere almeno un leader';
+-- Messaggio informativo (opzionale, puoi rimuoverlo se non vuoi notifiche)
+RAISE
+NOTICE 'Il team % è stato sciolto perché il leader lo ha abbandonato', OLD.team_id;
 END IF;
-END IF;
+
 RETURN OLD;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_ensure_team_leader_on_delete
+CREATE TRIGGER tr27_handle_leader_leaving
     BEFORE DELETE
     ON membri_team
-    FOR EACH ROW EXECUTE FUNCTION ensure_team_has_leader();
+    FOR EACH ROW EXECUTE FUNCTION handle_leader_leaving_team();
 
-CREATE TRIGGER trigger_ensure_team_leader_on_update
-    BEFORE UPDATE OF ruolo_team
+-- TR28: Rimuove da team quando si annulla registrazione
+CREATE
+OR REPLACE FUNCTION remove_from_team_on_unregister()
+RETURNS TRIGGER AS $$
+DECLARE
+user_role VARCHAR(20);
+    hack_id
+INTEGER;
+BEGIN
+    -- Controlla se l'utente era un leader
+SELECT ruolo_team
+INTO user_role
+FROM membri_team
+WHERE utente_id = OLD.utente_id
+  AND team_id = OLD.team_id;
+
+-- Se era un leader, scioglie tutto il team
+IF
+user_role = 'LEADER' THEN
+        -- Aggiorna le registrazioni di tutti i membri del team
+UPDATE registrazioni
+SET team_id = NULL
+WHERE team_id = OLD.team_id
+  AND hackathon_id = OLD.hackathon_id
+  AND utente_id != OLD.utente_id;
+-- Escludi l'utente corrente che sta già cancellando la registrazione
+
+-- Rimuovi tutti i membri dal team
+DELETE
+FROM membri_team
+WHERE team_id = OLD.team_id;
+
+RAISE
+NOTICE 'Il team % è stato sciolto perché il leader ha annullato la registrazione', OLD.team_id;
+ELSE
+        -- Se non era leader, rimuovi solo questo utente
+DELETE
+FROM membri_team
+WHERE utente_id = OLD.utente_id
+  AND team_id = OLD.team_id;
+END IF;
+
+RETURN OLD;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr28_remove_from_team_on_unregister
+    AFTER DELETE
+    ON registrazioni
+    FOR EACH ROW WHEN (OLD.team_id IS NOT NULL) EXECUTE FUNCTION remove_from_team_on_unregister();
+
+-- TR29: Elimina automaticamente team vuoti
+CREATE
+OR REPLACE FUNCTION auto_delete_empty_teams()
+RETURNS TRIGGER AS $$
+DECLARE
+member_count INTEGER;
+BEGIN
+    -- Conta i membri rimanenti nel team
+SELECT COUNT(*)
+INTO member_count
+FROM membri_team
+WHERE team_id = OLD.team_id;
+
+-- Se il team è vuoto, eliminalo
+IF
+member_count = 0 THEN
+DELETE
+FROM team
+WHERE team_id = OLD.team_id;
+END IF;
+
+RETURN OLD;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr29_auto_delete_empty_teams
+    AFTER DELETE
     ON membri_team
-    FOR EACH ROW WHEN (OLD.ruolo_team = 'LEADER' AND NEW.ruolo_team != 'LEADER')
-    EXECUTE FUNCTION ensure_team_has_leader();
+    FOR EACH ROW EXECUTE FUNCTION auto_delete_empty_teams();
+
+-- TR30: Aggiorna registrazioni quando utente lascia team
+CREATE
+OR REPLACE FUNCTION update_registration_on_leave_team()
+RETURNS TRIGGER AS $$
+DECLARE
+hack_id INTEGER;
+BEGIN
+    -- Ottieni l'hackathon_id dal team
+SELECT hackathon_id
+INTO hack_id
+FROM team
+WHERE team_id = OLD.team_id;
+
+-- Rimuovi il riferimento al team nella registrazione
+UPDATE registrazioni
+SET team_id = NULL
+WHERE utente_id = OLD.utente_id
+  AND hackathon_id = hack_id;
+
+RETURN OLD;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER tr30_update_registration_on_leave_team
+    AFTER DELETE
+    ON membri_team
+    FOR EACH ROW EXECUTE FUNCTION update_registration_on_leave_team();
 
 -- ==================================================
--- SEZIONE 6: VIEWS
+-- VIEWS
 -- ==================================================
 
 CREATE VIEW classifica_hackathon AS

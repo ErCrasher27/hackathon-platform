@@ -87,8 +87,7 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
     public CommentoListResponse getCommentiByProgresso(int progressoId) {
         String query = """
                 SELECT c.commento_id, c.progresso_id, c.giudice_id, c.testo, c.data_commento,
-                       u.nome, u.cognome, u.username, u.email,
-                       p.titolo as progresso_titolo
+                       u.nome, u.cognome, u.username, u.email
                 FROM commenti c
                 JOIN utenti u ON c.giudice_id = u.utente_id
                 JOIN progressi p ON c.progresso_id = p.progresso_id

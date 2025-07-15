@@ -148,12 +148,20 @@ VALUES (5, 'GameDev Marathon',
 -- CREAZIONE PROBLEMI PER ALCUNI HACKATHON
 -- ==================================================
 
+BEGIN;
+
+-- DISABILITA TEMPORANEAMENTE I TRIGGER
+ALTER TABLE problema DISABLE TRIGGER ALL;
+
 INSERT INTO problema (hackathon_id, titolo, descrizione, pubblicato_da)
 VALUES (1, 'Riconoscimento Automatico Emozioni',
         'Sviluppare un sistema AI che riconosca le emozioni umane da video in tempo reale', 1),
        (1, 'Assistente Virtuale Intelligente', 'Creare un chatbot che possa aiutare gli studenti universitari', 1),
        (2, 'DeFi Lending Platform', 'Sviluppare una piattaforma di prestiti decentralizzata su blockchain', 2),
        (3, 'Smart Recycling System', 'Sistema IoT per ottimizzare la raccolta differenziata', 3);
+
+-- RIABILITA I TRIGGER
+ALTER TABLE problema ENABLE TRIGGER ALL;
 
 -- ==================================================
 -- INVITI GIUDICI

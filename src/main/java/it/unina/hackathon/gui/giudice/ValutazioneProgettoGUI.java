@@ -14,6 +14,10 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,8 +84,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     private JTextArea nuovoCommentoArea;
     private JScrollPane nuovoCommentoScrollPane;
     private JButton aggiungiCommentoButton;
-    private JButton modificaCommentoButton;
-    private JButton eliminaCommentoButton;
     // Tab Voto
     private JPanel votoPanel;
     private JLabel votoLabel;
@@ -95,7 +97,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     // region Data
     private JButton assegnaVotoButton;
-    private JButton modificaVotoButton;
     private JLabel votoCorrenteLabel;
     private Hackathon hackathonCorrente;
     private Team teamSelezionato;
@@ -187,8 +188,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
         // Commenti
         aggiungiCommentoButton.addActionListener(_ -> aggiungiCommento());
-        modificaCommentoButton.addActionListener(_ -> modificaCommento());
-        eliminaCommentoButton.addActionListener(_ -> eliminaCommento());
 
         // Voto
         votoSlider.addChangeListener(_ -> {
@@ -196,7 +195,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             updateVotoDescription();
         });
         assegnaVotoButton.addActionListener(_ -> assegnaVoto());
-        modificaVotoButton.addActionListener(_ -> modificaVoto());
     }
 
     @Override
@@ -349,20 +347,10 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         // Buttons
         JPanel commentoButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         aggiungiCommentoButton = new JButton("Aggiungi Commento");
-        modificaCommentoButton = new JButton("Modifica Ultimo");
-        eliminaCommentoButton = new JButton("Elimina Ultimo");
 
         aggiungiCommentoButton.setPreferredSize(new Dimension(150, 30));
-        modificaCommentoButton.setPreferredSize(new Dimension(120, 30));
-        eliminaCommentoButton.setPreferredSize(new Dimension(120, 30));
-
-        // Initially disable modify/delete
-        modificaCommentoButton.setEnabled(false);
-        eliminaCommentoButton.setEnabled(false);
 
         commentoButtonPanel.add(aggiungiCommentoButton);
-        commentoButtonPanel.add(modificaCommentoButton);
-        commentoButtonPanel.add(eliminaCommentoButton);
 
         nuovoCommentoPanel.add(nuovoCommentoScrollPane, BorderLayout.CENTER);
         nuovoCommentoPanel.add(commentoButtonPanel, BorderLayout.SOUTH);
@@ -432,14 +420,10 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         // Buttons
         JPanel votoButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         assegnaVotoButton = new JButton("Assegna Voto");
-        modificaVotoButton = new JButton("Modifica Voto");
 
         assegnaVotoButton.setPreferredSize(new Dimension(120, 30));
-        modificaVotoButton.setPreferredSize(new Dimension(120, 30));
-        modificaVotoButton.setEnabled(false);
 
         votoButtonPanel.add(assegnaVotoButton);
-        votoButtonPanel.add(modificaVotoButton);
 
         votoPanel.add(votoCorrentePanel, BorderLayout.NORTH);
         votoPanel.add(sliderPanel, BorderLayout.CENTER);
@@ -576,10 +560,69 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     private void visualizzaDocumento() {
         if (progressoSelezionato == null) return;
 
-        // TODO: Implement document viewer
-        String message = "Documento: " + progressoSelezionato.getTitolo() + "\n\n" + "Descrizione: " + progressoSelezionato.getDescrizione() + "\n\n" + "File: " + (progressoSelezionato.getDocumentoNome() != null ? progressoSelezionato.getDocumentoNome() : "Nessun file");
+        String documentoPath = progressoSelezionato.getDocumentoPath();
 
-        JOptionPane.showMessageDialog(frame, message, "Dettagli Progresso", JOptionPane.INFORMATION_MESSAGE);
+        // Verifica se c'è un documento
+        if (documentoPath == null || documentoPath.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Nessun documento associato a questo progresso.", "Documento non disponibile", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Costruisci il path completo
+        String basePath = System.getProperty("user.dir");
+        String fullPath = basePath + documentoPath;
+        File file = new File(fullPath);
+
+        // Verifica se il file esiste
+        if (!file.exists()) {
+            JOptionPane.showMessageDialog(frame, "Il documento non è stato trovato.\n\n" + "File: " + documentoPath, "File non trovato", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Leggi e mostra il contenuto del file .txt
+        try {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            mostraContenutoDocumento(content, file.getName());
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "Errore nella lettura del documento:\n" + e.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void mostraContenutoDocumento(String content, String fileName) {
+        // Crea dialog per visualizzare il contenuto
+        JDialog dialog = new JDialog(frame, "Esame Documento - " + fileName, true);
+        dialog.setSize(700, 500);
+        dialog.setLocationRelativeTo(frame);
+
+        // Area di testo per il contenuto
+        JTextArea textArea = new JTextArea(content);
+        textArea.setEditable(false);
+        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        textArea.setCaretPosition(0);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+        // Panel info in alto
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        infoPanel.setBorder(BorderFactory.createEtchedBorder());
+        infoPanel.add(new JLabel("File: " + fileName));
+
+        // Button chiudi
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton chiudiButton = new JButton("Chiudi");
+        chiudiButton.addActionListener(_ -> dialog.dispose());
+        buttonPanel.add(chiudiButton);
+
+        // Layout
+        dialog.add(infoPanel, BorderLayout.NORTH);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 
     private void aggiungiCommento() {
@@ -606,16 +649,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         } catch (Exception e) {
             showErrorMessage("Errore nell'aggiunta del commento: " + e.getMessage());
         }
-    }
-
-    private void modificaCommento() {
-        // TODO: Implement comment modification
-        showInfoMessage("Funzionalità di modifica commento non ancora implementata");
-    }
-
-    private void eliminaCommento() {
-        // TODO: Implement comment deletion
-        showInfoMessage("Funzionalità di eliminazione commento non ancora implementata");
     }
 
     private void assegnaVoto() {
@@ -645,28 +678,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         }
     }
 
-    private void modificaVoto() {
-        if (votoCorrente == null) {
-            showErrorMessage("Nessun voto da modificare");
-            return;
-        }
-
-        int nuovoValore = votoSlider.getValue();
-        String nuoviCriteri = criteriArea.getText().trim();
-
-        try {
-            VotoResponse response = giudiceController.modificaVoto(votoCorrente.getVotoId(), nuovoValore, nuoviCriteri);
-            if (response.voto() != null) {
-                showInfoMessage("Voto modificato con successo!");
-                loadVotoData();
-            } else {
-                showErrorMessage("Errore nella modifica del voto: " + response.message());
-            }
-        } catch (Exception e) {
-            showErrorMessage("Errore nella modifica del voto: " + e.getMessage());
-        }
-    }
-
     // endregion
 
     // region Display Methods
@@ -690,24 +701,17 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
         commentiArea.setText(sb.toString());
         commentiArea.setCaretPosition(0);
-
-        // Enable/disable buttons
-        boolean hasCommenti = !commentiList.isEmpty();
-        modificaCommentoButton.setEnabled(hasCommenti);
-        eliminaCommentoButton.setEnabled(hasCommenti);
     }
 
     private void updateVotoDisplay() {
         if (votoCorrente == null) {
             votoCorrenteLabel.setText("Nessun voto assegnato");
             assegnaVotoButton.setEnabled(true);
-            modificaVotoButton.setEnabled(false);
             votoSlider.setValue(6);
             criteriArea.setText("");
         } else {
             votoCorrenteLabel.setText("Voto: " + votoCorrente.getValore() + "/10 - " + votoCorrente.getValutazioneTestuale());
             assegnaVotoButton.setEnabled(false);
-            modificaVotoButton.setEnabled(true);
             votoSlider.setValue(votoCorrente.getValore());
             criteriArea.setText(votoCorrente.getCriteriValutazione() != null ? votoCorrente.getCriteriValutazione() : "");
         }
@@ -715,11 +719,11 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     private void updateVotoDescription() {
         int valore = votoSlider.getValue();
-        String descrizione = "";
+        String descrizione;
 
         if (valore >= 9) descrizione = "Eccellente";
         else if (valore >= 7) descrizione = "Buono";
-        else if (valore >= 6) descrizione = "Sufficiente";
+        else if (valore == 6) descrizione = "Sufficiente";
         else if (valore >= 4) descrizione = "Insufficiente";
         else descrizione = "Gravemente insufficiente";
 
@@ -772,7 +776,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     }
 
     private class ProgressiTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Titolo", "Data Caricamento", "Autore", "Documento"};
+        private final String[] columnNames = {"Data Caricamento", "Autore", "Documento"};
 
         @Override
         public int getRowCount() {
@@ -793,10 +797,9 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         public Object getValueAt(int rowIndex, int columnIndex) {
             Progresso progresso = progressiList.get(rowIndex);
             return switch (columnIndex) {
-                case 0 -> progresso.getTitolo();
-                case 1 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                case 2 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
-                case 3 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
+                case 0 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                case 1 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
+                case 2 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
                 default -> "";
             };
         }

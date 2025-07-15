@@ -10,8 +10,6 @@ public class Progresso {
     private int progressoId;
     private int teamId;
     private int caricatoDaId;
-    private String titolo;
-    private String descrizione;
     private String documentoPath;
     private String documentoNome;
     private LocalDateTime dataCaricamento;
@@ -25,11 +23,9 @@ public class Progresso {
         this.dataCaricamento = LocalDateTime.now();
     }
 
-    public Progresso(int teamId, String titolo, String descrizione, String documentoPath) {
+    public Progresso(int teamId, String documentoPath) {
         this();
         this.teamId = teamId;
-        this.titolo = titolo;
-        this.descrizione = descrizione;
         this.documentoPath = documentoPath;
     }
 
@@ -59,22 +55,6 @@ public class Progresso {
 
     public void setCaricatoDaId(int caricatoDaId) {
         this.caricatoDaId = caricatoDaId;
-    }
-
-    public String getTitolo() {
-        return titolo;
-    }
-
-    public void setTitolo(String titolo) {
-        this.titolo = titolo;
-    }
-
-    public String getDescrizione() {
-        return descrizione;
-    }
-
-    public void setDescrizione(String descrizione) {
-        this.descrizione = descrizione;
     }
 
     public String getDocumentoPath() {
@@ -114,9 +94,6 @@ public class Progresso {
     // region Business
 
     public boolean caricaProgresso() {
-        if (titolo == null || titolo.trim().isEmpty()) {
-            return false;
-        }
         this.dataCaricamento = LocalDateTime.now();
         return true;
     }
@@ -138,9 +115,6 @@ public class Progresso {
     }
 
     public boolean validaProgresso() {
-        if (titolo == null || titolo.trim().isEmpty()) {
-            return false;
-        }
         if (teamId <= 0) {
             return false;
         }
@@ -166,7 +140,7 @@ public class Progresso {
 
     @Override
     public String toString() {
-        return String.format("Progresso{id=%d, titolo='%s', team=%d, caricato=%s}", progressoId, titolo, teamId, dataCaricamento != null ? dataCaricamento.toLocalDate() : "N/A");
+        return String.format("Progresso{id=%d, titolo='%s', team=%d, caricato=%s}", progressoId, teamId, dataCaricamento != null ? dataCaricamento.toLocalDate() : "N/A");
     }
 
     // endregion

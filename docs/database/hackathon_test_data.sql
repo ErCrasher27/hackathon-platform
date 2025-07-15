@@ -441,7 +441,7 @@ BEGIN;
 ALTER TABLE progressi DISABLE TRIGGER ALL;
 
 -- Progressi Hackathon 1 (TERMINATO)
-INSERT INTO progressi (team_id, , documento_path, documento_nome, caricato_da)
+INSERT INTO progressi (team_id, documento_path, documento_nome, caricato_da)
 VALUES (1, '/uploads/h1/team1/architecture.pdf', 'architecture.pdf', 16),
        (1, '/uploads/h1/team1/prototype_v1.zip', 'prototype_v1.zip', 17),
        (1, '/uploads/h1/team1/presentation.pptx', 'AI_Wizards_Final.pptx', 16),
@@ -451,7 +451,7 @@ VALUES (1, '/uploads/h1/team1/architecture.pdf', 'architecture.pdf', 16),
        (4, '/uploads/h1/team4/source.zip', 'ml_masters_source.zip', 27);
 
 -- Progressi Hackathon 2 (IN_CORSO)
-INSERT INTO progressi (team_id, , documento_path, documento_nome, caricato_da)
+INSERT INTO progressi (team_id, documento_path, documento_nome, caricato_da)
 VALUES (5, '/uploads/h2/team5/contract.sol',
         'lending_contract.sol', 16),
        (5, '/uploads/h2/team5/frontend.zip', 'dapp_frontend.zip',

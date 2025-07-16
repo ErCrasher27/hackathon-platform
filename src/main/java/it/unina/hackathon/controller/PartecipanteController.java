@@ -22,6 +22,7 @@ public class PartecipanteController {
     private final MembroTeamImplementazionePostgresDAO membroTeamImplementazionePostgresDAO;
     private final ProgressoDAO progressoDAO;
     private final InvitoTeamDAO invitoTeamDAO;
+    private final ProblemaDAO problemaDAO;
 
     // endregion
 
@@ -35,6 +36,7 @@ public class PartecipanteController {
         this.membroTeamImplementazionePostgresDAO = new MembroTeamImplementazionePostgresDAO();
         this.progressoDAO = new ProgressoImplementazionePostgresDAO();
         this.invitoTeamDAO = new InvitoTeamImplementazionePostgresDAO();
+        this.problemaDAO = new ProblemaImplementazionePostgresDAO();
     }
 
     // endregion
@@ -92,6 +94,10 @@ public class PartecipanteController {
         return new TeamListResponse(null, "Errore durante il caricamento dell'hackathon!");
     }
 
+    public TeamListResponse getTeamByHackathon(int hackathonId) {
+        return teamDAO.getTeamByHackathon(hackathonId);
+    }
+
     public ResponseResult richiediPartecipazione(int teamId) {
         int partecipanteId = mainController.getIdUtenteCorrente();
         return invitoTeamDAO.inviaRichiesta(teamId, partecipanteId);
@@ -135,6 +141,10 @@ public class PartecipanteController {
     public InvitoTeamListResponse getInvitiRicevuti() {
         int partecipanteId = mainController.getIdUtenteCorrente();
         return invitoTeamDAO.getInvitiRicevuti(partecipanteId);
+    }
+
+    public InvitoTeamListResponse getRichiesteIngressoTeam(int teamId) {
+        return invitoTeamDAO.getInvitiRicevuti(teamId);
     }
 
     public InvitoTeamListResponse getInvitiInviati() {
@@ -205,6 +215,11 @@ public class PartecipanteController {
     public ResponseIntResult contaPartecipanti(int hackathonId) {
         return partecipanteDAO.contaPartecipantiRegistrati(hackathonId);
     }
+
+    public ProblemaListResponse getProblemiHackathon(int hackathonId) {
+        return problemaDAO.getProblemiByHackathon(hackathonId);
+    }
+
 
     // endregion
 }

@@ -149,6 +149,11 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     }
 
     @Override
+    public InvitoTeamListResponse getRichiesteIngressoTeam(int teamId) {
+        return null;
+    }
+
+    @Override
     public ResponseResult rispondiInvito(int invitoId, StatoInvito risposta) {
         String query = """
                 UPDATE inviti_team 

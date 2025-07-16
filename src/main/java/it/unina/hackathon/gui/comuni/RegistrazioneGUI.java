@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.comuni;
 
-import it.unina.hackathon.controller.AuthenticationController;
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.NavigationController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.responses.UtenteResponse;
@@ -15,9 +13,7 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 public class RegistrazioneGUI implements GUIHandler {
 
     // Controllers
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final AuthenticationController authenticationController;
+    private final HackathonController controller;
 
     // Components
     private JFrame frame;
@@ -52,9 +48,7 @@ public class RegistrazioneGUI implements GUIHandler {
     private JButton loginButton;
 
     public RegistrazioneGUI() {
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.authenticationController = controller.getAuthController();
+        this.controller = HackathonController.getInstance();
 
         initializeComponents();
         setupFrame();
@@ -231,7 +225,7 @@ public class RegistrazioneGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         registerButton.addActionListener(_ -> effettuaRegistrazione());
-        loginButton.addActionListener(_ -> navigationController.goToLogin(frame));
+        loginButton.addActionListener(_ -> controller.vaiAlLogin(frame));
 
         // Enter key support for last password field
         confermaPasswordField.addActionListener(_ -> effettuaRegistrazione());
@@ -302,11 +296,11 @@ public class RegistrazioneGUI implements GUIHandler {
         }
 
         // Attempt registration
-        UtenteResponse response = authenticationController.register(nome, cognome, email, username, password, confermaPassword, tipoUtente);
+        UtenteResponse response = controller.effettuaRegistrazione(nome, cognome, email, username, password, confermaPassword, tipoUtente);
 
         if (response.utente() != null) {
             showSuccess(frame, response.message());
-            navigationController.goToLogin(frame);
+            controller.vaiAlLogin(frame);
         } else {
             showError(frame, response.message());
 

@@ -27,13 +27,6 @@ public class GiudiceHackathon {
         this.statoInvito = StatoInvito.PENDING;
     }
 
-    public GiudiceHackathon(int hackathonId, int giudiceId, int invitatoDaId) {
-        this();
-        this.hackathonId = hackathonId;
-        this.giudiceId = giudiceId;
-        this.invitatoDaId = invitatoDaId;
-    }
-
     // endregion
 
     // region Getter e Setter
@@ -60,10 +53,6 @@ public class GiudiceHackathon {
 
     public void setGiudiceId(int giudiceId) {
         this.giudiceId = giudiceId;
-    }
-
-    public int getInvitatoDaId() {
-        return invitatoDaId;
     }
 
     public void setInvitatoDaId(int invitatoDaId) {
@@ -106,38 +95,8 @@ public class GiudiceHackathon {
 
     // region Business
 
-    public boolean invitaGiudice() {
-        this.dataInvito = LocalDateTime.now();
-        this.statoInvito = StatoInvito.PENDING;
-        return true;
-    }
-
-    public boolean accettaInvito() {
-        if (statoInvito == StatoInvito.PENDING) {
-            this.statoInvito = StatoInvito.ACCEPTED;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean rifiutaInvito() {
-        if (statoInvito == StatoInvito.PENDING) {
-            this.statoInvito = StatoInvito.DECLINED;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean isPending() {
-        return statoInvito == StatoInvito.PENDING;
-    }
-
     public boolean isAccepted() {
         return statoInvito == StatoInvito.ACCEPTED;
-    }
-
-    public boolean isDeclined() {
-        return statoInvito == StatoInvito.DECLINED;
     }
 
     // endregion

@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.giudice;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.GiudiceController;
-import it.unina.hackathon.controller.NavigationController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.GiudiceHackathon;
 import it.unina.hackathon.model.Hackathon;
@@ -27,9 +25,7 @@ public class HomeGiudiceGUI implements GUIHandler {
 
     // region Controllers
 
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final GiudiceController giudiceController;
+    private final HackathonController controller;
 
     // endregion
 
@@ -75,24 +71,14 @@ public class HomeGiudiceGUI implements GUIHandler {
 
     // region Tab Statistiche
     private JButton aggiornaHackathonButton;
-    private JLabel totaleInvitiLabel;
-    private JLabel invitiAccettatiLabel;
-    private JLabel hackathonAttiviLabel;
-
-    // endregion
-
-    // region Data
-    private JLabel votiAssegnatiLabel;
-    private JLabel commentiScrittilabel;
 
     // endregion
 
     // region Costruttore
 
     public HomeGiudiceGUI() {
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.giudiceController = controller.getGiudiceController();
+        this.controller = HackathonController.getInstance();
+
         this.inviti = new ArrayList<>();
         this.hackathonAssegnati = new ArrayList<>();
 
@@ -143,8 +129,8 @@ public class HomeGiudiceGUI implements GUIHandler {
     public void setupEventListeners() {
         // Header
         logoutButton.addActionListener(_ -> {
-            controller.getAuthController().logout();
-            navigationController.goToLogin(frame);
+            controller.effettuaLogout();
+            controller.vaiAlLogin(frame);
         });
 
         // Tab Inviti
@@ -346,7 +332,7 @@ public class HomeGiudiceGUI implements GUIHandler {
             aggiornaInvitiButton.setText("Caricamento...");
             aggiornaInvitiButton.setEnabled(false);
 
-            GiudiceHackathonListResponse response = giudiceController.getInvitiRicevuti();
+            GiudiceHackathonListResponse response = controller.getInvitiGiudiceRicevuti();
             if (response.giudiciHackathon() != null) {
                 inviti.clear();
                 inviti.addAll(response.giudiciHackathon());
@@ -369,7 +355,7 @@ public class HomeGiudiceGUI implements GUIHandler {
             aggiornaHackathonButton.setText("Caricamento...");
             aggiornaHackathonButton.setEnabled(false);
 
-            HackathonListResponse response = giudiceController.getHackathonAssegnati();
+            HackathonListResponse response = controller.getHackathonAssegnati();
             if (response.hackathons() != null) {
                 hackathonAssegnati.clear();
                 hackathonAssegnati.addAll(response.hackathons());
@@ -404,7 +390,7 @@ public class HomeGiudiceGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = giudiceController.accettaInvito(invito.getGiudiceHackathonId());
+                    var response = controller.accettaInvitoGiudice(invito.getGiudiceHackathonId());
                     if (response.result()) {
                         showInfoMessage("Invito accettato con successo!");
                         loadInviti();
@@ -433,7 +419,7 @@ public class HomeGiudiceGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = giudiceController.rifiutaInvito(invito.getGiudiceHackathonId());
+                    var response = controller.rifiutaInvitoGiudice(invito.getGiudiceHackathonId());
                     if (response.result()) {
                         showInfoMessage("Invito rifiutato.");
                         loadInviti();
@@ -451,7 +437,7 @@ public class HomeGiudiceGUI implements GUIHandler {
         int selectedRow = hackathonAssegnatiTable.getSelectedRow();
         if (selectedRow != -1) {
             Hackathon hackathon = hackathonAssegnati.get(selectedRow);
-            navigationController.goToValutaProgetto(frame, hackathon.getHackathonId());
+            controller.vaiAValutareProgetto(frame, hackathon.getHackathonId());
         }
     }
 
@@ -459,7 +445,7 @@ public class HomeGiudiceGUI implements GUIHandler {
         int selectedRow = hackathonAssegnatiTable.getSelectedRow();
         if (selectedRow != -1) {
             Hackathon hackathon = hackathonAssegnati.get(selectedRow);
-            navigationController.goToGestisciProblemi(frame, hackathon.getHackathonId());
+            controller.vaiAGestireProblemi(frame, hackathon.getHackathonId());
         }
     }
 
@@ -500,7 +486,7 @@ public class HomeGiudiceGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             GiudiceHackathon invito = inviti.get(rowIndex);
-            HackathonResponse hackathon = giudiceController.getDettagliHackathon(invito.getHackathonId());
+            HackathonResponse hackathon = controller.getDettagliHackathon(invito.getHackathonId());
             return switch (columnIndex) {
                 case 0 -> hackathon.hackathon() != null ? hackathon.hackathon().getTitolo() : "N/A";
                 case 1 -> invito.getInvitatoDa() != null ? invito.getInvitatoDa().getNomeCompleto() : "N/A";
@@ -554,12 +540,10 @@ public class HomeGiudiceGUI implements GUIHandler {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
             if (value instanceof String statoText) {
-                if (statoText.equals("In Attesa")) {
-                    c.setForeground(Color.ORANGE);
-                } else if (statoText.equals("Accettato")) {
-                    c.setForeground(Color.GREEN);
-                } else if (statoText.equals("Rifiutato")) {
-                    c.setForeground(Color.RED);
+                switch (statoText) {
+                    case "In Attesa" -> c.setForeground(Color.ORANGE);
+                    case "Accettato" -> c.setForeground(Color.GREEN);
+                    case "Rifiutato" -> c.setForeground(Color.RED);
                 }
             }
 

@@ -11,20 +11,6 @@ public enum RuoloTeam implements EnumHandler {
         this.displayName = displayName;
     }
 
-    public static RuoloTeam fromId(int id) {
-        for (RuoloTeam ruolo : values()) {
-            if (ruolo.id == id) return ruolo;
-        }
-        throw new IllegalArgumentException("RuoloTeam non trovato per id: " + id);
-    }
-
-    public static RuoloTeam fromDisplayName(String displayName) {
-        for (RuoloTeam ruolo : values()) {
-            if (ruolo.displayName.equalsIgnoreCase(displayName)) return ruolo;
-        }
-        throw new IllegalArgumentException("RuoloTeam non trovato per displayName: " + displayName);
-    }
-
     @Override
     public int getId() {
         return id;

@@ -30,18 +30,6 @@ public class InvitoTeam {
         this.statoInvito = StatoInvito.PENDING;
     }
 
-    public InvitoTeam(int teamId, int invitanteId, int invitatoId) {
-        this();
-        this.teamId = teamId;
-        this.invitanteId = invitanteId;
-        this.invitatoId = invitatoId;
-    }
-
-    public InvitoTeam(int teamId, int invitanteId, int invitatoId, String messaggioMotivazionale) {
-        this(teamId, invitanteId, invitatoId);
-        this.messaggioMotivazionale = messaggioMotivazionale;
-    }
-
     // endregion
 
     // region Getter e Setter
@@ -62,16 +50,8 @@ public class InvitoTeam {
         this.teamId = teamId;
     }
 
-    public int getInvitanteId() {
-        return invitanteId;
-    }
-
     public void setInvitanteId(int invitanteId) {
         this.invitanteId = invitanteId;
-    }
-
-    public int getInvitatoId() {
-        return invitatoId;
     }
 
     public void setInvitatoId(int invitatoId) {
@@ -86,10 +66,6 @@ public class InvitoTeam {
         this.messaggioMotivazionale = messaggioMotivazionale;
     }
 
-    public StatoInvito getStatoInvito() {
-        return statoInvito;
-    }
-
     public void setStatoInvito(StatoInvito statoInvito) {
         this.statoInvito = statoInvito;
     }
@@ -100,10 +76,6 @@ public class InvitoTeam {
 
     public void setDataInvito(LocalDateTime dataInvito) {
         this.dataInvito = dataInvito;
-    }
-
-    public LocalDateTime getDataRisposta() {
-        return dataRisposta;
     }
 
     public void setDataRisposta(LocalDateTime dataRisposta) {
@@ -132,54 +104,6 @@ public class InvitoTeam {
 
     public void setInvitato(Utente invitato) {
         this.invitato = invitato;
-    }
-
-    // endregion
-
-    // region Business
-
-    public boolean inviaInvito(String messaggio) {
-        if (!validaInvito()) {
-            return false;
-        }
-        this.messaggioMotivazionale = messaggio;
-        this.dataInvito = LocalDateTime.now();
-        this.statoInvito = StatoInvito.PENDING;
-        return true;
-    }
-
-    public boolean accettaInvito() {
-        if (statoInvito != StatoInvito.PENDING) {
-            return false;
-        }
-        this.statoInvito = StatoInvito.ACCEPTED;
-        this.dataRisposta = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean rifiutaInvito() {
-        if (statoInvito != StatoInvito.PENDING) {
-            return false;
-        }
-        this.statoInvito = StatoInvito.DECLINED;
-        this.dataRisposta = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean validaInvito() {
-        return teamId > 0 && invitanteId > 0 && invitatoId > 0 && invitanteId != invitatoId;
-    }
-
-    public boolean isPending() {
-        return statoInvito == StatoInvito.PENDING;
-    }
-
-    public boolean isAccettato() {
-        return statoInvito == StatoInvito.ACCEPTED;
-    }
-
-    public boolean isRifiutato() {
-        return statoInvito == StatoInvito.DECLINED;
     }
 
     // endregion

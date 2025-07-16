@@ -23,24 +23,16 @@ public class Commento {
         this.dataCommento = LocalDateTime.now();
     }
 
-    public Commento(String testo) {
-        this();
-        this.testo = testo;
-    }
-
     public Commento(int progressoId, int giudiceId, String testo) {
-        this(testo);
+        this();
         this.progressoId = progressoId;
         this.giudiceId = giudiceId;
+        this.testo = testo;
     }
 
     // endregion
 
     // region Getter e Setter
-
-    public int getCommentoId() {
-        return commentoId;
-    }
 
     public void setCommentoId(int commentoId) {
         this.commentoId = commentoId;
@@ -48,10 +40,6 @@ public class Commento {
 
     public int getProgressoId() {
         return progressoId;
-    }
-
-    public void setProgressoId(int progressoId) {
-        this.progressoId = progressoId;
     }
 
     public int getGiudiceId() {
@@ -64,10 +52,6 @@ public class Commento {
 
     public String getTesto() {
         return testo;
-    }
-
-    public void setTesto(String testo) {
-        this.testo = testo;
     }
 
     public LocalDateTime getDataCommento() {
@@ -92,58 +76,6 @@ public class Commento {
 
     public void setProgresso(Progresso progresso) {
         this.progresso = progresso;
-    }
-
-    // endregion
-
-    // region Business
-
-    public boolean scriviCommento(String testo) {
-        if (!validaTesto(testo)) {
-            return false;
-        }
-        this.testo = testo.trim();
-        this.dataCommento = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean modificaCommento(String nuovoTesto) {
-        if (!validaTesto(nuovoTesto)) {
-            return false;
-        }
-        this.testo = nuovoTesto.trim();
-        // Manteniamo la data originale per i commenti modificati
-        return true;
-    }
-
-    public boolean validaTesto(String testo) {
-        return testo != null && !testo.trim().isEmpty() && testo.trim().length() <= 1000;
-    }
-
-    public boolean validaCommento() {
-        if (!validaTesto(testo)) {
-            return false;
-        }
-        return progressoId > 0 && giudiceId > 0;
-    }
-
-    public String getAnteprimaTesto() {
-        if (testo == null || testo.isEmpty()) {
-            return "Nessun commento";
-        }
-        return testo.length() > 150 ? testo.substring(0, 150) + "..." : testo;
-    }
-
-    public String getDettagliCompleti() {
-        return String.format("Commento di %s\nData: %s\n\n%s", giudice != null ? giudice.getNomeCompleto() : "Giudice sconosciuto", dataCommento, testo);
-    }
-
-    public int getLunghezzaTesto() {
-        return testo != null ? testo.length() : 0;
-    }
-
-    public boolean isVuoto() {
-        return testo == null || testo.trim().isEmpty();
     }
 
     // endregion

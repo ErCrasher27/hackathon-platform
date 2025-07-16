@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.comuni;
 
-import it.unina.hackathon.controller.AuthenticationController;
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.NavigationController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.utils.responses.UtenteResponse;
 
@@ -14,9 +12,7 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 public class LoginGUI implements GUIHandler {
 
     // Controllers
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final AuthenticationController authenticationController;
+    private final HackathonController controller;
 
     // Components
     private JFrame frame;
@@ -35,9 +31,7 @@ public class LoginGUI implements GUIHandler {
     private JButton registerButton;
 
     public LoginGUI() {
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.authenticationController = controller.getAuthController();
+        this.controller = HackathonController.getInstance();
 
         initializeComponents();
         setupFrame();
@@ -124,7 +118,7 @@ public class LoginGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         loginButton.addActionListener(_ -> effettuaLogin());
-        registerButton.addActionListener(_ -> navigationController.goToRegistrazione(frame));
+        registerButton.addActionListener(_ -> controller.vaiAllaRegistrazione(frame));
 
         // Enter key support for password field
         passwordField.addActionListener(_ -> effettuaLogin());
@@ -159,10 +153,10 @@ public class LoginGUI implements GUIHandler {
         }
 
         // Attempt login
-        UtenteResponse response = authenticationController.login(username, password);
+        UtenteResponse response = controller.effettuaLogin(username, password);
 
         if (response.utente() != null) {
-            navigationController.goToHome(frame, controller.getTipoUtenteUtenteCorrente());
+            controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente());
             showSuccess(frame, response.message());
         } else {
             showError(frame, response.message());

@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.organizzatore;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.NavigationController;
-import it.unina.hackathon.controller.OrganizzatoreController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.*;
 import it.unina.hackathon.utils.responses.*;
@@ -19,9 +17,7 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 public class GestisciHackathonGUI implements GUIHandler {
 
     // Controllers
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final OrganizzatoreController organizzatoreController;
+    private final HackathonController controller;
     private final int hackathonId;
 
     // Components
@@ -58,9 +54,7 @@ public class GestisciHackathonGUI implements GUIHandler {
 
     public GestisciHackathonGUI(int hackathonId) {
         this.hackathonId = hackathonId;
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.organizzatoreController = controller.getOrganizzatoreController();
+        this.controller = HackathonController.getInstance();
 
         initializeComponents();
         setupFrame();
@@ -110,21 +104,21 @@ public class GestisciHackathonGUI implements GUIHandler {
 
     @Override
     public void setupEventListeners() {
-        backButton.addActionListener(_ -> navigationController.goToHome(frame, controller.getUtenteCorrente().getTipoUtente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
     }
 
     @Override
     public void loadData() {
         try {
             // Load hackathon details
-            HackathonResponse response = organizzatoreController.getDettagliHackathon(hackathonId);
+            HackathonResponse response = controller.getDettagliHackathon(hackathonId);
 
             if (response.hackathon() != null) {
                 hackathonCorrente = response.hackathon();
                 frame.setTitle("Hackathon Platform - Gestisci: " + hackathonCorrente.getTitolo());
             } else {
                 showError(frame, "Errore nel caricamento dei dettagli: " + response.message());
-                navigationController.goToHome(frame, controller.getUtenteCorrente().getTipoUtente());
+                controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente());
                 return;
             }
 
@@ -377,7 +371,7 @@ public class GestisciHackathonGUI implements GUIHandler {
             classificaTableModel.setRowCount(0);
 
             // Utilizziamo il GiudiceController per accedere alla classifica
-            VotoListResponse response = controller.getGiudiceController().getClassificaHackathon(hackathonId);
+            VotoListResponse response = controller.getClassificaHackathon(hackathonId);
 
             if (response.voti() != null && !response.voti().isEmpty()) {
                 for (Voto votoClassifica : response.voti()) {
@@ -405,9 +399,9 @@ public class GestisciHackathonGUI implements GUIHandler {
 
     private void aggiornaStatistiche() {
         try {
-            ResponseIntResult numPartecipanti = organizzatoreController.contaPartecipanti(hackathonId);
-            ResponseIntResult numTeam = organizzatoreController.contaTeam(hackathonId);
-            ResponseIntResult numGiudici = organizzatoreController.contaGiudiciAccettati(hackathonId);
+            ResponseIntResult numPartecipanti = controller.contaPartecipantiRegistrati(hackathonId);
+            ResponseIntResult numTeam = controller.contaTeamFormati(hackathonId);
+            ResponseIntResult numGiudici = controller.contaGiudiciAccettati(hackathonId);
 
             int partecipanti = Math.max(numPartecipanti.result(), 0);
             int team = Math.max(numTeam.result(), 0);
@@ -427,7 +421,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         try {
             giudiciTableModel.setRowCount(0);
 
-            GiudiceHackathonListResponse response = organizzatoreController.getAllGiudiciInvitatiInHackathon(hackathonId);
+            GiudiceHackathonListResponse response = controller.getGiudiciInvitati(hackathonId);
 
             if (response.giudiciHackathon() != null) {
                 for (GiudiceHackathon gh : response.giudiciHackathon()) {
@@ -444,11 +438,11 @@ public class GestisciHackathonGUI implements GUIHandler {
         try {
             partecipantiTableModel.setRowCount(0);
 
-            UtenteListResponse response = organizzatoreController.getPartecipantiHackathon(hackathonId);
+            UtenteListResponse response = controller.getPartecipantiHackathon(hackathonId);
 
             if (response.utenti() != null) {
                 for (Utente partecipante : response.utenti()) {
-                    TeamResponse team = organizzatoreController.getTeamByPartecipante(partecipante.getUtenteId(), hackathonId);
+                    TeamResponse team = controller.getTeamPartecipante(partecipante.getUtenteId(), hackathonId);
                     Object[] row = {partecipante.getNome(), partecipante.getCognome(), partecipante.getUsername(), partecipante.getEmail(), team.team() != null ? team.team().getNome() : "N/A", partecipante.getDataRegistrazione() != null ? partecipante.getDataRegistrazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
                     partecipantiTableModel.addRow(row);
                 }
@@ -462,7 +456,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         try {
             teamTableModel.setRowCount(0);
 
-            TeamListResponse response = organizzatoreController.getTeamHackathon(hackathonId);
+            TeamListResponse response = controller.getTeamHackathon(hackathonId);
 
             if (response.teams() != null) {
                 for (Team team : response.teams()) {
@@ -477,14 +471,14 @@ public class GestisciHackathonGUI implements GUIHandler {
 
     private void apriDialogInvitaGiudice() {
         try {
-            UtenteListResponse response = organizzatoreController.getAllGiudiciNonInvitatiInHackathon(hackathonId);
+            GiudiceHackathonListResponse response = controller.getGiudiciNonInvitati(hackathonId);
 
-            if (response.utenti() == null || response.utenti().isEmpty()) {
+            if (response.giudiciHackathon() == null || response.giudiciHackathon().isEmpty()) {
                 showError(frame, "Non ci sono giudici disponibili da invitare!");
                 return;
             }
 
-            String[] nomiGiudici = response.utenti().stream().map(g -> g.getNome() + " " + g.getCognome() + " (" + g.getUsername() + ")").toArray(String[]::new);
+            String[] nomiGiudici = response.giudiciHackathon().stream().map(g -> g.getGiudice().getNome() + " " + g.getGiudice().getCognome() + " (" + g.getGiudice().getUsername() + ")").toArray(String[]::new);
 
             String selected = (String) JOptionPane.showInputDialog(frame, "Seleziona il giudice da invitare:", "Invita Giudice", JOptionPane.QUESTION_MESSAGE, null, nomiGiudici, nomiGiudici[0]);
 
@@ -498,8 +492,8 @@ public class GestisciHackathonGUI implements GUIHandler {
                 }
 
                 if (selectedIndex >= 0) {
-                    Utente giudiceSelezionato = response.utenti().get(selectedIndex);
-                    ResponseResult result = organizzatoreController.invitaGiudice(hackathonId, giudiceSelezionato.getUtenteId());
+                    GiudiceHackathon giudiceSelezionato = response.giudiciHackathon().get(selectedIndex);
+                    ResponseResult result = controller.invitaGiudice(hackathonId, giudiceSelezionato.getGiudiceId());
 
                     if (result.result()) {
                         showSuccess(frame, result.message());
@@ -550,13 +544,13 @@ public class GestisciHackathonGUI implements GUIHandler {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                GiudiceHackathonListResponse giudiciResponse = organizzatoreController.getAllGiudiciInvitatiInHackathon(hackathonId);
+                GiudiceHackathonListResponse giudiciResponse = controller.getGiudiciInvitati(hackathonId);
 
                 if (giudiciResponse.giudiciHackathon() != null && selectedRow < giudiciResponse.giudiciHackathon().size()) {
                     GiudiceHackathon giudiceSelezionato = giudiciResponse.giudiciHackathon().get(selectedRow);
                     int giudiceId = giudiceSelezionato.getGiudiceId();
 
-                    ResponseResult result = organizzatoreController.rimuoviInvitoGiudice(hackathonId, giudiceId);
+                    ResponseResult result = controller.rimuoviInvitoGiudice(hackathonId, giudiceId);
 
                     if (result.result()) {
                         showSuccess(frame, result.message());

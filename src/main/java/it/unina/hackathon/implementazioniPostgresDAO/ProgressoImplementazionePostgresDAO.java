@@ -57,33 +57,6 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     }
 
     @Override
-    public ProgressoResponse getProgressoById(int progressoId) {
-        String query = """
-                SELECT p.progresso_id, p.team_id, p.titolo, p.descrizione, p.documento_path, 
-                       p.documento_nome, p.data_caricamento, p.caricato_da,
-                       u.nome, u.cognome, u.username, u.email
-                FROM progressi p
-                JOIN utenti u ON p.caricato_da = u.utente_id
-                WHERE p.progresso_id = ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, progressoId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                Progresso progresso = mapResultSetToProgresso(rs);
-                return new ProgressoResponse(progresso, "Progresso trovato con successo!");
-            } else {
-                return new ProgressoResponse(null, "Progresso non trovato!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ProgressoResponse(null, "Errore durante la ricerca del progresso!");
-        }
-    }
-
-    @Override
     public ProgressoListResponse getProgressiByTeam(int teamId) {
         String query = """
                 SELECT p.progresso_id, p.team_id, p.documento_path, 
@@ -112,62 +85,6 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     }
 
     @Override
-    public ProgressoListResponse getProgressiByHackathon(int hackathonId) {
-        String query = """
-                SELECT p.progresso_id, p.team_id, p.titolo, p.descrizione, p.documento_path, 
-                       p.documento_nome, p.data_caricamento, p.caricato_da,
-                       u.nome, u.cognome, u.username, u.email,
-                       t.nome as team_nome
-                FROM progressi p
-                JOIN utenti u ON p.caricato_da = u.utente_id
-                JOIN team t ON p.team_id = t.team_id
-                WHERE t.hackathon_id = ?
-                ORDER BY p.data_caricamento DESC
-                """;
-
-        List<Progresso> progressi = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                progressi.add(mapResultSetToProgresso(rs));
-            }
-            return new ProgressoListResponse(progressi, "Progressi dell'hackathon caricati con successo!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ProgressoListResponse(null, "Errore durante il caricamento dei progressi dell'hackathon!");
-        }
-    }
-
-    @Override
-    public ProgressoResponse updateProgresso(Progresso progresso) {
-        String query = """
-                UPDATE progressi 
-                SET titolo = ?, descrizione = ?, documento_path = ?, documento_nome = ?
-                WHERE progresso_id = ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setString(3, progresso.getDocumentoPath());
-            ps.setString(4, progresso.getDocumentoNome());
-            ps.setInt(5, progresso.getProgressoId());
-
-            int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                return new ProgressoResponse(progresso, "Progresso aggiornato con successo!");
-            } else {
-                return new ProgressoResponse(null, "Progresso non trovato per l'aggiornamento!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ProgressoResponse(null, "Errore durante l'aggiornamento del progresso!");
-        }
-    }
-
-    @Override
     public ResponseResult deleteProgresso(int progressoId) {
         String query = "DELETE FROM progressi WHERE progresso_id = ?";
 
@@ -184,70 +101,6 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new ResponseResult(false, "Errore durante l'eliminazione del progresso!");
-        }
-    }
-
-    @Override
-    public ProgressoListResponse getProgressiDaValutare(int giudiceId, int hackathonId) {
-        String query = """
-                SELECT DISTINCT p.progresso_id, p.team_id, p.titolo, p.descrizione, p.documento_path, 
-                       p.documento_nome, p.data_caricamento, p.caricato_da,
-                       u.nome, u.cognome, u.username, u.email,
-                       t.nome as team_nome
-                FROM progressi p
-                JOIN utenti u ON p.caricato_da = u.utente_id
-                JOIN team t ON p.team_id = t.team_id
-                JOIN giudici_hackathon gh ON t.hackathon_id = gh.hackathon_id
-                WHERE gh.giudice_id = ? AND t.hackathon_id = ? 
-                AND gh.stato_invito_id = (SELECT status_id FROM invito_status WHERE status_name = 'ACCEPTED')
-                ORDER BY p.data_caricamento DESC
-                """;
-
-        List<Progresso> progressi = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, giudiceId);
-            ps.setInt(2, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                progressi.add(mapResultSetToProgresso(rs));
-            }
-            return new ProgressoListResponse(progressi, "Progressi da valutare caricati con successo!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ProgressoListResponse(null, "Errore durante il caricamento dei progressi da valutare!");
-        }
-    }
-
-    @Override
-    public ProgressoListResponse getProgressiRecenti(int hackathonId, int giorni) {
-        String query = """
-                SELECT p.progresso_id, p.team_id, p.titolo, p.descrizione, p.documento_path, 
-                       p.documento_nome, p.data_caricamento, p.caricato_da,
-                       u.nome, u.cognome, u.username, u.email,
-                       t.nome as team_nome
-                FROM progressi p
-                JOIN utenti u ON p.caricato_da = u.utente_id
-                JOIN team t ON p.team_id = t.team_id
-                WHERE t.hackathon_id = ? 
-                AND p.data_caricamento >= NOW() - INTERVAL '%d days'
-                ORDER BY p.data_caricamento DESC
-                """.formatted(giorni);
-
-        List<Progresso> progressi = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                progressi.add(mapResultSetToProgresso(rs));
-            }
-            return new ProgressoListResponse(progressi, "Progressi recenti caricati con successo!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ProgressoListResponse(null, "Errore durante il caricamento dei progressi recenti!");
         }
     }
 

@@ -27,7 +27,7 @@ public class PartecipanteImplementazionePostgresDAO implements PartecipanteDAO {
     }
 
     @Override
-    public UtenteListResponse getPartecipantiHackathon(int hackathonId) {
+    public UtenteListResponse getPartecipantiByHackathon(int hackathonId) {
         String query = """
                 SELECT DISTINCT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
                        u.data_registrazione, ur.role_name, r.data_registrazione as data_reg_hackathon,

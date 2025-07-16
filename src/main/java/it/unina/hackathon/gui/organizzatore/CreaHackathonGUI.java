@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.organizzatore;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.NavigationController;
-import it.unina.hackathon.controller.OrganizzatoreController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.utils.responses.HackathonResponse;
 
@@ -20,9 +18,7 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 public class CreaHackathonGUI implements GUIHandler {
 
     // Controllers
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final OrganizzatoreController organizzatoreController;
+    private final HackathonController controller;
 
     // Components
     private JFrame frame;
@@ -62,9 +58,7 @@ public class CreaHackathonGUI implements GUIHandler {
     private JButton creaButton;
 
     public CreaHackathonGUI() {
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.organizzatoreController = controller.getOrganizzatoreController();
+        this.controller = HackathonController.getInstance();
 
         initializeComponents();
         setupFrame();
@@ -260,7 +254,7 @@ public class CreaHackathonGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         creaButton.addActionListener(_ -> creaHackathon());
-        annullaButton.addActionListener(_ -> navigationController.goToHome(frame, controller.getUtenteCorrente().getTipoUtente()));
+        annullaButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
     }
 
     @Override
@@ -360,11 +354,11 @@ public class CreaHackathonGUI implements GUIHandler {
             creaButton.setText("Creazione in corso...");
 
             // Call controller
-            HackathonResponse response = organizzatoreController.creaHackathon(titolo, descrizione, sede, dataInizio, dataFine, maxIscritti, maxTeamSize);
+            HackathonResponse response = controller.creaHackathon(titolo, descrizione, sede, dataInizio, dataFine, maxIscritti, maxTeamSize);
 
             if (response.hackathon() != null) {
                 showSuccess(frame, response.message());
-                navigationController.goToHome(frame, controller.getUtenteCorrente().getTipoUtente());
+                controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente());
             } else {
                 showError(frame, response.message());
             }

@@ -29,25 +29,17 @@ public class Voto {
         this.dataVoto = LocalDateTime.now();
     }
 
-    public Voto(int valore) {
-        this();
-        this.valore = valore;
-    }
-
     public Voto(int hackathonId, int teamId, int giudiceId, int valore) {
-        this(valore);
+        this();
         this.hackathonId = hackathonId;
         this.teamId = teamId;
         this.giudiceId = giudiceId;
+        this.valore = valore;
     }
 
     // endregion
 
     // region Getter e Setter
-
-    public int getVotoId() {
-        return votoId;
-    }
 
     public void setVotoId(int votoId) {
         this.votoId = votoId;
@@ -139,57 +131,16 @@ public class Voto {
 
     // region Business
 
-    public boolean assegnaVoto(int valore) {
-        if (!validaValore(valore)) {
-            return false;
-        }
-        this.valore = valore;
-        this.dataVoto = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean assegnaVoto(int valore, String criteri) {
-        return assegnaVoto(valore);
-    }
-
-    public boolean modificaVoto(int nuovoValore) {
-        if (!validaValore(nuovoValore)) {
-            return false;
-        }
-        this.valore = nuovoValore;
-        this.dataVoto = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean modificaVoto(int nuovoValore, String nuoviCriteri) {
-        return modificaVoto(nuovoValore);
-    }
-
-    public boolean validaValore(int valore) {
-        return valore >= 0 && valore <= 10;
-    }
-
     public boolean validaVoto() {
-        if (!validaValore(valore)) {
-            return false;
-        }
-        return hackathonId > 0 && teamId > 0 && giudiceId > 0;
-    }
-
-    public String getDettagliVoto() {
-        return String.format("Voto: %d/10\nCriteri: %s\nData: %s\nGiudice: %s\nTeam: %s", valore, dataVoto, giudice != null ? giudice.getNomeCompleto() : "N/A", team != null ? team.getNome() : "N/A");
+        return valore >= 0 && valore <= 10;
     }
 
     public String getValutazioneTestuale() {
         if (valore >= 9) return "Eccellente";
         if (valore >= 7) return "Buono";
-        if (valore >= 6) return "Sufficiente";
+        if (valore == 6) return "Sufficiente";
         if (valore >= 4) return "Insufficiente";
         return "Gravemente insufficiente";
-    }
-
-    public boolean isPositivo() {
-        return valore >= 6;
     }
 
     // endregion

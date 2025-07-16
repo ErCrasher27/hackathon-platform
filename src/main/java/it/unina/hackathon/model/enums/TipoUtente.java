@@ -11,13 +11,6 @@ public enum TipoUtente implements EnumHandler {
         this.displayName = displayName;
     }
 
-    public static TipoUtente fromId(int id) {
-        for (TipoUtente tipo : values()) {
-            if (tipo.id == id) return tipo;
-        }
-        throw new IllegalArgumentException("TipoUtente non trovato per id: " + id);
-    }
-
     @Override
     public int getId() {
         return id;

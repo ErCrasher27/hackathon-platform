@@ -5,11 +5,13 @@ import it.unina.hackathon.utils.responses.UtenteResponse;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface UtenteDAO {
-    UtenteResponse findByUsername(String username);
 
     UtenteResponse saveUtente(Utente utente);
+
+    UtenteResponse findByUsername(String username);
 
     ResponseResult usernameExists(String username);
 
     ResponseResult emailExists(String email);
+
 }

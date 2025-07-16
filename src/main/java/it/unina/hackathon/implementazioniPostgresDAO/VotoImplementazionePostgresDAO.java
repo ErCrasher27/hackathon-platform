@@ -8,7 +8,6 @@ import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.VotoListResponse;
 import it.unina.hackathon.utils.responses.VotoResponse;
-import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -57,170 +56,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     }
 
     @Override
-    public VotoResponse getVotoById(int votoId) {
-        String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
-                       u.nome, u.cognome, u.username, u.email,
-                       t.nome as team_nome
-                FROM voti v
-                JOIN utenti u ON v.giudice_id = u.utente_id
-                JOIN team t ON v.team_id = t.team_id
-                WHERE v.voto_id = ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, votoId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                Voto voto = mapResultSetToVoto(rs);
-                return new VotoResponse(voto, "Voto trovato con successo!");
-            } else {
-                return new VotoResponse(null, "Voto non trovato!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new VotoResponse(null, "Errore durante la ricerca del voto!");
-        }
-    }
-
-    @Override
-    public VotoListResponse getVotiByTeam(int teamId) {
-        String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
-                       u.nome, u.cognome, u.username, u.email,
-                       t.nome as team_nome
-                FROM voti v
-                JOIN utenti u ON v.giudice_id = u.utente_id
-                JOIN team t ON v.team_id = t.team_id
-                WHERE v.team_id = ?
-                ORDER BY v.data_voto DESC
-                """;
-
-        List<Voto> voti = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, teamId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                voti.add(mapResultSetToVoto(rs));
-            }
-            return new VotoListResponse(voti, "Voti del team caricati con successo!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new VotoListResponse(null, "Errore durante il caricamento dei voti del team!");
-        }
-    }
-
-    @Override
-    public VotoListResponse getVotiByGiudice(int giudiceId, int hackathonId) {
-        String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
-                       u.nome, u.cognome, u.username, u.email,
-                       t.nome as team_nome
-                FROM voti v
-                JOIN utenti u ON v.giudice_id = u.utente_id
-                JOIN team t ON v.team_id = t.team_id
-                WHERE v.giudice_id = ? AND v.hackathon_id = ?
-                ORDER BY v.data_voto DESC
-                """;
-
-        List<Voto> voti = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, giudiceId);
-            ps.setInt(2, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                voti.add(mapResultSetToVoto(rs));
-            }
-            return new VotoListResponse(voti, "Voti del giudice caricati con successo!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new VotoListResponse(null, "Errore durante il caricamento dei voti del giudice!");
-        }
-    }
-
-    @Override
-    public VotoListResponse getVotiByHackathon(int hackathonId) {
-        String query = """
-                SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
-                       u.nome, u.cognome, u.username, u.email,
-                       t.nome as team_nome,
-                       AVG(v.valore) OVER (PARTITION BY v.team_id) as media_team
-                FROM voti v
-                JOIN utenti u ON v.giudice_id = u.utente_id
-                JOIN team t ON v.team_id = t.team_id
-                WHERE v.hackathon_id = ?
-                ORDER BY media_team DESC, v.team_id, v.data_voto DESC
-                """;
-
-        List<Voto> voti = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                voti.add(mapResultSetToVoto(rs));
-            }
-            return new VotoListResponse(voti, "Voti dell'hackathon caricati con successo!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new VotoListResponse(null, "Errore durante il caricamento dei voti dell'hackathon!");
-        }
-    }
-
-    @Override
-    public VotoResponse updateVoto(Voto voto) {
-        String query = """
-                UPDATE voti 
-                SET valore = ?, data_voto = ?
-                WHERE voto_id = ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, voto.getValore());
-            ps.setTimestamp(2, Timestamp.valueOf(voto.getDataVoto()));
-            ps.setInt(3, voto.getVotoId());
-
-            int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                return new VotoResponse(voto, "Voto aggiornato con successo!");
-            } else {
-                return new VotoResponse(null, "Voto non trovato per l'aggiornamento!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new VotoResponse(null, "Errore durante l'aggiornamento del voto!");
-        }
-    }
-
-    @Override
-    public ResponseResult deleteVoto(int votoId) {
-        String query = "DELETE FROM voti WHERE voto_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, votoId);
-
-            int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                return new ResponseResult(true, "Voto eliminato con successo!");
-            } else {
-                return new ResponseResult(false, "Voto non trovato!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ResponseResult(false, "Errore durante l'eliminazione del voto!");
-        }
-    }
-
-    @Override
-    public VotoResponse getVotoByGiudiceTeam(int giudiceId, int teamId, int hackathonId) {
+    public VotoResponse getVotoByGiudiceTeamHackathon(int giudiceId, int teamId, int hackathonId) {
         String query = """
                 SELECT v.voto_id, v.hackathon_id, v.team_id, v.giudice_id, v.valore, v.data_voto,
                        u.nome, u.cognome, u.username, u.email,
@@ -246,32 +82,6 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new VotoResponse(null, "Errore durante la ricerca del voto!");
-        }
-    }
-
-    @Override
-    public ResponseResult verificaVotoEsistente(int giudiceId, int teamId, int hackathonId) {
-        String query = "SELECT COUNT(*) FROM voti WHERE giudice_id = ? AND team_id = ? AND hackathon_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, giudiceId);
-            ps.setInt(2, teamId);
-            ps.setInt(3, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                boolean exists = rs.getInt(1) > 0;
-                if (exists) {
-                    return new ResponseResult(true, "Voto già assegnato a questo team!");
-                } else {
-                    return new ResponseResult(false, "Voto non ancora assegnato!");
-                }
-            } else {
-                return new ResponseResult(false, "Errore durante la verifica!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ResponseResult(false, "Errore durante la verifica del voto!");
         }
     }
 

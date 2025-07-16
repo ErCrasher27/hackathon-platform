@@ -7,20 +7,19 @@ import it.unina.hackathon.utils.responses.HackathonResponse;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface HackathonDAO {
-    HackathonResponse saveHackathon(Hackathon hackathon);
 
-    HackathonListResponse getAllHackathonByOrganizzatore(int organizzatoreId);
+    HackathonResponse saveHackathon(Hackathon hackathon);
 
     HackathonResponse getHackathonById(int hackathonId);
 
-    HackathonResponse updateHackathon(Hackathon hackathon);
-
-    ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato);
-
     HackathonListResponse getHackathonByHackathonStatus(HackathonStatus hs);
 
-    HackathonListResponse getHackathonByPartecipante(int partecipanteId);
+    HackathonListResponse getHackathonsByOrganizzatore(int organizzatoreId);
+
+    HackathonListResponse getHackathonsByPartecipante(int partecipanteId);
 
     HackathonListResponse getHackathonAccettati(int giudiceId);
+
+    ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato);
 
 }

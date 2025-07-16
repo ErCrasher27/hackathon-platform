@@ -5,6 +5,7 @@ import it.unina.hackathon.controller.NavigationController;
 import it.unina.hackathon.controller.PartecipanteController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.*;
+import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.model.enums.StatoInvito;
 import it.unina.hackathon.utils.UtilsUi;
 import it.unina.hackathon.utils.responses.HackathonResponse;
@@ -31,59 +32,59 @@ public class GestisciProgettoGUI implements GUIHandler {
 
     // region Controllers e Parametri
     private final Controller controller;
-
-    // endregion
     private final NavigationController navigationController;
     private final PartecipanteController partecipanteController;
     private final int hackathonId;
+    // endregion
+
     // region Data Lists
     private final List<MembroTeam> membriList;
-
-    // endregion
     private final List<Progresso> progressiList;
-    private final List<Progresso> documentiList;
-    private final List<Team> teamDisponibili;
+    private final List<Problema> problemiList;
+    private final List<Team> teams;
     private final List<InvitoTeam> invitiRicevuti;
+    private final List<InvitoTeam> richiesteIngresso;
+    // endregion
+
     // region Components
     private JFrame frame;
-
-    // endregion
     private JPanel mainPanel;
+    // endregion
+
     // region Header Components
     private JPanel headerPanel;
-
-    // endregion
     private JPanel contentPanel;
     private JTabbedPane tabbedPane;
     private JLabel titleLabel;
     private JLabel hackathonInfoLabel;
     private JLabel teamInfoLabel;
     private JButton backButton;
+    // endregion
+
     // region Tab Team - Dynamic Components
     private JPanel teamPanel;
-
-    // endregion
     private CardLayout teamCardLayout;
+    // endregion
+
     // Nessun Team Panel
     private JPanel nessunTeamPanel;
     private JTextField nomeTeamField;
     private JButton creaTeamButton;
-    private JTable teamDisponibiliTable;
-    private JScrollPane teamDisponibiliScrollPane;
-    private TeamDisponibiliTableModel teamDisponibiliTableModel;
-    private JButton aggiornaTeamDispButton;
+    private JTable teamTable;
+    private JScrollPane teamsScrollPane;
+    private TeamsTableModel teamsTableModel;
+    private JButton aggiornaTeamButton;
     private JButton richiestaIngressoButton;
-    // Inviti Panel
-    private JPanel invitiPanel;
-    private JTable invitiTable;
-    private JScrollPane invitiScrollPane;
-    private InvitiTableModel invitiTableModel;
-    private JButton aggiornaInvitiButton;
+
+    // Inviti Ricevuti (quando non hai team)
+    private JTable invitiRicevutiTable;
+    private JScrollPane invitiRicevutiScrollPane;
+    private InvitiTableModel invitiRicevutiTableModel;
     private JButton accettaInvitoButton;
     private JButton rifiutaInvitoButton;
+
     // Gestione Team Panel
     private JPanel gestioneTeamPanel;
-    private JPanel teamInfoPanel;
     private JPanel membriPanel;
     private JTable membriTable;
     private JScrollPane membriScrollPane;
@@ -91,11 +92,18 @@ public class GestisciProgettoGUI implements GUIHandler {
     private JButton aggiornaMembriButton;
     private JButton invitaMembroButton;
     private JButton rimuoviMembroButton;
-    private JButton abbandonaTeamButton;
+    private JButton abbandonaSciogleTeamButton;
+
+    // Richieste ingresso (quando hai team e sei leader)
+    private JPanel richiesteIngressoPanel;
+    private JTable richiesteIngressoTable;
+    private JScrollPane richiesteIngressoScrollPane;
+    private RichiesteIngressoTableModel richiesteIngressoTableModel;
+    private JButton accettaRichiestaButton;
+    private JButton rifiutaRichiestaButton;
+
     // region Tab Progressi
     private JPanel progressiPanel;
-
-    // endregion
     private JPanel progressiListPanel;
     private JPanel nuovoProgressoPanel;
     private JTable progressiTable;
@@ -103,32 +111,31 @@ public class GestisciProgettoGUI implements GUIHandler {
     private ProgressiTableModel progressiTableModel;
     private JButton aggiornaProgressiButton;
     private JButton eliminaProgressoButton;
+    // endregion
+
     // Form nuovo progresso
-    private JTextField titoloProgressoField;
-    private JTextArea descrizioneProgressoArea;
-    private JScrollPane descrizioneProgressoScrollPane;
     private JButton selezionaFileButton;
     private JLabel fileSelezionatoLabel;
     private JButton caricaProgressoButton;
-    // region Tab Documenti
-    private JPanel documentiPanel;
 
+    // region Tab Problemi
+    private JPanel problemiPanel;
+    private JTable problemiTable;
+    private JScrollPane problemiScrollPane;
+    private ProblemiTableModel problemiTableModel;
+    private JButton aggiornaProblemiButton;
+    private JButton visualizzaProblemaButton;
     // endregion
-    private JTable documentiTable;
-    private JScrollPane documentiScrollPane;
-    private DocumentiTableModel documentiTableModel;
-    private JButton aggiornaDocumentiButton;
-    private JButton visualizzaDocumentoButton;
-    private JButton scaricaDocumentoButton;
-    private JButton eliminaDocumentoButton;
+
     // region Data
     private StatoTeam statoTeamCorrente;
-
-    // endregion
     private Hackathon hackathonCorrente;
     private Team teamCorrente;
     private File fileSelezionato;
     private Progresso progressoSelezionato;
+    private Problema problemaSelezionato;
+    private boolean isLeader = false;
+    // endregion
 
     // region Costruttore
     public GestisciProgettoGUI(int hackathonId) {
@@ -139,9 +146,10 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         this.membriList = new ArrayList<>();
         this.progressiList = new ArrayList<>();
-        this.documentiList = new ArrayList<>();
-        this.teamDisponibili = new ArrayList<>();
+        this.problemiList = new ArrayList<>();
+        this.teams = new ArrayList<>();
         this.invitiRicevuti = new ArrayList<>();
+        this.richiesteIngresso = new ArrayList<>();
 
         this.statoTeamCorrente = StatoTeam.NESSUN_TEAM;
 
@@ -150,7 +158,6 @@ public class GestisciProgettoGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
-
     // endregion
 
     // region GUIHandler Implementation
@@ -170,8 +177,6 @@ public class GestisciProgettoGUI implements GUIHandler {
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
-
-    // endregion
 
     @Override
     public void setupFrame() {
@@ -193,8 +198,8 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Progressi events
         setupProgressiEvents();
 
-        // Documenti events
-        setupDocumentiEvents();
+        // Problemi events
+        setupProblemiEvents();
     }
 
     @Override
@@ -202,13 +207,14 @@ public class GestisciProgettoGUI implements GUIHandler {
         loadHackathonInfo();
         loadTeamInfo();
         loadProgressiData();
-        loadDocumentiData();
+        loadProblemiData();
     }
 
     @Override
     public JFrame getFrame() {
         return frame;
     }
+    // endregion
 
     // region Component Creation
     private void createHeaderPanel() {
@@ -237,8 +243,6 @@ public class GestisciProgettoGUI implements GUIHandler {
         headerPanel.add(backButton, BorderLayout.EAST);
     }
 
-    // endregion
-
     private void createContentPanel() {
         contentPanel = new JPanel(new BorderLayout());
 
@@ -247,7 +251,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Create tabs
         createTeamTab();
         createProgressiTab();
-        createDocumentiTab();
+        createProblemiTab();
 
         contentPanel.add(tabbedPane, BorderLayout.CENTER);
     }
@@ -259,11 +263,9 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         // Create different panels for different states
         createNessunTeamPanel();
-        createInvitiPanel();
         createGestioneTeamPanel();
 
         teamPanel.add(nessunTeamPanel, "NESSUN_TEAM");
-        teamPanel.add(invitiPanel, "INVITI_PENDENTI");
         teamPanel.add(gestioneTeamPanel, "HA_TEAM");
 
         tabbedPane.addTab("Team", teamPanel);
@@ -272,15 +274,9 @@ public class GestisciProgettoGUI implements GUIHandler {
     private void createNessunTeamPanel() {
         nessunTeamPanel = new JPanel(new BorderLayout());
 
-        // Header info
-        JPanel headerInfoPanel = new JPanel();
-        headerInfoPanel.setBorder(new TitledBorder("Gestione Team"));
-        JLabel infoLabel = new JLabel("Non fai parte di nessun team per questo hackathon");
-        infoLabel.setFont(infoLabel.getFont().deriveFont(Font.BOLD, 14f));
-        headerInfoPanel.add(infoLabel);
-
-        // Main content
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        // Main content split into three parts
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        JSplitPane bottomSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
         // Top: Create team
         JPanel creaTeamPanel = new JPanel(new BorderLayout());
@@ -310,113 +306,86 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         creaTeamPanel.add(formCreaTeam, BorderLayout.CENTER);
 
-        // Bottom: Available teams
+        // Middle: Teams
         JPanel teamDispPanel = new JPanel(new BorderLayout());
-        teamDispPanel.setBorder(new TitledBorder("Team Disponibili"));
+        teamDispPanel.setBorder(new TitledBorder("Teams"));
 
         // Buttons
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        aggiornaTeamDispButton = new JButton("Aggiorna");
+        aggiornaTeamButton = new JButton("Aggiorna");
         richiestaIngressoButton = new JButton("Richiedi Ingresso");
 
-        aggiornaTeamDispButton.setPreferredSize(new Dimension(100, 30));
+        aggiornaTeamButton.setPreferredSize(new Dimension(100, 30));
         richiestaIngressoButton.setPreferredSize(new Dimension(150, 30));
         richiestaIngressoButton.setEnabled(false);
 
-        btnPanel.add(aggiornaTeamDispButton);
+        btnPanel.add(aggiornaTeamButton);
         btnPanel.add(richiestaIngressoButton);
 
         // Table
-        teamDisponibiliTableModel = new TeamDisponibiliTableModel();
-        teamDisponibiliTable = new JTable(teamDisponibiliTableModel);
-        teamDisponibiliTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        teamDisponibiliTable.setRowHeight(25);
-        teamDisponibiliScrollPane = new JScrollPane(teamDisponibiliTable);
+        teamsTableModel = new TeamsTableModel();
+        teamTable = new JTable(teamsTableModel);
+        teamTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        teamTable.setRowHeight(25);
+        teamsScrollPane = new JScrollPane(teamTable);
 
         teamDispPanel.add(btnPanel, BorderLayout.NORTH);
-        teamDispPanel.add(teamDisponibiliScrollPane, BorderLayout.CENTER);
+        teamDispPanel.add(teamsScrollPane, BorderLayout.CENTER);
 
-        splitPane.setTopComponent(creaTeamPanel);
-        splitPane.setBottomComponent(teamDispPanel);
-        splitPane.setResizeWeight(0.3);
-
-        nessunTeamPanel.add(headerInfoPanel, BorderLayout.NORTH);
-        nessunTeamPanel.add(splitPane, BorderLayout.CENTER);
-    }
-
-    private void createInvitiPanel() {
-        invitiPanel = new JPanel(new BorderLayout());
-
-        // Header
-        JPanel headerInfoPanel = new JPanel();
-        headerInfoPanel.setBorder(new TitledBorder("Inviti Ricevuti"));
-        JLabel infoLabel = new JLabel("Hai ricevuto degli inviti per entrare in un team");
-        infoLabel.setFont(infoLabel.getFont().deriveFont(Font.BOLD, 14f));
-        headerInfoPanel.add(infoLabel);
+        // Bottom: Inviti ricevuti
+        JPanel invitiRicevutiPanel = new JPanel(new BorderLayout());
+        invitiRicevutiPanel.setBorder(new TitledBorder("Inviti Ricevuti"));
 
         // Buttons
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        aggiornaInvitiButton = new JButton("Aggiorna");
+        JPanel invitiBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         accettaInvitoButton = new JButton("Accetta");
         rifiutaInvitoButton = new JButton("Rifiuta");
 
-        aggiornaInvitiButton.setPreferredSize(new Dimension(100, 30));
         accettaInvitoButton.setPreferredSize(new Dimension(100, 30));
         rifiutaInvitoButton.setPreferredSize(new Dimension(100, 30));
-
         accettaInvitoButton.setEnabled(false);
         rifiutaInvitoButton.setEnabled(false);
 
-        btnPanel.add(aggiornaInvitiButton);
-        btnPanel.add(accettaInvitoButton);
-        btnPanel.add(rifiutaInvitoButton);
+        invitiBtnPanel.add(accettaInvitoButton);
+        invitiBtnPanel.add(rifiutaInvitoButton);
 
         // Table
-        invitiTableModel = new InvitiTableModel();
-        invitiTable = new JTable(invitiTableModel);
-        invitiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        invitiTable.setRowHeight(25);
-        invitiScrollPane = new JScrollPane(invitiTable);
+        invitiRicevutiTableModel = new InvitiTableModel();
+        invitiRicevutiTable = new JTable(invitiRicevutiTableModel);
+        invitiRicevutiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        invitiRicevutiTable.setRowHeight(25);
+        invitiRicevutiScrollPane = new JScrollPane(invitiRicevutiTable);
 
-        invitiPanel.add(headerInfoPanel, BorderLayout.NORTH);
-        invitiPanel.add(btnPanel, BorderLayout.NORTH);
-        invitiPanel.add(invitiScrollPane, BorderLayout.CENTER);
+        invitiRicevutiPanel.add(invitiBtnPanel, BorderLayout.NORTH);
+        invitiRicevutiPanel.add(invitiRicevutiScrollPane, BorderLayout.CENTER);
+
+        // Assemble panels
+        bottomSplitPane.setTopComponent(teamDispPanel);
+        bottomSplitPane.setBottomComponent(invitiRicevutiPanel);
+        bottomSplitPane.setResizeWeight(0.5);
+
+        mainSplitPane.setTopComponent(creaTeamPanel);
+        mainSplitPane.setBottomComponent(bottomSplitPane);
+        mainSplitPane.setResizeWeight(0.2);
+
+        nessunTeamPanel.add(mainSplitPane, BorderLayout.CENTER);
     }
 
     private void createGestioneTeamPanel() {
         gestioneTeamPanel = new JPanel(new BorderLayout());
 
-        // Team info panel
-        createTeamInfoPanel();
-
         // Members panel
         createMembriPanel();
 
-        gestioneTeamPanel.add(teamInfoPanel, BorderLayout.NORTH);
-        gestioneTeamPanel.add(membriPanel, BorderLayout.CENTER);
-    }
+        // Richieste ingresso panel (visible only for leader)
+        createRichiesteIngressoPanel();
 
-    private void createTeamInfoPanel() {
-        teamInfoPanel = new JPanel(new GridBagLayout());
-        teamInfoPanel.setBorder(new TitledBorder("Informazioni Team"));
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setTopComponent(membriPanel);
+        splitPane.setBottomComponent(richiesteIngressoPanel);
+        splitPane.setResizeWeight(0.6);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Team buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        abbandonaTeamButton = new JButton("Abbandona Team");
-        abbandonaTeamButton.setPreferredSize(new Dimension(150, 30));
-        abbandonaTeamButton.setBackground(Color.RED);
-        abbandonaTeamButton.setForeground(Color.WHITE);
-        buttonPanel.add(abbandonaTeamButton);
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        teamInfoPanel.add(buttonPanel, gbc);
+        gestioneTeamPanel.add(splitPane, BorderLayout.CENTER);
     }
 
     private void createMembriPanel() {
@@ -429,16 +398,22 @@ public class GestisciProgettoGUI implements GUIHandler {
         aggiornaMembriButton = new JButton("Aggiorna");
         invitaMembroButton = new JButton("Invita Membro");
         rimuoviMembroButton = new JButton("Rimuovi Membro");
+        abbandonaSciogleTeamButton = new JButton("Abbandona Team");
 
         aggiornaMembriButton.setPreferredSize(new Dimension(100, 30));
         invitaMembroButton.setPreferredSize(new Dimension(130, 30));
         rimuoviMembroButton.setPreferredSize(new Dimension(140, 30));
+        abbandonaSciogleTeamButton.setPreferredSize(new Dimension(150, 30));
+
+        abbandonaSciogleTeamButton.setBackground(Color.RED);
+        abbandonaSciogleTeamButton.setForeground(Color.WHITE);
 
         rimuoviMembroButton.setEnabled(false);
 
         buttonPanel.add(aggiornaMembriButton);
         buttonPanel.add(invitaMembroButton);
         buttonPanel.add(rimuoviMembroButton);
+        buttonPanel.add(abbandonaSciogleTeamButton);
 
         // Table
         membriTableModel = new MembriTableModel();
@@ -451,6 +426,36 @@ public class GestisciProgettoGUI implements GUIHandler {
         membriPanel.add(membriScrollPane, BorderLayout.CENTER);
     }
 
+    private void createRichiesteIngressoPanel() {
+        richiesteIngressoPanel = new JPanel(new BorderLayout());
+        richiesteIngressoPanel.setBorder(new TitledBorder("Richieste di Ingresso"));
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        accettaRichiestaButton = new JButton("Accetta");
+        rifiutaRichiestaButton = new JButton("Rifiuta");
+
+        accettaRichiestaButton.setPreferredSize(new Dimension(100, 30));
+        rifiutaRichiestaButton.setPreferredSize(new Dimension(100, 30));
+
+        accettaRichiestaButton.setEnabled(false);
+        rifiutaRichiestaButton.setEnabled(false);
+
+        buttonPanel.add(accettaRichiestaButton);
+        buttonPanel.add(rifiutaRichiestaButton);
+
+        // Table
+        richiesteIngressoTableModel = new RichiesteIngressoTableModel();
+        richiesteIngressoTable = new JTable(richiesteIngressoTableModel);
+        richiesteIngressoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        richiesteIngressoTable.setRowHeight(25);
+        richiesteIngressoScrollPane = new JScrollPane(richiesteIngressoTable);
+
+        richiesteIngressoPanel.add(buttonPanel, BorderLayout.NORTH);
+        richiesteIngressoPanel.add(richiesteIngressoScrollPane, BorderLayout.CENTER);
+    }
+
     private void createProgressiTab() {
         progressiPanel = new JPanel(new BorderLayout());
 
@@ -460,13 +465,12 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Top: Lista progressi
         createProgressiListPanel();
 
-        // Bottom: Nuovo/Modifica progresso
+        // Bottom: Nuovo progresso (solo file)
         createNuovoProgressoPanel();
 
         splitPane.setTopComponent(progressiListPanel);
         splitPane.setBottomComponent(nuovoProgressoPanel);
-        splitPane.setResizeWeight(0.6);
-        splitPane.setDividerLocation(300);
+        splitPane.setResizeWeight(0.7);
 
         progressiPanel.add(splitPane, BorderLayout.CENTER);
 
@@ -504,136 +508,91 @@ public class GestisciProgettoGUI implements GUIHandler {
 
     private void createNuovoProgressoPanel() {
         nuovoProgressoPanel = new JPanel(new BorderLayout());
-        nuovoProgressoPanel.setBorder(new TitledBorder("Nuovo Progresso"));
+        nuovoProgressoPanel.setBorder(new TitledBorder("Carica Documento"));
 
-        // Form panel
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.WEST;
+        // Form panel (solo file)
+        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        // Titolo
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Titolo:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        titoloProgressoField = new JTextField(30);
-        formPanel.add(titoloProgressoField, gbc);
-
-        // Descrizione
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        formPanel.add(new JLabel("Descrizione:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        descrizioneProgressoArea = new JTextArea(4, 30);
-        descrizioneProgressoArea.setLineWrap(true);
-        descrizioneProgressoArea.setWrapStyleWord(true);
-        descrizioneProgressoScrollPane = new JScrollPane(descrizioneProgressoArea);
-        formPanel.add(descrizioneProgressoScrollPane, gbc);
-
-        // File
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        formPanel.add(new JLabel("File:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        JPanel filePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         selezionaFileButton = new JButton("Seleziona File");
+        selezionaFileButton.setPreferredSize(new Dimension(150, 35));
+
         fileSelezionatoLabel = new JLabel("Nessun file selezionato");
-        filePanel.add(selezionaFileButton);
-        filePanel.add(fileSelezionatoLabel);
-        formPanel.add(filePanel, gbc);
+        fileSelezionatoLabel.setFont(fileSelezionatoLabel.getFont().deriveFont(Font.ITALIC));
 
-        // Action panel
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         caricaProgressoButton = new JButton("Carica Progresso");
-
         caricaProgressoButton.setPreferredSize(new Dimension(150, 35));
 
-        actionPanel.add(caricaProgressoButton);
+        formPanel.add(selezionaFileButton);
+        formPanel.add(Box.createHorizontalStrut(20));
+        formPanel.add(fileSelezionatoLabel);
+        formPanel.add(Box.createHorizontalStrut(20));
+        formPanel.add(caricaProgressoButton);
 
         nuovoProgressoPanel.add(formPanel, BorderLayout.CENTER);
-        nuovoProgressoPanel.add(actionPanel, BorderLayout.SOUTH);
     }
 
-    private void createDocumentiTab() {
-        documentiPanel = new JPanel(new BorderLayout());
-        documentiPanel.setBorder(new TitledBorder("Documenti del Team"));
+    private void createProblemiTab() {
+        problemiPanel = new JPanel(new BorderLayout());
+        problemiPanel.setBorder(new TitledBorder("Problemi dell'Hackathon"));
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        aggiornaDocumentiButton = new JButton("Aggiorna");
-        visualizzaDocumentoButton = new JButton("Visualizza");
-        scaricaDocumentoButton = new JButton("Scarica");
-        eliminaDocumentoButton = new JButton("Elimina");
+        aggiornaProblemiButton = new JButton("Aggiorna");
+        visualizzaProblemaButton = new JButton("Visualizza");
 
-        aggiornaDocumentiButton.setPreferredSize(new Dimension(100, 30));
-        visualizzaDocumentoButton.setPreferredSize(new Dimension(100, 30));
-        scaricaDocumentoButton.setPreferredSize(new Dimension(100, 30));
-        eliminaDocumentoButton.setPreferredSize(new Dimension(100, 30));
+        aggiornaProblemiButton.setPreferredSize(new Dimension(100, 30));
+        visualizzaProblemaButton.setPreferredSize(new Dimension(100, 30));
 
-        visualizzaDocumentoButton.setEnabled(false);
-        scaricaDocumentoButton.setEnabled(false);
-        eliminaDocumentoButton.setEnabled(false);
+        visualizzaProblemaButton.setEnabled(false);
 
-        buttonPanel.add(aggiornaDocumentiButton);
-        buttonPanel.add(visualizzaDocumentoButton);
-        buttonPanel.add(scaricaDocumentoButton);
-        buttonPanel.add(eliminaDocumentoButton);
+        buttonPanel.add(aggiornaProblemiButton);
+        buttonPanel.add(visualizzaProblemaButton);
 
         // Table
-        documentiTableModel = new DocumentiTableModel();
-        documentiTable = new JTable(documentiTableModel);
-        documentiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        documentiTable.setRowHeight(25);
-        documentiScrollPane = new JScrollPane(documentiTable);
+        problemiTableModel = new ProblemiTableModel();
+        problemiTable = new JTable(problemiTableModel);
+        problemiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        problemiTable.setRowHeight(25);
+        problemiScrollPane = new JScrollPane(problemiTable);
 
-        documentiPanel.add(buttonPanel, BorderLayout.NORTH);
-        documentiPanel.add(documentiScrollPane, BorderLayout.CENTER);
+        // Double click listener
+        problemiTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    visualizzaProblema();
+                }
+            }
+        });
 
-        tabbedPane.addTab("Documenti", documentiPanel);
+        problemiPanel.add(buttonPanel, BorderLayout.NORTH);
+        problemiPanel.add(problemiScrollPane, BorderLayout.CENTER);
+
+        tabbedPane.addTab("Problemi", problemiPanel);
     }
+    // endregion
 
     // region Event Listeners
     private void setupTeamEvents() {
         // Nessun team events
         creaTeamButton.addActionListener(_ -> creaTeam());
-        aggiornaTeamDispButton.addActionListener(_ -> loadTeamDisponibili());
+        aggiornaTeamButton.addActionListener(_ -> loadTeams());
         richiestaIngressoButton.addActionListener(_ -> richiestaIngresso());
 
-        teamDisponibiliTable.getSelectionModel().addListSelectionListener(e -> {
+        teamTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                richiestaIngressoButton.setEnabled(teamDisponibiliTable.getSelectedRow() != -1);
+                richiestaIngressoButton.setEnabled(teamTable.getSelectedRow() != -1);
             }
         });
 
-        // Inviti events
-        aggiornaInvitiButton.addActionListener(_ -> loadInviti());
+        // Inviti ricevuti events
         accettaInvitoButton.addActionListener(_ -> gestisciInvito(true));
         rifiutaInvitoButton.addActionListener(_ -> gestisciInvito(false));
 
-        invitiTable.getSelectionModel().addListSelectionListener(e -> {
+        invitiRicevutiTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                boolean hasSelection = invitiTable.getSelectedRow() != -1;
+                boolean hasSelection = invitiRicevutiTable.getSelectedRow() != -1;
                 accettaInvitoButton.setEnabled(hasSelection);
                 rifiutaInvitoButton.setEnabled(hasSelection);
             }
@@ -643,17 +602,32 @@ public class GestisciProgettoGUI implements GUIHandler {
         aggiornaMembriButton.addActionListener(_ -> loadMembriData());
         invitaMembroButton.addActionListener(_ -> invitaMembro());
         rimuoviMembroButton.addActionListener(_ -> rimuoviMembro());
-        abbandonaTeamButton.addActionListener(_ -> abbandonaTeam());
+        abbandonaSciogleTeamButton.addActionListener(_ -> abbandonaSciogleTeam());
 
         membriTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = membriTable.getSelectedRow();
-                rimuoviMembroButton.setEnabled(selectedRow != -1);
+                if (isLeader && selectedRow != -1) {
+                    MembroTeam membro = membriList.get(selectedRow);
+                    rimuoviMembroButton.setEnabled(membro.getRuolo() != RuoloTeam.LEADER);
+                } else {
+                    rimuoviMembroButton.setEnabled(false);
+                }
+            }
+        });
+
+        // Richieste ingresso events (solo per leader)
+        accettaRichiestaButton.addActionListener(_ -> gestisciRichiesta(true));
+        rifiutaRichiestaButton.addActionListener(_ -> gestisciRichiesta(false));
+
+        richiesteIngressoTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                boolean hasSelection = richiesteIngressoTable.getSelectedRow() != -1;
+                accettaRichiestaButton.setEnabled(hasSelection);
+                rifiutaRichiestaButton.setEnabled(hasSelection);
             }
         });
     }
-
-    // endregion
 
     private void setupProgressiEvents() {
         // Progressi table selection
@@ -678,34 +652,27 @@ public class GestisciProgettoGUI implements GUIHandler {
         selezionaFileButton.addActionListener(_ -> selezionaFile());
     }
 
-    private void setupDocumentiEvents() {
-        // Documenti table selection
-        documentiTable.getSelectionModel().addListSelectionListener(e -> {
+    private void setupProblemiEvents() {
+        // Problemi table selection
+        problemiTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                int selectedRow = documentiTable.getSelectedRow();
+                int selectedRow = problemiTable.getSelectedRow();
                 boolean hasSelection = selectedRow != -1;
-                visualizzaDocumentoButton.setEnabled(hasSelection);
-                scaricaDocumentoButton.setEnabled(hasSelection);
-                eliminaDocumentoButton.setEnabled(hasSelection);
-            }
-        });
+                visualizzaProblemaButton.setEnabled(hasSelection);
 
-        // Double click to view
-        documentiTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    visualizzaDocumento();
+                if (hasSelection) {
+                    problemaSelezionato = problemiList.get(selectedRow);
+                } else {
+                    problemaSelezionato = null;
                 }
             }
         });
 
         // Buttons
-        aggiornaDocumentiButton.addActionListener(_ -> loadDocumentiData());
-        visualizzaDocumentoButton.addActionListener(_ -> visualizzaDocumento());
-        scaricaDocumentoButton.addActionListener(_ -> scaricaDocumento());
-        eliminaDocumentoButton.addActionListener(_ -> eliminaDocumento());
+        aggiornaProblemiButton.addActionListener(_ -> loadProblemiData());
+        visualizzaProblemaButton.addActionListener(_ -> visualizzaProblema());
     }
+    // endregion
 
     // region Data Loading
     private void loadHackathonInfo() {
@@ -722,39 +689,59 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
-    // endregion
-
     private void loadTeamInfo() {
         try {
-            // Prima controlla gli inviti
-            loadInviti();
-
-            if (!invitiRicevuti.isEmpty()) {
-                statoTeamCorrente = StatoTeam.INVITI_PENDENTI;
-                teamInfoLabel.setText("Hai " + invitiRicevuti.size() + " inviti pendenti");
-                mostraPanel("INVITI_PENDENTI");
-                return;
-            }
-
-            // Poi controlla se ha un team
+            // Prima controlla se ha un team
             TeamResponse response = partecipanteController.getTeamCorrente(hackathonId);
             if (response.team() != null) {
                 teamCorrente = response.team();
                 statoTeamCorrente = StatoTeam.HA_TEAM;
+
+                // Verifica se è leader
+                isLeader = partecipanteController.isLeader(controller.getUtenteCorrente().getUtenteId(), teamCorrente.getTeamId()).result();
+
                 teamInfoLabel.setText("Team: " + teamCorrente.getNome() + " (" + teamCorrente.getNumeroMembri() + " membri)");
+
+                // Aggiorna UI in base al ruolo
+                updateUIForRole();
+
                 mostraPanel("HA_TEAM");
                 loadMembriData();
+
+                // Carica richieste ingresso se è leader
+                if (isLeader) {
+                    loadRichiesteIngresso();
+                }
             } else {
                 statoTeamCorrente = StatoTeam.NESSUN_TEAM;
                 teamInfoLabel.setText("Non fai parte di nessun team");
+                isLeader = false;
                 mostraPanel("NESSUN_TEAM");
-                loadTeamDisponibili();
+                loadTeams();
+                loadInviti();
             }
         } catch (Exception e) {
             teamInfoLabel.setText("Errore nel caricamento");
             statoTeamCorrente = StatoTeam.NESSUN_TEAM;
+            isLeader = false;
             mostraPanel("NESSUN_TEAM");
         }
+    }
+
+    private void updateUIForRole() {
+        // Mostra/nascondi bottoni in base al ruolo
+        // invitaMembroButton.setVisible(isLeader);
+        rimuoviMembroButton.setVisible(isLeader);
+
+        // Cambia testo bottone abbandona/sciogli
+        if (isLeader) {
+            abbandonaSciogleTeamButton.setText("Sciogli Team");
+        } else {
+            abbandonaSciogleTeamButton.setText("Abbandona Team");
+        }
+
+        // Mostra pannello richieste solo per leader
+        // richiesteIngressoPanel.setVisible(isLeader);
     }
 
     private void mostraPanel(String panelName) {
@@ -763,27 +750,27 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Abilita/disabilita altri tab
         boolean hasTeam = panelName.equals("HA_TEAM");
         tabbedPane.setEnabledAt(1, hasTeam); // Progressi
-        tabbedPane.setEnabledAt(2, hasTeam); // Documenti
+        tabbedPane.setEnabledAt(2, true);     // Problemi sempre visibile
     }
 
-    private void loadTeamDisponibili() {
+    private void loadTeams() {
         try {
-            teamDisponibiliTable.setEnabled(false);
-            aggiornaTeamDispButton.setEnabled(false);
+            teamTable.setEnabled(false);
+            aggiornaTeamButton.setEnabled(false);
 
-            var response = partecipanteController.getTeamDisponibili(hackathonId);
+            var response = partecipanteController.getTeamByHackathon(hackathonId);
             if (response.teams() != null) {
-                teamDisponibili.clear();
-                teamDisponibili.addAll(response.teams());
-                teamDisponibiliTableModel.fireTableDataChanged();
+                teams.clear();
+                teams.addAll(response.teams());
+                teamsTableModel.fireTableDataChanged();
             } else {
                 showErrorMessage("Errore nel caricamento team: " + response.message());
             }
         } catch (Exception e) {
             showErrorMessage("Errore nel caricamento team: " + e.getMessage());
         } finally {
-            teamDisponibiliTable.setEnabled(true);
-            aggiornaTeamDispButton.setEnabled(true);
+            teamTable.setEnabled(true);
+            aggiornaTeamButton.setEnabled(true);
         }
     }
 
@@ -793,12 +780,27 @@ public class GestisciProgettoGUI implements GUIHandler {
             if (response.invitiTeam() != null) {
                 invitiRicevuti.clear();
                 invitiRicevuti.addAll(response.invitiTeam());
-                if (invitiTableModel != null) {
-                    invitiTableModel.fireTableDataChanged();
+                if (invitiRicevutiTableModel != null) {
+                    invitiRicevutiTableModel.fireTableDataChanged();
                 }
             }
         } catch (Exception e) {
             // Silent fail durante inizializzazione
+        }
+    }
+
+    private void loadRichiesteIngresso() {
+        if (!isLeader || teamCorrente == null) return;
+
+        try {
+            var response = partecipanteController.getRichiesteIngressoTeam(teamCorrente.getTeamId());
+            if (response.invitiTeam() != null) {
+                richiesteIngresso.clear();
+                richiesteIngresso.addAll(response.invitiTeam());
+                richiesteIngressoTableModel.fireTableDataChanged();
+            }
+        } catch (Exception e) {
+            // Silent fail
         }
     }
 
@@ -848,29 +850,27 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
-    private void loadDocumentiData() {
-        if (teamCorrente == null) return;
-
+    private void loadProblemiData() {
         try {
-            documentiTable.setEnabled(false);
-            aggiornaDocumentiButton.setEnabled(false);
+            problemiTable.setEnabled(false);
+            aggiornaProblemiButton.setEnabled(false);
 
-            // Filter progressi with documents
-            documentiList.clear();
-            for (Progresso progresso : progressiList) {
-                if (progresso.getDocumentoNome() != null && !progresso.getDocumentoNome().isEmpty()) {
-                    documentiList.add(progresso);
-                }
+            var response = partecipanteController.getProblemiHackathon(hackathonId);
+            if (response.problemi() != null) {
+                problemiList.clear();
+                problemiList.addAll(response.problemi());
+                problemiTableModel.fireTableDataChanged();
+            } else {
+                showErrorMessage("Errore nel caricamento problemi: " + response.message());
             }
-            documentiTableModel.fireTableDataChanged();
-
         } catch (Exception e) {
-            showErrorMessage("Errore nel caricamento documenti: " + e.getMessage());
+            showErrorMessage("Errore nel caricamento problemi: " + e.getMessage());
         } finally {
-            documentiTable.setEnabled(true);
-            aggiornaDocumentiButton.setEnabled(true);
+            problemiTable.setEnabled(true);
+            aggiornaProblemiButton.setEnabled(true);
         }
     }
+    // endregion
 
     // region Team Action Methods
     private void creaTeam() {
@@ -895,12 +895,10 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
-    // endregion
-
     private void richiestaIngresso() {
-        int selectedRow = teamDisponibiliTable.getSelectedRow();
+        int selectedRow = teamTable.getSelectedRow();
         if (selectedRow != -1) {
-            Team team = teamDisponibili.get(selectedRow);
+            Team team = teams.get(selectedRow);
 
             int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi richiedere di entrare nel team '" + team.getNome() + "'?", "Conferma Richiesta", JOptionPane.YES_NO_OPTION);
 
@@ -909,7 +907,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                     var response = partecipanteController.richiediPartecipazione(team.getTeamId());
                     if (response.result()) {
                         showInfoMessage("Richiesta inviata con successo!");
-                        loadTeamDisponibili();
+                        loadTeams();
                     } else {
                         showErrorMessage("Errore nell'invio: " + response.message());
                     }
@@ -921,7 +919,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     }
 
     private void gestisciInvito(boolean accetta) {
-        int selectedRow = invitiTable.getSelectedRow();
+        int selectedRow = invitiRicevutiTable.getSelectedRow();
         if (selectedRow != -1) {
             InvitoTeam invito = invitiRicevuti.get(selectedRow);
 
@@ -950,6 +948,32 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
+    private void gestisciRichiesta(boolean accetta) {
+        int selectedRow = richiesteIngressoTable.getSelectedRow();
+        if (selectedRow != -1) {
+            InvitoTeam richiesta = richiesteIngresso.get(selectedRow);
+
+            String azione = accetta ? "accettare" : "rifiutare";
+            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " la richiesta di " + richiesta.getInvitato().getNomeCompleto() + "?", "Conferma", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    ResponseResult response = partecipanteController.rispondiInvito(richiesta.getInvitoId(), accetta ? StatoInvito.ACCEPTED : StatoInvito.DECLINED);
+
+                    if (response.result()) {
+                        showInfoMessage("Richiesta " + (accetta ? "accettata" : "rifiutata") + " con successo!");
+                        loadRichiesteIngresso();
+                        loadMembriData();
+                    } else {
+                        showErrorMessage("Errore: " + response.message());
+                    }
+                } catch (Exception e) {
+                    showErrorMessage("Errore: " + e.getMessage());
+                }
+            }
+        }
+    }
+
     private void invitaMembro() {
         try {
             var response = partecipanteController.getPartecipantiDisponibili(hackathonId);
@@ -960,13 +984,10 @@ public class GestisciProgettoGUI implements GUIHandler {
             }
 
             // Filtra i partecipanti rimuovendo quelli già membri del team
-            List<Utente> partecipantiInvitabili = response.utenti().stream().filter(partecipante -> {
-                // Controlla se il partecipante è già membro del team
-                return membriList.stream().noneMatch(membro -> membro.getUtente() != null && membro.getUtente().getUtenteId() == partecipante.getUtenteId());
-            }).toList();
+            List<Utente> partecipantiInvitabili = response.utenti().stream().filter(partecipante -> membriList.stream().noneMatch(membro -> membro.getUtente() != null && membro.getUtente().getUtenteId() == partecipante.getUtenteId())).toList();
 
             if (partecipantiInvitabili.isEmpty()) {
-                showErrorMessage("Non ci sono partecipanti disponibili da invitare!\n" + "Tutti i partecipanti sono già membri del team o hanno inviti pendenti.");
+                showErrorMessage("Non ci sono partecipanti disponibili da invitare!");
                 return;
             }
 
@@ -990,7 +1011,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                     JTextArea messageArea = new JTextArea(4, 30);
                     messageArea.setLineWrap(true);
                     messageArea.setWrapStyleWord(true);
-                    messageArea.setText("Ciao! Ti invitiamo a unirti al nostro team \"" + teamCorrente.getNome() + "\" per l'hackathon. Saremmo felici di averti con noi!");
+                    messageArea.setText("Ciao! Ti invitiamo a unirti al nostro team \"" + teamCorrente.getNome() + "\" per l'hackathon.");
 
                     JScrollPane scrollPane = new JScrollPane(messageArea);
                     scrollPane.setPreferredSize(new Dimension(350, 100));
@@ -1044,41 +1065,50 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
-    private void abbandonaTeam() {
-        int confirm = JOptionPane.showConfirmDialog(frame, "Sei sicuro di voler abbandonare il team '" + teamCorrente.getNome() + "'?", "Conferma Abbandono Team", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+    private void abbandonaSciogleTeam() {
+        String azione = isLeader ? "sciogliere" : "abbandonare";
+        String messaggio = isLeader ? "Sei sicuro di voler sciogliere il team '" + teamCorrente.getNome() + "'?\n" + "Questa azione rimuoverà tutti i membri dal team!" : "Sei sicuro di voler abbandonare il team '" + teamCorrente.getNome() + "'?";
+
+        int confirm = JOptionPane.showConfirmDialog(frame, messaggio, "Conferma " + (isLeader ? "Scioglimento" : "Abbandono") + " Team", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                var response = partecipanteController.abbandonaTeam(teamCorrente.getTeamId());
+                ResponseResult response;
+                response = partecipanteController.abbandonaTeam(teamCorrente.getTeamId());
+
+
                 if (response.result()) {
-                    showInfoMessage("Hai abbandonato il team con successo!");
+                    showInfoMessage("Hai " + (isLeader ? "sciolto" : "abbandonato") + " il team con successo!");
                     teamCorrente = null;
                     loadTeamInfo();
                 } else {
-                    showErrorMessage("Errore nell'abbandono: " + response.message());
+                    showErrorMessage("Errore nell'" + azione + ": " + response.message());
                 }
             } catch (Exception e) {
-                showErrorMessage("Errore nell'abbandono: " + e.getMessage());
+                showErrorMessage("Errore nell'" + azione + ": " + e.getMessage());
             }
         }
     }
+    // endregion
 
     // region Progressi Action Methods
     private void caricaProgresso() {
-        if (!validaFormProgresso()) return;
+        if (fileSelezionato == null) {
+            showErrorMessage("Seleziona un file da caricare");
+            return;
+        }
 
         try {
-            String titolo = titoloProgressoField.getText().trim();
-            String descrizione = descrizioneProgressoArea.getText().trim();
-            String url = fileSelezionato != null ? fileSelezionato.getAbsolutePath() : null;
+            String url = fileSelezionato.getAbsolutePath();
 
-            ProgressoResponse response = partecipanteController.caricaProgresso(teamCorrente.getTeamId(), titolo, descrizione, url);
+            ProgressoResponse response = partecipanteController.caricaProgresso(teamCorrente.getTeamId(), fileSelezionato.getName(),  // Usa il nome del file come titolo
+                    "",  // Descrizione vuota
+                    url);
 
             if (response.progresso() != null) {
                 showInfoMessage("Progresso caricato con successo!");
                 clearFormProgresso();
                 loadProgressiData();
-                loadDocumentiData();
             } else {
                 showErrorMessage("Errore nel caricamento: " + response.message());
             }
@@ -1086,8 +1116,6 @@ public class GestisciProgettoGUI implements GUIHandler {
             showErrorMessage("Errore nel caricamento: " + e.getMessage());
         }
     }
-
-    // endregion
 
     private void eliminaProgresso() {
         if (progressoSelezionato == null) return;
@@ -1100,7 +1128,6 @@ public class GestisciProgettoGUI implements GUIHandler {
                 if (response.result()) {
                     showInfoMessage("Progresso eliminato con successo!");
                     loadProgressiData();
-                    loadDocumentiData();
                 } else {
                     showErrorMessage("Errore nell'eliminazione: " + response.message());
                 }
@@ -1120,143 +1147,77 @@ public class GestisciProgettoGUI implements GUIHandler {
             fileSelezionatoLabel.setText(fileSelezionato.getName());
         }
     }
-
-    // region Documenti Action Methods
-    private void visualizzaDocumento() {
-        int selectedRow = documentiTable.getSelectedRow();
-        if (selectedRow != -1) {
-            Progresso documento = documentiList.get(selectedRow);
-
-            String message = "Documento: " + documento.getDocumentoNome() + "\n\n" + "Caricato: " + documento.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" + "Autore: " + (documento.getCaricatoDa() != null ? documento.getCaricatoDa().getNomeCompleto() : "N/A");
-
-            JOptionPane.showMessageDialog(frame, message, "Dettagli Documento", JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
     // endregion
 
-    private void scaricaDocumento() {
-        int selectedRow = documentiTable.getSelectedRow();
-        if (selectedRow != -1) {
-            Progresso documento = documentiList.get(selectedRow);
+    // region Problemi Action Methods
+    private void visualizzaProblema() {
+        if (problemaSelezionato == null) return;
 
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setSelectedFile(new File(documento.getDocumentoNome()));
+        JPanel panel = new JPanel(new BorderLayout());
 
-            int result = fileChooser.showSaveDialog(frame);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                try {
-                    File destinazione = fileChooser.getSelectedFile();
-                    var response = partecipanteController.getProgresso(documento.getProgressoId());
-                    if (response.progresso() != null) {
-                        showInfoMessage("Documento scaricato con successo!");
-                    } else {
-                        showErrorMessage("Errore nel download: " + response.message());
-                    }
-                } catch (Exception e) {
-                    showErrorMessage("Errore nel download: " + e.getMessage());
-                }
-            }
+        // Titolo
+        JLabel titleLabel = new JLabel(problemaSelezionato.getTitolo());
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 16f));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Descrizione
+        JTextArea descrizioneArea = new JTextArea(problemaSelezionato.getDescrizione());
+        descrizioneArea.setEditable(false);
+        descrizioneArea.setLineWrap(true);
+        descrizioneArea.setWrapStyleWord(true);
+        descrizioneArea.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane scrollPane = new JScrollPane(descrizioneArea);
+        scrollPane.setPreferredSize(new Dimension(600, 400));
+
+        // Info pubblicazione
+        String info = "Pubblicato il: " + problemaSelezionato.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        if (problemaSelezionato.getPubblicatoDa() != null) {
+            info += " da " + problemaSelezionato.getPubblicatoDa().getNomeCompleto();
         }
+        JLabel infoLabel = new JLabel(info);
+        infoLabel.setFont(infoLabel.getFont().deriveFont(Font.ITALIC));
+        infoLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        panel.add(titleLabel, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(infoLabel, BorderLayout.SOUTH);
+
+        JOptionPane.showMessageDialog(frame, panel, "Dettagli Problema", JOptionPane.INFORMATION_MESSAGE);
     }
-
-    private void eliminaDocumento() {
-        int selectedRow = documentiTable.getSelectedRow();
-        if (selectedRow != -1) {
-            Progresso documento = documentiList.get(selectedRow);
-
-            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi eliminare il documento '" + documento.getDocumentoNome() + "'?", "Conferma Eliminazione", JOptionPane.YES_NO_OPTION);
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                try {
-                    var response = partecipanteController.eliminaProgresso(documento.getProgressoId());
-                    if (response.result()) {
-                        showInfoMessage("Documento eliminato con successo!");
-                        loadProgressiData();
-                        loadDocumentiData();
-                    } else {
-                        showErrorMessage("Errore nell'eliminazione: " + response.message());
-                    }
-                } catch (Exception e) {
-                    showErrorMessage("Errore nell'eliminazione: " + e.getMessage());
-                }
-            }
-        }
-    }
+    // endregion
 
     // region Form Management
-    private void popolaFormProgresso() {
-        if (progressoSelezionato == null) return;
-
-        if (progressoSelezionato.getDocumentoNome() != null) {
-            fileSelezionatoLabel.setText(progressoSelezionato.getDocumentoNome());
-            fileSelezionato = null; // Clear file selection for existing progress
-        } else {
-            fileSelezionatoLabel.setText("Nessun file selezionato");
-            fileSelezionato = null;
-        }
-    }
-
-    // endregion
-
     private void clearFormProgresso() {
-        titoloProgressoField.setText("");
-        descrizioneProgressoArea.setText("");
         fileSelezionatoLabel.setText("Nessun file selezionato");
         fileSelezionato = null;
         progressoSelezionato = null;
     }
-
-    private boolean validaFormProgresso() {
-        String titolo = titoloProgressoField.getText().trim();
-        String descrizione = descrizioneProgressoArea.getText().trim();
-
-        if (titolo.isEmpty()) {
-            showErrorMessage("Il titolo è obbligatorio");
-            titoloProgressoField.requestFocus();
-            return false;
-        }
-
-        if (titolo.length() > 200) {
-            showErrorMessage("Il titolo non può superare i 200 caratteri");
-            titoloProgressoField.requestFocus();
-            return false;
-        }
-
-        if (descrizione.isEmpty()) {
-            showErrorMessage("La descrizione è obbligatoria");
-            descrizioneProgressoArea.requestFocus();
-            return false;
-        }
-
-        return true;
-    }
+    // endregion
 
     // region Utility Methods
     private void showErrorMessage(String message) {
         JOptionPane.showMessageDialog(frame, message, "Errore", JOptionPane.ERROR_MESSAGE);
     }
 
-    // endregion
-
     private void showInfoMessage(String message) {
         JOptionPane.showMessageDialog(frame, message, "Informazione", JOptionPane.INFORMATION_MESSAGE);
     }
+    // endregion
 
     // region States
     private enum StatoTeam {
-        NESSUN_TEAM, INVITI_PENDENTI, HA_TEAM
+        NESSUN_TEAM, HA_TEAM
     }
-
     // endregion
 
     // region Table Models
-    private class TeamDisponibiliTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Nome Team", "Membri", "Descrizione", "Leader"};
+    private class TeamsTableModel extends AbstractTableModel {
+        private final String[] columnNames = {"Nome Team", "Membri", "Leader"};
 
         @Override
         public int getRowCount() {
-            return teamDisponibili.size();
+            return teams.size();
         }
 
         @Override
@@ -1271,7 +1232,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            Team team = teamDisponibili.get(rowIndex);
+            Team team = teams.get(rowIndex);
             return switch (columnIndex) {
                 case 0 -> team.getNome();
                 case 1 -> team.getNumeroMembri() + "/" + team.getMaxDimensione();
@@ -1313,6 +1274,37 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
+    private class RichiesteIngressoTableModel extends AbstractTableModel {
+        private final String[] columnNames = {"Richiedente", "Data Richiesta", "Messaggio"};
+
+        @Override
+        public int getRowCount() {
+            return richiesteIngresso.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columnNames.length;
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return columnNames[column];
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            InvitoTeam richiesta = richiesteIngresso.get(rowIndex);
+            return switch (columnIndex) {
+                case 0 -> richiesta.getInvitato().getNomeCompleto();
+                case 1 -> richiesta.getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                case 2 ->
+                        richiesta.getMessaggioMotivazionale() != null ? richiesta.getMessaggioMotivazionale() : "Richiesta di partecipazione";
+                default -> "";
+            };
+        }
+    }
+
     private class MembriTableModel extends AbstractTableModel {
         private final String[] columnNames = {"Nome", "Username", "Ruolo", "Data Ingresso"};
 
@@ -1345,7 +1337,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     }
 
     private class ProgressiTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Titolo", "Data Caricamento", "Autore", "Documento"};
+        private final String[] columnNames = {"Documento", "Data Caricamento", "Autore"};
 
         @Override
         public int getRowCount() {
@@ -1366,20 +1358,20 @@ public class GestisciProgettoGUI implements GUIHandler {
         public Object getValueAt(int rowIndex, int columnIndex) {
             Progresso progresso = progressiList.get(rowIndex);
             return switch (columnIndex) {
-                case 0 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                case 1 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
-                case 2 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
+                case 0 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
+                case 1 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                case 2 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
                 default -> "";
             };
         }
     }
 
-    private class DocumentiTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Nome File", "Progresso", "Dimensione", "Data Caricamento"};
+    private class ProblemiTableModel extends AbstractTableModel {
+        private final String[] columnNames = {"Titolo", "Data Pubblicazione"};
 
         @Override
         public int getRowCount() {
-            return documentiList.size();
+            return problemiList.size();
         }
 
         @Override
@@ -1394,14 +1386,13 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            Progresso documento = documentiList.get(rowIndex);
+            Problema problema = problemiList.get(rowIndex);
             return switch (columnIndex) {
-                case 0 -> documento.getDocumentoNome();
-                case 1 -> documento.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                case 0 -> problema.getTitolo();
+                case 1 -> problema.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 default -> "";
             };
         }
     }
-
     // endregion
 }

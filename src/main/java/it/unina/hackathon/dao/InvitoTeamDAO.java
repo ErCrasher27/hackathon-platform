@@ -11,6 +11,8 @@ public interface InvitoTeamDAO {
 
     InvitoTeamListResponse getInvitiRicevuti(int partecipanteId);
 
+    InvitoTeamListResponse getRichiesteIngressoTeam(int teamId);
+
     ResponseResult rispondiInvito(int invitoId, StatoInvito risposta);
 
     InvitoTeamListResponse getInvitiInviati(int partecipanteId);

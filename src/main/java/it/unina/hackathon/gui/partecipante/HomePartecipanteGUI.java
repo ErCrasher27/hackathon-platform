@@ -5,7 +5,6 @@ import it.unina.hackathon.controller.NavigationController;
 import it.unina.hackathon.controller.PartecipanteController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
-import it.unina.hackathon.model.Team;
 import it.unina.hackathon.utils.responses.HackathonListResponse;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 
@@ -71,11 +70,6 @@ public class HomePartecipanteGUI implements GUIHandler {
     // region Tab Team
     private JButton annullaRegistrazioneButton;
     private JButton aggiornaMieiHackathonButton;
-
-    // endregion
-
-    // region Data
-    private Team teamCorrente;
 
     // endregion
 
@@ -471,7 +465,7 @@ public class HomePartecipanteGUI implements GUIHandler {
     }
 
     private class MieiHackathonTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Titolo", "Sede", "Data Inizio", "Data Fine", "Stato", "Team"};
+        private final String[] columnNames = {"Titolo", "Sede", "Data Inizio", "Data Fine", "Stato"};
 
         @Override
         public int getRowCount() {
@@ -497,7 +491,6 @@ public class HomePartecipanteGUI implements GUIHandler {
                 case 2 -> hackathon.getDataInizio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 3 -> hackathon.getDataFine().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 4 -> hackathon.getStatus().getDisplayName();
-                case 5 -> teamCorrente != null ? teamCorrente.getNome() : "Nessun team";
                 default -> "";
             };
         }

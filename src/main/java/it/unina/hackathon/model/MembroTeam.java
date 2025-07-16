@@ -26,24 +26,9 @@ public class MembroTeam {
         this.ruolo = RuoloTeam.MEMBRO; // Default
     }
 
-    public MembroTeam(int teamId, int utenteId) {
-        this();
-        this.teamId = teamId;
-        this.utenteId = utenteId;
-    }
-
-    public MembroTeam(int teamId, int utenteId, RuoloTeam ruolo) {
-        this(teamId, utenteId);
-        this.ruolo = ruolo;
-    }
-
     // endregion
 
     // region Getter e Setter
-
-    public int getMembroTeamId() {
-        return membroTeamId;
-    }
 
     public void setMembroTeamId(int membroTeamId) {
         this.membroTeamId = membroTeamId;
@@ -101,62 +86,8 @@ public class MembroTeam {
 
     // region Business
 
-    public boolean joinTeam() {
-        if (!validaMembro()) {
-            return false;
-        }
-        this.dataIngresso = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean leaveTeam() {
-        // La rimozione vera e propria sarà gestita dal DAO
-        return validaMembro();
-    }
-
-    public boolean promoteToLeader() {
-        if (!validaMembro()) {
-            return false;
-        }
-        this.ruolo = RuoloTeam.LEADER;
-        return true;
-    }
-
-    public boolean demoteToMember() {
-        if (!validaMembro()) {
-            return false;
-        }
-        this.ruolo = RuoloTeam.MEMBRO;
-        return true;
-    }
-
-    public boolean validaMembro() {
-        return teamId > 0 && utenteId > 0 && ruolo != null;
-    }
-
-    public boolean isLeader() {
-        return ruolo == RuoloTeam.LEADER;
-    }
-
-    public boolean isMembro() {
-        return ruolo == RuoloTeam.MEMBRO;
-    }
-
     public String getNomeUtente() {
         return utente != null ? utente.getNomeCompleto() : "N/A";
-    }
-
-    public String getNomeTeam() {
-        return team != null ? team.getNome() : "N/A";
-    }
-
-    public String getDettagliMembro() {
-        return String.format("Membro: %s\nTeam: %s\nRuolo: %s\nData ingresso: %s", getNomeUtente(), getNomeTeam(), ruolo != null ? ruolo.getDisplayName() : "N/A", dataIngresso);
-    }
-
-    public long getGiorniNelTeam() {
-        if (dataIngresso == null) return 0;
-        return java.time.Duration.between(dataIngresso, LocalDateTime.now()).toDays();
     }
 
     // endregion

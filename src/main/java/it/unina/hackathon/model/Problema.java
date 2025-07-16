@@ -23,14 +23,9 @@ public class Problema {
         this.dataPubblicazione = LocalDateTime.now();
     }
 
-    public Problema(String titolo, String descrizione) {
-        this();
+    public Problema(String titolo, String descrizione, int hackathonId, int pubblicatoDaId) {
         this.titolo = titolo;
         this.descrizione = descrizione;
-    }
-
-    public Problema(String titolo, String descrizione, int hackathonId, int pubblicatoDaId) {
-        this(titolo, descrizione);
         this.hackathonId = hackathonId;
         this.pubblicatoDaId = pubblicatoDaId;
     }
@@ -93,54 +88,6 @@ public class Problema {
 
     public void setPubblicatoDa(Utente pubblicatoDa) {
         this.pubblicatoDa = pubblicatoDa;
-    }
-
-    // endregion
-
-    // region Business
-
-    public boolean pubblicaProblema() {
-        if (!validaProblema()) {
-            return false;
-        }
-        this.dataPubblicazione = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean validaProblema() {
-        if (titolo == null || titolo.trim().isEmpty()) {
-            return false;
-        }
-        if (descrizione == null || descrizione.trim().isEmpty()) {
-            return false;
-        }
-        if (hackathonId <= 0) {
-            return false;
-        }
-        return pubblicatoDaId > 0;
-    }
-
-    public void modificaDescrizione(String nuovaDescrizione) {
-        if (nuovaDescrizione != null && !nuovaDescrizione.trim().isEmpty()) {
-            this.descrizione = nuovaDescrizione.trim();
-        }
-    }
-
-    public void modificaTitolo(String nuovoTitolo) {
-        if (nuovoTitolo != null && !nuovoTitolo.trim().isEmpty()) {
-            this.titolo = nuovoTitolo.trim();
-        }
-    }
-
-    public String getDettagliCompleti() {
-        return String.format("Titolo: %s\n\nDescrizione:\n%s\n\nPubblicato: %s\nDa: %s", titolo, descrizione, dataPubblicazione, pubblicatoDa != null ? pubblicatoDa.getNomeCompleto() : "N/A");
-    }
-
-    public String getAnteprimaDescrizione() {
-        if (descrizione == null || descrizione.isEmpty()) {
-            return "Nessuna descrizione";
-        }
-        return descrizione.length() > 100 ? descrizione.substring(0, 100) + "..." : descrizione;
     }
 
     // endregion

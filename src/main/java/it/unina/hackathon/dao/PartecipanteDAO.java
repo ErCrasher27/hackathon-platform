@@ -6,7 +6,9 @@ import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface PartecipanteDAO {
 
-    UtenteListResponse getPartecipantiHackathon(int hackathonId);
+    UtenteListResponse getPartecipantiByHackathon(int hackathonId);
+
+    UtenteListResponse getPartecipantiSenzaTeam(int hackathonId);
 
     ResponseIntResult contaPartecipantiRegistrati(int hackathonId);
 
@@ -16,5 +18,4 @@ public interface PartecipanteDAO {
 
     ResponseResult annullaRegistrazione(int hackathonId, int partecipanteId);
 
-    UtenteListResponse getPartecipantiSenzaTeam(int hackathonId);
 }

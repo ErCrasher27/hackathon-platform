@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.partecipante;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.NavigationController;
-import it.unina.hackathon.controller.PartecipanteController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.utils.responses.HackathonListResponse;
@@ -23,9 +21,7 @@ public class HomePartecipanteGUI implements GUIHandler {
 
     // region Controllers
 
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final PartecipanteController partecipanteController;
+    private final HackathonController controller;
 
     // endregion
 
@@ -76,9 +72,7 @@ public class HomePartecipanteGUI implements GUIHandler {
     // region Costruttore
 
     public HomePartecipanteGUI() {
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.partecipanteController = controller.getPartecipanteController();
+        this.controller = HackathonController.getInstance();
         this.hackathonDisponibili = new ArrayList<>();
         this.mieiHackathon = new ArrayList<>();
 
@@ -129,8 +123,8 @@ public class HomePartecipanteGUI implements GUIHandler {
     public void setupEventListeners() {
         // Header
         logoutButton.addActionListener(_ -> {
-            controller.getAuthController().logout();
-            navigationController.goToLogin(frame);
+            controller.effettuaLogout();
+            controller.vaiAlLogin(frame);
         });
 
         // Tab Hackathon Disponibili
@@ -314,7 +308,7 @@ public class HomePartecipanteGUI implements GUIHandler {
             aggiornaHackathonButton.setText("Caricamento...");
             aggiornaHackathonButton.setEnabled(false);
 
-            HackathonListResponse response = partecipanteController.getHackathonDisponibili();
+            HackathonListResponse response = controller.getHackathonDisponibili();
             if (response.hackathons() != null) {
                 hackathonDisponibili.clear();
                 hackathonDisponibili.addAll(response.hackathons());
@@ -337,7 +331,7 @@ public class HomePartecipanteGUI implements GUIHandler {
             aggiornaMieiHackathonButton.setText("Caricamento...");
             aggiornaMieiHackathonButton.setEnabled(false);
 
-            HackathonListResponse response = partecipanteController.getHackathonRegistrati(controller.getIdUtenteCorrente());
+            HackathonListResponse response = controller.getHackathonPartecipante(controller.getIdUtenteCorrente());
             if (response.hackathons() != null) {
                 mieiHackathon.clear();
                 mieiHackathon.addAll(response.hackathons());
@@ -367,7 +361,7 @@ public class HomePartecipanteGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = partecipanteController.registratiAdHackathon(hackathon.getHackathonId());
+                    var response = controller.registratiHackathon(hackathon.getHackathonId());
                     if (response.result()) {
                         showInfoMessage("Registrazione completata con successo!");
                         loadHackathonDisponibili();
@@ -386,7 +380,7 @@ public class HomePartecipanteGUI implements GUIHandler {
         int selectedRow = mieiHackathonTable.getSelectedRow();
         if (selectedRow != -1) {
             Hackathon hackathon = mieiHackathon.get(selectedRow);
-            navigationController.goToGestisciProgetto(frame, hackathon.getHackathonId());
+            controller.vaiAGestireProgetto(frame, hackathon.getHackathonId());
         }
     }
 
@@ -399,7 +393,7 @@ public class HomePartecipanteGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = partecipanteController.annullaRegistrazione(hackathon.getHackathonId());
+                    var response = controller.annullaRegistrazione(hackathon.getHackathonId());
                     if (response.result()) {
                         showInfoMessage("Registrazione annullata con successo!");
                         loadHackathonDisponibili();
@@ -451,7 +445,7 @@ public class HomePartecipanteGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             Hackathon hackathon = hackathonDisponibili.get(rowIndex);
-            ResponseIntResult numPartecipanti = partecipanteController.contaPartecipanti(hackathon.getHackathonId());
+            ResponseIntResult numPartecipanti = controller.contaPartecipantiRegistrati(hackathon.getHackathonId());
             return switch (columnIndex) {
                 case 0 -> hackathon.getTitolo();
                 case 1 -> hackathon.getSede();

@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.organizzatore;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.NavigationController;
-import it.unina.hackathon.controller.OrganizzatoreController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.enums.HackathonStatus;
@@ -25,9 +23,7 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 public class HomeOrganizzatoreGUI implements GUIHandler {
 
     // Controllers
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final OrganizzatoreController organizzatoreController;
+    private final HackathonController controller;
 
     // Components
     private JFrame frame;
@@ -54,9 +50,8 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
     private List<Hackathon> hackathonList;
 
     public HomeOrganizzatoreGUI() {
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.organizzatoreController = controller.getOrganizzatoreController();
+        this.controller = HackathonController.getInstance();
+
         this.hackathonList = new ArrayList<>();
 
         initializeComponents();
@@ -131,8 +126,8 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
     public void setupEventListeners() {
         // Logout button
         logoutButton.addActionListener(_ -> {
-            controller.getAuthController().logout();
-            navigationController.goToLogin(frame);
+            controller.effettuaLogout();
+            controller.vaiAlLogin(frame);
         });
 
         // Table selection listener
@@ -153,7 +148,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         });
 
         // Action buttons
-        nuovoHackathonButton.addActionListener(_ -> navigationController.goToCreateHackathon(frame));
+        nuovoHackathonButton.addActionListener(_ -> controller.vaiACreareHackathon(frame));
         dettagliButton.addActionListener(_ -> apriDettagliHackathon());
         aggiornaButton.addActionListener(_ -> loadData());
     }
@@ -166,7 +161,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
             aggiornaButton.setText("Caricamento...");
             aggiornaButton.setEnabled(false);
 
-            HackathonListResponse response = organizzatoreController.getAllHackathonByOrganizzatore(controller.getIdUtenteCorrente());
+            HackathonListResponse response = controller.getHackathonOrganizzatore(controller.getIdUtenteCorrente());
 
             if (response.hackathons() != null) {
                 hackathonList = response.hackathons();
@@ -233,12 +228,12 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         }
 
         Hackathon selectedHackathon = hackathonList.get(selectedRow);
-        navigationController.goToGestisciHackathon(frame, selectedHackathon.getHackathonId());
+        controller.vaiAGestireHackathon(frame, selectedHackathon.getHackathonId());
     }
 
     private void cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato) {
         try {
-            ResponseResult result = organizzatoreController.cambiaStatoHackathon(hackathonId, nuovoStato);
+            ResponseResult result = controller.modificaStatoHackathon(hackathonId, nuovoStato);
 
             if (result.result()) {
                 showSuccess(frame, "Stato hackathon aggiornato con successo!");
@@ -250,6 +245,49 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         } catch (Exception e) {
             showError(frame, "Errore nell'aggiornamento dello stato: " + e.getMessage());
             loadData(); // Reload to revert changes in table
+        }
+    }
+
+    // Status ComboBox Renderer
+    private static class StatusComboBoxRenderer extends JComboBox<HackathonStatus> implements TableCellRenderer {
+        public StatusComboBoxRenderer() {
+            super(HackathonStatus.values());
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+
+            if (value instanceof HackathonStatus) {
+                setSelectedItem(value);
+            }
+
+            if (isSelected) {
+                setBackground(table.getSelectionBackground());
+                setForeground(table.getSelectionForeground());
+            } else {
+                setBackground(table.getBackground());
+                setForeground(table.getForeground());
+            }
+
+            return this;
+        }
+    }
+
+    // Status ComboBox Editor
+    private static class StatusComboBoxEditor extends DefaultCellEditor {
+        public StatusComboBoxEditor() {
+            super(new JComboBox<>(HackathonStatus.values()));
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+
+            @SuppressWarnings("unchecked") JComboBox<HackathonStatus> comboBox = (JComboBox<HackathonStatus>) getComponent();
+            if (value instanceof HackathonStatus) {
+                comboBox.setSelectedItem(value);
+            }
+
+            return comboBox;
         }
     }
 
@@ -319,49 +357,6 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
                     SwingUtilities.invokeLater(() -> cambiaStatoHackathon(hackathon.getHackathonId(), nuovoStato));
                 }
             }
-        }
-    }
-
-    // Status ComboBox Renderer
-    private static class StatusComboBoxRenderer extends JComboBox<HackathonStatus> implements TableCellRenderer {
-        public StatusComboBoxRenderer() {
-            super(HackathonStatus.values());
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
-            if (value instanceof HackathonStatus) {
-                setSelectedItem(value);
-            }
-
-            if (isSelected) {
-                setBackground(table.getSelectionBackground());
-                setForeground(table.getSelectionForeground());
-            } else {
-                setBackground(table.getBackground());
-                setForeground(table.getForeground());
-            }
-
-            return this;
-        }
-    }
-
-    // Status ComboBox Editor
-    private static class StatusComboBoxEditor extends DefaultCellEditor {
-        public StatusComboBoxEditor() {
-            super(new JComboBox<>(HackathonStatus.values()));
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-
-            @SuppressWarnings("unchecked") JComboBox<HackathonStatus> comboBox = (JComboBox<HackathonStatus>) getComponent();
-            if (value instanceof HackathonStatus) {
-                comboBox.setSelectedItem(value);
-            }
-
-            return comboBox;
         }
     }
 }

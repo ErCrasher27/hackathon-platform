@@ -9,6 +9,7 @@ public class Team {
 
     // region Proprietà
 
+    private final List<Utente> membri;
     private int teamId;
     private String nome;
     private int hackathonId;
@@ -16,7 +17,6 @@ public class Team {
     private boolean definitivo;
     private int numeroMembri;
     private String nomiMembri;
-    private List<Utente> membri;
     private int maxDimensione;
 
     // endregion
@@ -29,13 +29,9 @@ public class Team {
         this.membri = new ArrayList<>();
     }
 
-    public Team(String nome) {
+    public Team(String nome, int hackathonId) {
         this();
         this.nome = nome;
-    }
-
-    public Team(String nome, int hackathonId) {
-        this(nome);
         this.hackathonId = hackathonId;
     }
 
@@ -91,31 +87,8 @@ public class Team {
         this.numeroMembri = numeroMembri;
     }
 
-    public String getNomiMembri() {
-        if (nomiMembri != null && !nomiMembri.isEmpty()) {
-            return nomiMembri;
-        }
-
-        if (membri != null && !membri.isEmpty()) {
-            return membri.stream().map(Utente::getNomeCompleto).reduce((a, b) -> a + ", " + b).orElse("Nessun membro");
-        }
-
-        return "Nessun membro";
-    }
-
     public void setNomiMembri(String nomiMembri) {
         this.nomiMembri = nomiMembri;
-    }
-
-    public List<Utente> getMembri() {
-        return membri != null ? membri : new ArrayList<>();
-    }
-
-    public void setMembri(List<Utente> membri) {
-        this.membri = membri;
-        if (membri != null) {
-            this.numeroMembri = membri.size();
-        }
     }
 
     public int getMaxDimensione() {
@@ -124,89 +97,6 @@ public class Team {
 
     public void setMaxDimensione(int maxDimensione) {
         this.maxDimensione = maxDimensione;
-    }
-
-    // endregion
-
-    // region Business
-
-    public boolean creaTeam(String nome) {
-        if (nome == null || nome.trim().isEmpty()) {
-            return false;
-        }
-        this.nome = nome.trim();
-        this.dataCreazione = LocalDateTime.now();
-        return true;
-    }
-
-    public boolean aggiungiMembro(Utente utente) {
-        if (utente == null) return false;
-
-        if (membri == null) {
-            membri = new ArrayList<>();
-        }
-
-        // Verifica se l'utente è già nel team
-        if (membri.stream().anyMatch(m -> m.getUtenteId() == utente.getUtenteId())) {
-            return false;
-        }
-
-        // Verifica dimensione massima
-        if (maxDimensione > 0 && membri.size() >= maxDimensione) {
-            return false;
-        }
-
-        membri.add(utente);
-        this.numeroMembri = membri.size();
-        return true;
-    }
-
-    public boolean rimuoviMembro(Utente utente) {
-        if (utente == null || membri == null) return false;
-
-        boolean removed = membri.removeIf(m -> m.getUtenteId() == utente.getUtenteId());
-        if (removed) {
-            this.numeroMembri = membri.size();
-        }
-        return removed;
-    }
-
-    public void rendiDefinitivo() {
-        this.definitivo = true;
-    }
-
-    public boolean verificaDimensioneMassima() {
-        return maxDimensione <= 0 || getNumeroMembri() <= maxDimensione;
-    }
-
-    public boolean haSpazioDisponibile() {
-        return maxDimensione <= 0 || getNumeroMembri() < maxDimensione;
-    }
-
-    public boolean isMembro(Utente utente) {
-        if (utente == null || membri == null) return false;
-        return membri.stream().anyMatch(m -> m.getUtenteId() == utente.getUtenteId());
-    }
-
-    public Utente getLeader() {
-        // Assumiamo che il primo membro sia il leader
-        return membri != null && !membri.isEmpty() ? membri.get(0) : null;
-    }
-
-    public String getStatoTeam() {
-        if (definitivo) {
-            return "Definitivo";
-        } else if (getNumeroMembri() == 0) {
-            return "Vuoto";
-        } else if (maxDimensione > 0 && getNumeroMembri() >= maxDimensione) {
-            return "Completo";
-        } else {
-            return "In formazione";
-        }
-    }
-
-    public String getInfoCompleta() {
-        return String.format("Team '%s' - %d membri - %s - Creato: %s", nome, getNumeroMembri(), getStatoTeam(), dataCreazione.toLocalDate().toString());
     }
 
     // endregion

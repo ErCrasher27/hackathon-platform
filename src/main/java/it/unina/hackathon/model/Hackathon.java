@@ -83,40 +83,20 @@ public class Hackathon {
         return dataInizio;
     }
 
-    public void setDataInizio(LocalDateTime dataInizio) {
-        this.dataInizio = dataInizio;
-    }
-
     public LocalDateTime getDataFine() {
         return dataFine;
-    }
-
-    public void setDataFine(LocalDateTime dataFine) {
-        this.dataFine = dataFine;
     }
 
     public LocalDateTime getDataChiusuraRegistrazioni() {
         return dataChiusuraRegistrazioni;
     }
 
-    public void setDataChiusuraRegistrazioni(LocalDateTime dataChiusuraRegistrazioni) {
-        this.dataChiusuraRegistrazioni = dataChiusuraRegistrazioni;
-    }
-
     public int getMaxIscritti() {
         return maxIscritti;
     }
 
-    public void setMaxIscritti(int maxIscritti) {
-        this.maxIscritti = maxIscritti;
-    }
-
     public int getMaxDimensioneTeam() {
         return maxDimensioneTeam;
-    }
-
-    public void setMaxDimensioneTeam(int maxDimensioneTeam) {
-        this.maxDimensioneTeam = maxDimensioneTeam;
     }
 
     public HackathonStatus getStatus() {
@@ -133,10 +113,6 @@ public class Hackathon {
 
     public void setOrganizzatoreId(int organizzatoreId) {
         this.organizzatoreId = organizzatoreId;
-    }
-
-    public LocalDateTime getDataCreazione() {
-        return dataCreazione;
     }
 
     public void setDataCreazione(LocalDateTime dataCreazione) {
@@ -193,18 +169,6 @@ public class Hackathon {
 
     public void apriRegistrazioni() {
         this.status = HackathonStatus.REGISTRAZIONI_APERTE;
-    }
-
-    public void chiudiRegistrazioni() {
-        this.status = HackathonStatus.REGISTRAZIONI_CHIUSE;
-    }
-
-    public void iniziaHackathon() {
-        this.status = HackathonStatus.IN_CORSO;
-    }
-
-    public void terminaHackathon() {
-        this.status = HackathonStatus.TERMINATO;
     }
 
     // endregion

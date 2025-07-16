@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.giudice;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.GiudiceController;
-import it.unina.hackathon.controller.NavigationController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.*;
 import it.unina.hackathon.utils.UtilsUi;
@@ -28,9 +26,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     // region Controllers e Parametri
 
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final GiudiceController giudiceController;
+    private final HackathonController controller;
     private final int hackathonId;
 
     // endregion
@@ -106,9 +102,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     public ValutazioneProgettoGUI(int hackathonId) {
         this.hackathonId = hackathonId;
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.giudiceController = controller.getGiudiceController();
+        this.controller = HackathonController.getInstance();
         this.teamList = new ArrayList<>();
         this.progressiList = new ArrayList<>();
         this.commentiList = new ArrayList<>();
@@ -152,7 +146,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         // Header
-        backButton.addActionListener(_ -> navigationController.goToHome(frame, controller.getTipoUtenteUtenteCorrente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
 
         // Team selection
         teamTable.getSelectionModel().addListSelectionListener(e -> {
@@ -419,7 +413,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     private void loadHackathonInfo() {
         try {
-            HackathonResponse response = giudiceController.getDettagliHackathon(hackathonId);
+            HackathonResponse response = controller.getDettagliHackathon(hackathonId);
             if (response.hackathon() != null) {
                 hackathonCorrente = response.hackathon();
                 hackathonInfoLabel.setText("Hackathon: " + hackathonCorrente.getTitolo() + " | " + hackathonCorrente.getSede());
@@ -436,7 +430,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             teamTable.setEnabled(false);
             aggiornaTeamButton.setEnabled(false);
 
-            TeamListResponse response = giudiceController.getTeamDaVotare(hackathonId);
+            TeamListResponse response = controller.getTeamHackathon(hackathonId);
             if (response.teams() != null) {
                 teamList.clear();
                 teamList.addAll(response.teams());
@@ -459,7 +453,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             progressiTable.setEnabled(false);
             aggiornaProgressiButton.setEnabled(false);
 
-            ProgressoListResponse response = giudiceController.getProgressiTeam(teamSelezionato.getTeamId());
+            ProgressoListResponse response = controller.getProgressiTeam(teamSelezionato.getTeamId());
             if (response.progressi() != null) {
                 progressiList.clear();
                 progressiList.addAll(response.progressi());
@@ -479,7 +473,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         if (progressoSelezionato == null) return;
 
         try {
-            CommentoListResponse response = giudiceController.getCommentiProgresso(progressoSelezionato.getProgressoId());
+            CommentoListResponse response = controller.getCommentiProgresso(progressoSelezionato.getProgressoId());
             if (response.commenti() != null) {
                 commentiList.clear();
                 commentiList.addAll(response.commenti());
@@ -494,7 +488,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         if (teamSelezionato == null) return;
 
         try {
-            VotoResponse response = giudiceController.getVotoTeam(hackathonId, teamSelezionato.getTeamId());
+            VotoResponse response = controller.getVotoTeam(hackathonId, teamSelezionato.getTeamId());
             votoCorrente = response.voto();
             updateVotoDisplay();
         } catch (Exception e) {
@@ -619,7 +613,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         }
 
         try {
-            CommentoResponse response = giudiceController.scriviCommento(progressoSelezionato.getProgressoId(), testo);
+            CommentoResponse response = controller.scriviCommento(progressoSelezionato.getProgressoId(), testo);
             if (response.commento() != null) {
                 showInfoMessage("Commento aggiunto con successo!");
                 nuovoCommentoArea.setText("");
@@ -646,7 +640,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         int valore = votoSlider.getValue();
 
         try {
-            VotoResponse response = giudiceController.assegnaVoto(hackathonId, teamSelezionato.getTeamId(), valore);
+            VotoResponse response = controller.assegnaVoto(hackathonId, teamSelezionato.getTeamId(), valore);
             if (response.voto() != null) {
                 showInfoMessage("Voto assegnato con successo!");
                 loadVotoData();

@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.partecipante;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.NavigationController;
-import it.unina.hackathon.controller.PartecipanteController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.*;
 import it.unina.hackathon.model.enums.RuoloTeam;
@@ -31,9 +29,7 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 public class GestisciProgettoGUI implements GUIHandler {
 
     // region Controllers e Parametri
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final PartecipanteController partecipanteController;
+    private final HackathonController controller;
     private final int hackathonId;
     // endregion
 
@@ -74,7 +70,6 @@ public class GestisciProgettoGUI implements GUIHandler {
     private JScrollPane teamsScrollPane;
     private TeamsTableModel teamsTableModel;
     private JButton aggiornaTeamButton;
-    private JButton richiestaIngressoButton;
 
     // Inviti Ricevuti (quando non hai team)
     private JTable invitiRicevutiTable;
@@ -128,7 +123,6 @@ public class GestisciProgettoGUI implements GUIHandler {
     // endregion
 
     // region Data
-    private StatoTeam statoTeamCorrente;
     private Hackathon hackathonCorrente;
     private Team teamCorrente;
     private File fileSelezionato;
@@ -140,9 +134,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     // region Costruttore
     public GestisciProgettoGUI(int hackathonId) {
         this.hackathonId = hackathonId;
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.partecipanteController = controller.getPartecipanteController();
+        this.controller = HackathonController.getInstance();
 
         this.membriList = new ArrayList<>();
         this.progressiList = new ArrayList<>();
@@ -150,8 +142,6 @@ public class GestisciProgettoGUI implements GUIHandler {
         this.teams = new ArrayList<>();
         this.invitiRicevuti = new ArrayList<>();
         this.richiesteIngresso = new ArrayList<>();
-
-        this.statoTeamCorrente = StatoTeam.NESSUN_TEAM;
 
         initializeComponents();
         setupFrame();
@@ -190,7 +180,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         // Header
-        backButton.addActionListener(_ -> navigationController.goToHome(frame, controller.getTipoUtenteUtenteCorrente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
 
         // Team events
         setupTeamEvents();
@@ -313,14 +303,10 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Buttons
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         aggiornaTeamButton = new JButton("Aggiorna");
-        richiestaIngressoButton = new JButton("Richiedi Ingresso");
 
         aggiornaTeamButton.setPreferredSize(new Dimension(100, 30));
-        richiestaIngressoButton.setPreferredSize(new Dimension(150, 30));
-        richiestaIngressoButton.setEnabled(false);
 
         btnPanel.add(aggiornaTeamButton);
-        btnPanel.add(richiestaIngressoButton);
 
         // Table
         teamsTableModel = new TeamsTableModel();
@@ -578,13 +564,6 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Nessun team events
         creaTeamButton.addActionListener(_ -> creaTeam());
         aggiornaTeamButton.addActionListener(_ -> loadTeams());
-        richiestaIngressoButton.addActionListener(_ -> richiestaIngresso());
-
-        teamTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                richiestaIngressoButton.setEnabled(teamTable.getSelectedRow() != -1);
-            }
-        });
 
         // Inviti ricevuti events
         accettaInvitoButton.addActionListener(_ -> gestisciInvito(true));
@@ -677,7 +656,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     // region Data Loading
     private void loadHackathonInfo() {
         try {
-            HackathonResponse response = partecipanteController.getDettagliHackathon(hackathonId);
+            HackathonResponse response = controller.getDettagliHackathon(hackathonId);
             if (response.hackathon() != null) {
                 hackathonCorrente = response.hackathon();
                 hackathonInfoLabel.setText("Hackathon: " + hackathonCorrente.getTitolo() + " | " + hackathonCorrente.getSede());
@@ -692,13 +671,12 @@ public class GestisciProgettoGUI implements GUIHandler {
     private void loadTeamInfo() {
         try {
             // Prima controlla se ha un team
-            TeamResponse response = partecipanteController.getTeamCorrente(hackathonId);
+            TeamResponse response = controller.getTeamPartecipante(controller.getIdUtenteCorrente(), hackathonId);
             if (response.team() != null) {
                 teamCorrente = response.team();
-                statoTeamCorrente = StatoTeam.HA_TEAM;
 
                 // Verifica se è leader
-                isLeader = partecipanteController.isLeader(controller.getUtenteCorrente().getUtenteId(), teamCorrente.getTeamId()).result();
+                isLeader = controller.verificaLeaderTeam(controller.getIdUtenteCorrente(), teamCorrente.getTeamId()).result();
 
                 teamInfoLabel.setText("Team: " + teamCorrente.getNome() + " (" + teamCorrente.getNumeroMembri() + " membri)");
 
@@ -708,12 +686,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                 mostraPanel("HA_TEAM");
                 loadMembriData();
 
-                // Carica richieste ingresso se è leader
-                if (isLeader) {
-                    loadRichiesteIngresso();
-                }
             } else {
-                statoTeamCorrente = StatoTeam.NESSUN_TEAM;
                 teamInfoLabel.setText("Non fai parte di nessun team");
                 isLeader = false;
                 mostraPanel("NESSUN_TEAM");
@@ -722,7 +695,6 @@ public class GestisciProgettoGUI implements GUIHandler {
             }
         } catch (Exception e) {
             teamInfoLabel.setText("Errore nel caricamento");
-            statoTeamCorrente = StatoTeam.NESSUN_TEAM;
             isLeader = false;
             mostraPanel("NESSUN_TEAM");
         }
@@ -758,7 +730,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             teamTable.setEnabled(false);
             aggiornaTeamButton.setEnabled(false);
 
-            var response = partecipanteController.getTeamByHackathon(hackathonId);
+            var response = controller.getTeamHackathon(hackathonId);
             if (response.teams() != null) {
                 teams.clear();
                 teams.addAll(response.teams());
@@ -776,7 +748,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
     private void loadInviti() {
         try {
-            var response = partecipanteController.getInvitiRicevuti();
+            var response = controller.getInvitiTeamRicevuti();
             if (response.invitiTeam() != null) {
                 invitiRicevuti.clear();
                 invitiRicevuti.addAll(response.invitiTeam());
@@ -789,21 +761,6 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
-    private void loadRichiesteIngresso() {
-        if (!isLeader || teamCorrente == null) return;
-
-        try {
-            var response = partecipanteController.getRichiesteIngressoTeam(teamCorrente.getTeamId());
-            if (response.invitiTeam() != null) {
-                richiesteIngresso.clear();
-                richiesteIngresso.addAll(response.invitiTeam());
-                richiesteIngressoTableModel.fireTableDataChanged();
-            }
-        } catch (Exception e) {
-            // Silent fail
-        }
-    }
-
     private void loadMembriData() {
         if (teamCorrente == null) return;
 
@@ -811,7 +768,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             membriTable.setEnabled(false);
             aggiornaMembriButton.setEnabled(false);
 
-            var response = partecipanteController.getMembriTeam(teamCorrente.getTeamId());
+            var response = controller.getMembriTeam(teamCorrente.getTeamId());
             if (response.membri() != null) {
                 membriList.clear();
                 membriList.addAll(response.membri());
@@ -834,7 +791,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             progressiTable.setEnabled(false);
             aggiornaProgressiButton.setEnabled(false);
 
-            ProgressoListResponse response = partecipanteController.getProgressiTeam(teamCorrente.getTeamId());
+            ProgressoListResponse response = controller.getProgressiTeam(teamCorrente.getTeamId());
             if (response.progressi() != null) {
                 progressiList.clear();
                 progressiList.addAll(response.progressi());
@@ -855,7 +812,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             problemiTable.setEnabled(false);
             aggiornaProblemiButton.setEnabled(false);
 
-            var response = partecipanteController.getProblemiHackathon(hackathonId);
+            var response = controller.getProblemiHackathon(hackathonId);
             if (response.problemi() != null) {
                 problemiList.clear();
                 problemiList.addAll(response.problemi());
@@ -882,7 +839,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
 
         try {
-            var response = partecipanteController.creaTeam(hackathonId, nomeTeam);
+            var response = controller.creaTeam(hackathonId, nomeTeam);
             if (response.team() != null) {
                 showInfoMessage("Team creato con successo!");
                 nomeTeamField.setText("");
@@ -892,29 +849,6 @@ public class GestisciProgettoGUI implements GUIHandler {
             }
         } catch (Exception e) {
             showErrorMessage("Errore nella creazione: " + e.getMessage());
-        }
-    }
-
-    private void richiestaIngresso() {
-        int selectedRow = teamTable.getSelectedRow();
-        if (selectedRow != -1) {
-            Team team = teams.get(selectedRow);
-
-            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi richiedere di entrare nel team '" + team.getNome() + "'?", "Conferma Richiesta", JOptionPane.YES_NO_OPTION);
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                try {
-                    var response = partecipanteController.richiediPartecipazione(team.getTeamId());
-                    if (response.result()) {
-                        showInfoMessage("Richiesta inviata con successo!");
-                        loadTeams();
-                    } else {
-                        showErrorMessage("Errore nell'invio: " + response.message());
-                    }
-                } catch (Exception e) {
-                    showErrorMessage("Errore nell'invio: " + e.getMessage());
-                }
-            }
         }
     }
 
@@ -930,10 +864,9 @@ public class GestisciProgettoGUI implements GUIHandler {
                 try {
                     ResponseResult response;
                     if (accetta) {
-                        response = partecipanteController.rispondiInvito(invito.getInvitoId(), StatoInvito.ACCEPTED);
-                        partecipanteController.accettaInTeam(invito.getInvitoId());
+                        response = controller.rispondiInvitoTeam(invito.getInvitoId(), StatoInvito.ACCEPTED);
                     } else {
-                        response = partecipanteController.rispondiInvito(invito.getInvitoId(), StatoInvito.DECLINED);
+                        response = controller.rispondiInvitoTeam(invito.getInvitoId(), StatoInvito.DECLINED);
                     }
                     if (response.result()) {
                         showInfoMessage("Invito " + (accetta ? "accettato" : "rifiutato") + " con successo!");
@@ -958,11 +891,10 @@ public class GestisciProgettoGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    ResponseResult response = partecipanteController.rispondiInvito(richiesta.getInvitoId(), accetta ? StatoInvito.ACCEPTED : StatoInvito.DECLINED);
+                    ResponseResult response = controller.rispondiInvitoTeam(richiesta.getInvitoId(), accetta ? StatoInvito.ACCEPTED : StatoInvito.DECLINED);
 
                     if (response.result()) {
                         showInfoMessage("Richiesta " + (accetta ? "accettata" : "rifiutata") + " con successo!");
-                        loadRichiesteIngresso();
                         loadMembriData();
                     } else {
                         showErrorMessage("Errore: " + response.message());
@@ -976,7 +908,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
     private void invitaMembro() {
         try {
-            var response = partecipanteController.getPartecipantiDisponibili(hackathonId);
+            var response = controller.getPartecipantiDisponibili(hackathonId);
 
             if (response.utenti() == null || response.utenti().isEmpty()) {
                 showErrorMessage("Non ci sono partecipanti registrati all'hackathon!");
@@ -1027,7 +959,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                             messaggioInvito = "Ti invitiamo a unirti al nostro team!";
                         }
 
-                        var inviteResult = partecipanteController.invitaInTeam(teamCorrente.getTeamId(), partecipanteSelezionato.getUtenteId(), messaggioInvito);
+                        var inviteResult = controller.invitaUtenteInTeam(teamCorrente.getTeamId(), partecipanteSelezionato.getUtenteId(), messaggioInvito);
 
                         if (inviteResult.result()) {
                             showInfoMessage("Invito inviato con successo a " + partecipanteSelezionato.getNome() + " " + partecipanteSelezionato.getCognome());
@@ -1051,7 +983,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = partecipanteController.rimuoviMembroTeam(membro.getUtenteId());
+                    var response = controller.rimuoviMembroTeam(membro.getUtenteId());
                     if (response.result()) {
                         showInfoMessage("Membro rimosso con successo!");
                         loadMembriData();
@@ -1074,7 +1006,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 ResponseResult response;
-                response = partecipanteController.abbandonaTeam(teamCorrente.getTeamId());
+                response = controller.abbandonaTeam(teamCorrente.getTeamId());
 
 
                 if (response.result()) {
@@ -1101,8 +1033,8 @@ public class GestisciProgettoGUI implements GUIHandler {
         try {
             String url = fileSelezionato.getAbsolutePath();
 
-            ProgressoResponse response = partecipanteController.caricaProgresso(teamCorrente.getTeamId(), fileSelezionato.getName(),  // Usa il nome del file come titolo
-                    "",  // Descrizione vuota
+            ProgressoResponse response = controller.caricaProgresso(teamCorrente.getTeamId(),   // Usa il nome del file come titolo
+                    // Descrizione vuota
                     url);
 
             if (response.progresso() != null) {
@@ -1124,7 +1056,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                var response = partecipanteController.eliminaProgresso(progressoSelezionato.getProgressoId());
+                var response = controller.eliminaProgresso(progressoSelezionato.getProgressoId());
                 if (response.result()) {
                     showInfoMessage("Progresso eliminato con successo!");
                     loadProgressiData();
@@ -1203,17 +1135,14 @@ public class GestisciProgettoGUI implements GUIHandler {
     private void showInfoMessage(String message) {
         JOptionPane.showMessageDialog(frame, message, "Informazione", JOptionPane.INFORMATION_MESSAGE);
     }
+
     // endregion
 
-    // region States
-    private enum StatoTeam {
-        NESSUN_TEAM, HA_TEAM
-    }
     // endregion
 
     // region Table Models
     private class TeamsTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Nome Team", "Membri", "Leader"};
+        private final String[] columnNames = {"Nome Team", "Membri"};
 
         @Override
         public int getRowCount() {
@@ -1236,7 +1165,6 @@ public class GestisciProgettoGUI implements GUIHandler {
             return switch (columnIndex) {
                 case 0 -> team.getNome();
                 case 1 -> team.getNumeroMembri() + "/" + team.getMaxDimensione();
-                case 2 -> team.getLeader() != null ? team.getLeader().getNomeCompleto() : "N/A";
                 default -> "";
             };
         }

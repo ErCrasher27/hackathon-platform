@@ -1,8 +1,6 @@
 package it.unina.hackathon.gui.giudice;
 
-import it.unina.hackathon.controller.Controller;
-import it.unina.hackathon.controller.GiudiceController;
-import it.unina.hackathon.controller.NavigationController;
+import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Problema;
@@ -25,9 +23,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
     // region Controllers e Parametri
 
-    private final Controller controller;
-    private final NavigationController navigationController;
-    private final GiudiceController giudiceController;
+    private final HackathonController controller;
     private final int hackathonId;
 
     // endregion
@@ -89,9 +85,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
     public GestisciProblemiGUI(int hackathonId) {
         this.hackathonId = hackathonId;
-        this.controller = Controller.getInstance();
-        this.navigationController = controller.getNavigationController();
-        this.giudiceController = controller.getGiudiceController();
+        this.controller = HackathonController.getInstance();
         this.problemiList = new ArrayList<>();
         this.isModificaMode = false;
 
@@ -134,7 +128,7 @@ public class GestisciProblemiGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         // Header
-        backButton.addActionListener(_ -> navigationController.goToHome(frame, controller.getTipoUtenteUtenteCorrente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
 
         // Problemi table
         problemiTable.getSelectionModel().addListSelectionListener(e -> {
@@ -334,7 +328,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
     private void loadHackathonInfo() {
         try {
-            HackathonResponse response = giudiceController.getDettagliHackathon(hackathonId);
+            HackathonResponse response = controller.getDettagliHackathon(hackathonId);
             if (response.hackathon() != null) {
                 hackathonCorrente = response.hackathon();
                 hackathonInfoLabel.setText("Hackathon: " + hackathonCorrente.getTitolo() + " | " + hackathonCorrente.getSede());
@@ -351,7 +345,7 @@ public class GestisciProblemiGUI implements GUIHandler {
             problemiTable.setEnabled(false);
             aggiornaProblemiButton.setEnabled(false);
 
-            ProblemaListResponse response = giudiceController.getTuttiProblemiHackathon(hackathonId);
+            ProblemaListResponse response = controller.getProblemiHackathon(hackathonId);
             if (response.problemi() != null) {
                 problemiList.clear();
                 problemiList.addAll(response.problemi());
@@ -404,7 +398,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                var response = giudiceController.eliminaProblema(problemaSelezionato.getProblemaId());
+                var response = controller.eliminaProblema(problemaSelezionato.getProblemaId());
                 if (response.result()) {
                     showInfoMessage("Problema eliminato con successo!");
                     loadProblemiData();
@@ -426,7 +420,7 @@ public class GestisciProblemiGUI implements GUIHandler {
             String titolo = titoloField.getText().trim();
             String descrizione = descrizioneArea.getText().trim();
 
-            ProblemaResponse response = giudiceController.pubblicaProblema(hackathonId, titolo, descrizione);
+            ProblemaResponse response = controller.pubblicaProblema(hackathonId, titolo, descrizione);
 
             if (response.problema() != null) {
                 showInfoMessage("Problema pubblicato con successo!");

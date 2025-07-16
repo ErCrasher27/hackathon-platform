@@ -9,17 +9,8 @@ public interface ProgressoDAO {
 
     ProgressoResponse saveProgresso(Progresso progresso);
 
-    ProgressoResponse getProgressoById(int progressoId);
-
     ProgressoListResponse getProgressiByTeam(int teamId);
-
-    ProgressoListResponse getProgressiByHackathon(int hackathonId);
-
-    ProgressoResponse updateProgresso(Progresso progresso);
 
     ResponseResult deleteProgresso(int progressoId);
 
-    ProgressoListResponse getProgressiDaValutare(int giudiceId, int hackathonId);
-
-    ProgressoListResponse getProgressiRecenti(int hackathonId, int giorni);
 }

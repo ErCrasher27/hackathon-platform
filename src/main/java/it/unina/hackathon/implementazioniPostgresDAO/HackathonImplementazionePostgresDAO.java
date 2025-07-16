@@ -63,7 +63,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     }
 
     @Override
-    public HackathonListResponse getAllHackathonByOrganizzatore(int organizzatoreId) {
+    public HackathonListResponse getHackathonsByOrganizzatore(int organizzatoreId) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
                        h.data_chiusura_registrazioni, h.max_iscritti, h.max_dimensione_team, 
@@ -115,38 +115,6 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new HackathonResponse(null, "Errore durante la ricerca dell'hackathon!");
-        }
-    }
-
-    public HackathonResponse updateHackathon(Hackathon hackathon) {
-        String query = """
-                UPDATE hackathon 
-                SET titolo = ?, descrizione = ?, sede = ?, data_inizio = ?, data_fine = ?, 
-                    data_chiusura_registrazioni = ?, max_iscritti = ?, max_dimensione_team = ?
-                WHERE hackathon_id = ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setString(1, hackathon.getTitolo());
-            ps.setString(2, hackathon.getDescrizione());
-            ps.setString(3, hackathon.getSede());
-            ps.setTimestamp(4, Timestamp.valueOf(hackathon.getDataInizio()));
-            ps.setTimestamp(5, Timestamp.valueOf(hackathon.getDataFine()));
-            ps.setTimestamp(6, Timestamp.valueOf(hackathon.getDataChiusuraRegistrazioni()));
-            ps.setInt(7, hackathon.getMaxIscritti());
-            ps.setInt(8, hackathon.getMaxDimensioneTeam());
-            ps.setInt(9, hackathon.getHackathonId());
-
-            int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                return new HackathonResponse(hackathon, "Hackathon aggiornato con successo!");
-            } else {
-                return new HackathonResponse(null, "Hackathon non trovato per l'aggiornamento!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new HackathonResponse(null, "Errore durante l'aggiornamento dell'hackathon!");
         }
     }
 
@@ -206,7 +174,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     }
 
     @Override
-    public HackathonListResponse getHackathonByPartecipante(int partecipanteId) {
+    public HackathonListResponse getHackathonsByPartecipante(int partecipanteId) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
                        h.data_chiusura_registrazioni, h.max_iscritti, h.max_dimensione_team, 

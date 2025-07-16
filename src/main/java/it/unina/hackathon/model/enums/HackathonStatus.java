@@ -10,13 +10,6 @@ public enum HackathonStatus implements EnumHandler {
         this.displayName = displayName;
     }
 
-    public static HackathonStatus fromId(int id) {
-        for (HackathonStatus status : values()) {
-            if (status.id == id) return status;
-        }
-        throw new IllegalArgumentException("HackathonStatus non trovato per id: " + id);
-    }
-
     @Override
     public int getId() {
         return id;

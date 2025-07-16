@@ -17,4 +17,5 @@ public interface GUIHandler {
     default void showFrame() {
         getFrame().setVisible(true);
     }
+
 }

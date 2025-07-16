@@ -91,38 +91,6 @@ public class Progresso {
 
     // endregion
 
-    // region Business
-
-    public boolean caricaProgresso() {
-        this.dataCaricamento = LocalDateTime.now();
-        return true;
-    }
-
-    public void aggiornaDocumento(String path, String nome) {
-        if (path != null && !path.trim().isEmpty()) {
-            this.documentoPath = path.trim();
-            this.documentoNome = nome != null ? nome.trim() : "documento";
-            this.dataCaricamento = LocalDateTime.now();
-        }
-    }
-
-    public boolean hasDocumento() {
-        return documentoPath != null && !documentoPath.trim().isEmpty();
-    }
-
-    public String getDettagliCaricamento() {
-        return String.format("Documento: %s\nCaricato: %s\nPath: %s", documentoNome != null ? documentoNome : "N/A", dataCaricamento, documentoPath != null ? documentoPath : "N/A");
-    }
-
-    public boolean validaProgresso() {
-        if (teamId <= 0) {
-            return false;
-        }
-        return caricatoDaId > 0;
-    }
-
-    // endregion
-
     // region Overrides
 
     @Override
@@ -140,7 +108,7 @@ public class Progresso {
 
     @Override
     public String toString() {
-        return String.format("Progresso{id=%d, titolo='%s', team=%d, caricato=%s}", progressoId, teamId, dataCaricamento != null ? dataCaricamento.toLocalDate() : "N/A");
+        return String.format("Progresso{id=%d, team=%d, caricato=%s}", progressoId, teamId, dataCaricamento != null ? dataCaricamento.toLocalDate() : "N/A");
     }
 
     // endregion

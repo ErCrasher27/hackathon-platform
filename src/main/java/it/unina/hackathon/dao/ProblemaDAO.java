@@ -9,15 +9,8 @@ public interface ProblemaDAO {
 
     ProblemaResponse saveProblema(Problema problema);
 
-    ProblemaResponse getProblemaById(int problemaId);
-
     ProblemaListResponse getProblemiByHackathon(int hackathonId);
-
-    ProblemaListResponse getProblemiByGiudice(int giudiceId, int hackathonId);
-
-    ProblemaResponse updateProblema(Problema problema);
 
     ResponseResult deleteProblema(int problemaId);
 
-    ProblemaResponse getProblemaAttivoByHackathon(int hackathonId);
 }

@@ -5,4 +5,5 @@ public interface EnumHandler {
     int getId();
 
     String getDisplayName();
+
 }

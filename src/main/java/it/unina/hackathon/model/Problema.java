@@ -8,12 +8,11 @@ public class Problema {
     // region Proprietà
 
     private int problemaId;
-    private int hackathonId;
     private int pubblicatoDaId;
     private String titolo;
     private String descrizione;
     private LocalDateTime dataPubblicazione;
-    private Utente pubblicatoDa;
+    private GiudiceHackathon pubblicatoDa;
 
     // endregion
 
@@ -23,10 +22,9 @@ public class Problema {
         this.dataPubblicazione = LocalDateTime.now();
     }
 
-    public Problema(String titolo, String descrizione, int hackathonId, int pubblicatoDaId) {
+    public Problema(String titolo, String descrizione, int pubblicatoDaId) {
         this.titolo = titolo;
         this.descrizione = descrizione;
-        this.hackathonId = hackathonId;
         this.pubblicatoDaId = pubblicatoDaId;
     }
 
@@ -40,14 +38,6 @@ public class Problema {
 
     public void setProblemaId(int problemaId) {
         this.problemaId = problemaId;
-    }
-
-    public int getHackathonId() {
-        return hackathonId;
-    }
-
-    public void setHackathonId(int hackathonId) {
-        this.hackathonId = hackathonId;
     }
 
     public int getPubblicatoDaId() {
@@ -82,11 +72,11 @@ public class Problema {
         this.dataPubblicazione = dataPubblicazione;
     }
 
-    public Utente getPubblicatoDa() {
+    public GiudiceHackathon getPubblicatoDa() {
         return pubblicatoDa;
     }
 
-    public void setPubblicatoDa(Utente pubblicatoDa) {
+    public void setPubblicatoDa(GiudiceHackathon pubblicatoDa) {
         this.pubblicatoDa = pubblicatoDa;
     }
 
@@ -109,7 +99,7 @@ public class Problema {
 
     @Override
     public String toString() {
-        return String.format("Problema{id=%d, titolo='%s', hackathon=%d, pubblicato=%s}", problemaId, titolo, hackathonId, dataPubblicazione != null ? dataPubblicazione.toLocalDate() : "N/A");
+        return String.format("Problema{id=%d, titolo='%s', pubblicato=%s}", problemaId, titolo, dataPubblicazione != null ? dataPubblicazione.toLocalDate() : "N/A");
     }
 
     // endregion

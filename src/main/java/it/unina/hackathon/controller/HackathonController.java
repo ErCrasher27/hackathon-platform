@@ -17,6 +17,7 @@ import it.unina.hackathon.model.enums.HackathonStatus;
 import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.model.enums.StatoInvito;
 import it.unina.hackathon.model.enums.TipoUtente;
+import it.unina.hackathon.utils.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.*;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
@@ -42,8 +43,8 @@ public class HackathonController {
     // region DAO - Accesso ai Dati
     private final HackathonDAO hackathonDAO;
     private final TeamDAO teamDAO;
-    private final PartecipanteDAO partecipanteDAO;
     private final GiudiceHackathonDAO giudiceHackathonDAO;
+    private final InvitoGiudiceDAO invitoGiudiceDAO;
     private final ProblemaDAO problemaDAO;
     private final CommentoDAO commentoDAO;
     private final VotoDAO votoDAO;
@@ -64,8 +65,8 @@ public class HackathonController {
         this.utenteDAO = new UtenteImplementazionePostgresDAO();
         this.hackathonDAO = new HackathonImplementazionePostgresDAO();
         this.teamDAO = new TeamImplementazionePostgresDAO();
-        this.partecipanteDAO = new PartecipanteImplementazionePostgresDAO();
         this.giudiceHackathonDAO = new GiudiceHackathonImplementazionePostgresDAO();
+        this.invitoGiudiceDAO = new InvitoGiudiceImplementazionePostgresDAO();
         this.problemaDAO = new ProblemaImplementazionePostgresDAO();
         this.commentoDAO = new CommentoImplementazionePostgresDAO();
         this.votoDAO = new VotoImplementazionePostgresDAO();
@@ -238,11 +239,11 @@ public class HackathonController {
     /**
      * Restituisce tutti gli hackathon creati dall'organizzatore specificato.
      *
-     * @param organizzatoreId ID dell'organizzatore
+     * @param utenteId ID dell'organizzatore
      * @return lista degli hackathon dell'organizzatore
      */
-    public HackathonListResponse getHackathonOrganizzatore(int organizzatoreId) {
-        return hackathonDAO.getHackathonsByOrganizzatore(organizzatoreId);
+    public HackathonListResponse getHackathonOrganizzatore(int utenteId) {
+        return hackathonDAO.getHackathonsByOrganizzatore(utenteId);
     }
 
     /**
@@ -266,8 +267,8 @@ public class HackathonController {
      * @param hackathonId ID dell'hackathon
      * @return lista dei giudici non invitati
      */
-    public GiudiceHackathonListResponse getGiudiciNonInvitati(int hackathonId) {
-        return giudiceHackathonDAO.getGiudiciNonInvitati(hackathonId);
+    public UtenteListResponse getGiudiciNonInvitati(int hackathonId) {
+        return utenteDAO.getGiudiciNonInvitati(hackathonId);
     }
 
     /**
@@ -276,30 +277,30 @@ public class HackathonController {
      * @param hackathonId ID dell'hackathon
      * @return lista dei giudici invitati
      */
-    public GiudiceHackathonListResponse getGiudiciInvitati(int hackathonId) {
-        return giudiceHackathonDAO.getGiudiciInvitati(hackathonId);
+    public UtenteListResponse getGiudiciInvitati(int hackathonId) {
+        return utenteDAO.getGiudiciInvitati(hackathonId);
     }
 
     /**
      * Invia un invito a un giudice per partecipare come valutatore.
      *
+     * @param utenteId    ID del giudice da invitare
      * @param hackathonId ID dell'hackathon
-     * @param giudiceId   ID del giudice da invitare
      * @return esito dell'operazione
      */
-    public ResponseResult invitaGiudice(int hackathonId, int giudiceId) {
-        return giudiceHackathonDAO.invitaGiudice(hackathonId, giudiceId, getIdUtenteCorrente());
+    public ResponseResult invitaGiudice(int utenteId, int hackathonId) {
+        return invitoGiudiceDAO.inviaInvito(getIdUtenteCorrente(), utenteId, hackathonId);
     }
 
     /**
-     * Rimuove l'invito a un giudice.
+     * Prendi il giudice hackathon dato l'utente e l'hackathon
      *
      * @param hackathonId ID dell'hackathon
-     * @param giudiceId   ID del giudice
-     * @return esito dell'operazione
+     * @param utenteId    ID dell'utente
+     * @return giudice hackathon
      */
-    public ResponseResult rimuoviInvitoGiudice(int hackathonId, int giudiceId) {
-        return giudiceHackathonDAO.rimuoviInvito(hackathonId, giudiceId);
+    public GiudiceHackathonResponse getGiudiceHackathonByUtenteHackathon(int utenteId, int hackathonId) {
+        return giudiceHackathonDAO.getGiudiceHackathonByUtenteHackathon(utenteId, hackathonId);
     }
 
     /**
@@ -323,7 +324,7 @@ public class HackathonController {
      * @return lista dei partecipanti
      */
     public UtenteListResponse getPartecipantiHackathon(int hackathonId) {
-        return partecipanteDAO.getPartecipantiByHackathon(hackathonId);
+        return utenteDAO.getPartecipantiByHackathon(hackathonId);
     }
 
     /**
@@ -343,8 +344,19 @@ public class HackathonController {
      * @return numero di partecipanti registrati
      */
     public ResponseIntResult contaPartecipantiRegistrati(int hackathonId) {
-        return partecipanteDAO.contaPartecipantiRegistrati(hackathonId);
+        return utenteDAO.contaPartecipantiRegistrati(hackathonId);
     }
+
+    /**
+     * Conta i membri presenti nel team.
+     *
+     * @param teamId ID del team
+     * @return numero di membri del team
+     */
+    public ResponseIntResult contaNumeroMembri(int teamId) {
+        return teamDAO.contaNumeroMembri(teamId);
+    }
+
 
     /**
      * Conta i team formati nell'hackathon.
@@ -353,18 +365,29 @@ public class HackathonController {
      * @return numero di team formati
      */
     public ResponseIntResult contaTeamFormati(int hackathonId) {
-        return partecipanteDAO.contaTeamFormati(hackathonId);
+        return teamDAO.contaTeamFormati(hackathonId);
     }
 
     /**
      * Restituisce il team di un partecipante specifico.
      *
-     * @param partecipanteId ID del partecipante
-     * @param hackathonId    ID dell'hackathon
+     * @param utenteId    ID del partecipante
+     * @param hackathonId ID dell'hackathon
      * @return team del partecipante
      */
-    public TeamResponse getTeamPartecipante(int partecipanteId, int hackathonId) {
-        return teamDAO.getTeamByPartecipanteHackathon(partecipanteId, hackathonId);
+    public TeamResponse getTeamPartecipante(int utenteId, int hackathonId) {
+        return teamDAO.getTeamByPartecipanteHackathon(utenteId, hackathonId);
+    }
+
+
+    /**
+     * Restituisce il team di un membro del team specifico.
+     *
+     * @param membroTeamId ID del membro team
+     * @return team del membro team
+     */
+    public TeamResponse getTeamByMembroTeam(int membroTeamId) {
+        return teamDAO.getTeamByMembroTeam(membroTeamId);
     }
 
     // endregion
@@ -376,28 +399,37 @@ public class HackathonController {
      *
      * @return lista degli inviti ricevuti
      */
-    public GiudiceHackathonListResponse getInvitiGiudiceRicevuti() {
-        return giudiceHackathonDAO.getInvitiRicevuti(getIdUtenteCorrente());
+    public InvitoGiudiceListResponse getInvitiGiudiceRicevuti() {
+        return invitoGiudiceDAO.getInvitiRicevuti(getIdUtenteCorrente());
+    }
+
+    /**
+     * Restituisce l'invito ricevuto dall'utente dell'hackathon.
+     *
+     * @return invito ricevuto
+     */
+    public InvitoGiudiceResponse getInvitoByInvitatoHackathon(int utenteId, int hackathonId) {
+        return invitoGiudiceDAO.getInvitoByInvitatoHackathon(utenteId, hackathonId);
     }
 
     /**
      * Accetta un invito da giudice.
      *
-     * @param giudiceHackathonId ID dell'invito
+     * @param invitoGiudiceId ID dell'invito
      * @return esito dell'operazione
      */
-    public ResponseResult accettaInvitoGiudice(int giudiceHackathonId) {
-        return giudiceHackathonDAO.rispondiInvito(giudiceHackathonId, StatoInvito.ACCEPTED);
+    public ResponseResult accettaInvitoGiudice(int invitoGiudiceId) {
+        return invitoGiudiceDAO.rispondiInvito(invitoGiudiceId, StatoInvito.ACCEPTED);
     }
 
     /**
      * Rifiuta un invito da giudice.
      *
-     * @param giudiceHackathonId ID dell'invito
+     * @param invitoGiudiceId ID dell'invito
      * @return esito dell'operazione
      */
-    public ResponseResult rifiutaInvitoGiudice(int giudiceHackathonId) {
-        return giudiceHackathonDAO.rispondiInvito(giudiceHackathonId, StatoInvito.DECLINED);
+    public ResponseResult rifiutaInvitoGiudice(int invitoGiudiceId) {
+        return invitoGiudiceDAO.rispondiInvito(invitoGiudiceId, StatoInvito.DECLINED);
     }
 
     // endregion
@@ -430,13 +462,12 @@ public class HackathonController {
     /**
      * Pubblica un nuovo problema nell'hackathon.
      *
-     * @param hackathonId ID dell'hackathon
      * @param titolo      titolo del problema
      * @param descrizione descrizione del problema
      * @return risposta contenente il problema pubblicato
      */
-    public ProblemaResponse pubblicaProblema(int hackathonId, String titolo, String descrizione) {
-        Problema nuovoProblema = new Problema(titolo, descrizione, hackathonId, getIdUtenteCorrente());
+    public ProblemaResponse pubblicaProblema(int giudiceHackathonId, String titolo, String descrizione) {
+        Problema nuovoProblema = new Problema(titolo, descrizione, giudiceHackathonId);
         return problemaDAO.saveProblema(nuovoProblema);
     }
 
@@ -481,8 +512,8 @@ public class HackathonController {
      * @param testoCommento testo del commento
      * @return risposta contenente il commento creato
      */
-    public CommentoResponse scriviCommento(int progressoId, String testoCommento) {
-        Commento nuovoCommento = new Commento(progressoId, getIdUtenteCorrente(), testoCommento);
+    public CommentoResponse scriviCommento(int giudiceHackathonId, int progressoId, String testoCommento) {
+        Commento nuovoCommento = new Commento(progressoId, giudiceHackathonId, testoCommento);
         return commentoDAO.saveCommento(nuovoCommento);
     }
 
@@ -503,13 +534,12 @@ public class HackathonController {
     /**
      * Assegna un voto a un team.
      *
-     * @param hackathonId ID dell'hackathon
-     * @param teamId      ID del team
-     * @param valoreVoto  valore del voto (0-10)
+     * @param teamId     ID del team
+     * @param valoreVoto valore del voto (0-10)
      * @return risposta contenente il voto assegnato
      */
-    public VotoResponse assegnaVoto(int hackathonId, int teamId, int valoreVoto) {
-        Voto nuovoVoto = new Voto(hackathonId, teamId, getIdUtenteCorrente(), valoreVoto);
+    public VotoResponse assegnaVoto(int giudiceHackathonId, int valoreVoto, int teamId) {
+        Voto nuovoVoto = new Voto(teamId, giudiceHackathonId, valoreVoto);
 
         if (!nuovoVoto.validaVoto()) {
             return new VotoResponse(null, "Voto non valido! Il valore deve essere compreso tra 0 e 10.");
@@ -521,12 +551,11 @@ public class HackathonController {
     /**
      * Restituisce il voto assegnato a un team dal giudice corrente.
      *
-     * @param hackathonId ID dell'hackathon
-     * @param teamId      ID del team
+     * @param teamId ID del team
      * @return voto assegnato
      */
-    public VotoResponse getVotoTeam(int hackathonId, int teamId) {
-        return votoDAO.getVotoByGiudiceTeamHackathon(getIdUtenteCorrente(), teamId, hackathonId);
+    public VotoResponse getVotoTeam(int teamId) {
+        return votoDAO.getVotoByGiudiceTeamHackathon(getIdUtenteCorrente(), teamId);
     }
 
     /**
@@ -555,11 +584,11 @@ public class HackathonController {
     /**
      * Restituisce gli hackathon ai quali è registrato un partecipante.
      *
-     * @param partecipanteId ID del partecipante
+     * @param utenteId ID del partecipante
      * @return lista degli hackathon del partecipante
      */
-    public HackathonListResponse getHackathonPartecipante(int partecipanteId) {
-        return hackathonDAO.getHackathonsByPartecipante(partecipanteId);
+    public HackathonListResponse getHackathonPartecipante(int utenteId) {
+        return hackathonDAO.getHackathonsByPartecipante(utenteId);
     }
 
     /**
@@ -569,7 +598,7 @@ public class HackathonController {
      * @return esito dell'operazione
      */
     public ResponseResult registratiHackathon(int hackathonId) {
-        return partecipanteDAO.registratiAdHackathon(hackathonId, getIdUtenteCorrente());
+        return utenteDAO.registratiAdHackathon(getIdUtenteCorrente(), hackathonId);
     }
 
     /**
@@ -579,7 +608,7 @@ public class HackathonController {
      * @return esito dell'operazione
      */
     public ResponseResult annullaRegistrazione(int hackathonId) {
-        return partecipanteDAO.annullaRegistrazione(hackathonId, getIdUtenteCorrente());
+        return utenteDAO.annullaRegistrazione(getIdUtenteCorrente(), hackathonId);
     }
 
     // endregion
@@ -612,19 +641,18 @@ public class HackathonController {
      * @return esito dell'operazione
      */
     public ResponseResult abbandonaTeam(int teamId) {
-        return teamDAO.rimuoviMembro(teamId, getIdUtenteCorrente());
+        return teamDAO.rimuoviMembro(getIdUtenteCorrente(), teamId);
     }
 
     /**
      * Invia un invito a un utente per unirsi al team.
      *
-     * @param teamId    ID del team
      * @param utenteId  ID dell'utente da invitare
      * @param messaggio messaggio dell'invito
      * @return esito dell'operazione
      */
-    public ResponseResult invitaUtenteInTeam(int teamId, int utenteId, String messaggio) {
-        return invitoTeamDAO.inviaInvito(teamId, utenteId, getIdUtenteCorrente(), messaggio);
+    public ResponseResult invitaUtenteInTeam(int utenteId, String messaggio) {
+        return invitoTeamDAO.inviaInvito(getIdUtenteCorrente(), utenteId, messaggio);
     }
 
     // endregion
@@ -644,11 +672,11 @@ public class HackathonController {
     /**
      * Rimuove un membro dal team.
      *
-     * @param membroId ID del membro
+     * @param membroTeamId ID del membro
      * @return esito dell'operazione
      */
-    public ResponseResult rimuoviMembroTeam(int membroId) {
-        return membroTeamDAO.deleteMembro(membroId);
+    public ResponseResult rimuoviMembroTeam(int membroTeamId) {
+        return membroTeamDAO.deleteMembro(membroTeamId);
     }
 
     /**
@@ -669,21 +697,22 @@ public class HackathonController {
     /**
      * Restituisce gli inviti ricevuti dal partecipante.
      *
+     * @param hackathonId ID dell'hackathon
      * @return lista degli inviti ricevuti
      */
-    public InvitoTeamListResponse getInvitiTeamRicevuti() {
-        return invitoTeamDAO.getInvitiRicevuti(getIdUtenteCorrente());
+    public InvitoTeamListResponse getInvitiTeamRicevuti(int hackathonId) {
+        return invitoTeamDAO.getInvitiRicevuti(getIdUtenteCorrente(), hackathonId);
     }
 
     /**
      * Risponde a un invito per un team.
      *
-     * @param invitoId ID dell'invito
-     * @param risposta risposta all'invito (ACCETTATO/RIFIUTATO)
+     * @param invitoTeamId ID dell'invito team
+     * @param risposta     risposta all'invito (ACCETTATO/RIFIUTATO)
      * @return esito dell'operazione
      */
-    public ResponseResult rispondiInvitoTeam(int invitoId, StatoInvito risposta) {
-        return invitoTeamDAO.rispondiInvito(invitoId, risposta);
+    public ResponseResult rispondiInvitoTeam(int invitoTeamId, StatoInvito risposta) {
+        return invitoTeamDAO.rispondiInvito(invitoTeamId, risposta);
     }
 
     // endregion
@@ -696,8 +725,8 @@ public class HackathonController {
      * @param urlDocumento URL del documento
      * @return risposta contenente il progresso caricato
      */
-    public ProgressoResponse caricaProgresso(int teamId, String urlDocumento) {
-        Progresso nuovoProgresso = new Progresso(teamId, urlDocumento);
+    public ProgressoResponse caricaProgresso(String urlDocumento) {
+        Progresso nuovoProgresso = new Progresso(urlDocumento);
         nuovoProgresso.setCaricatoDaId(getIdUtenteCorrente());
         return progressoDAO.saveProgresso(nuovoProgresso);
     }
@@ -723,7 +752,7 @@ public class HackathonController {
      * @return lista dei partecipanti disponibili
      */
     public UtenteListResponse getPartecipantiDisponibili(int hackathonId) {
-        return partecipanteDAO.getPartecipantiSenzaTeam(hackathonId);
+        return utenteDAO.getPartecipantiSenzaTeam(hackathonId);
     }
 
     // endregion

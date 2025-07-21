@@ -1,6 +1,7 @@
 package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.ProblemaDAO;
+import it.unina.hackathon.model.GiudiceHackathon;
 import it.unina.hackathon.model.Problema;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.TipoUtente;
@@ -27,16 +28,14 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
     @Override
     public ProblemaResponse saveProblema(Problema problema) {
         String query = """
-                INSERT INTO problema (hackathon_id, titolo, descrizione, data_pubblicazione, pubblicato_da) 
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO problema (pubblicato_da, titolo, descrizione) 
+                VALUES (?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, problema.getHackathonId());
+            ps.setInt(1, problema.getPubblicatoDaId());
             ps.setString(2, problema.getTitolo());
             ps.setString(3, problema.getDescrizione());
-            ps.setTimestamp(4, Timestamp.valueOf(problema.getDataPubblicazione()));
-            ps.setInt(5, problema.getPubblicatoDaId());
 
             int affectedRows = ps.executeUpdate();
 
@@ -58,12 +57,14 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
     @Override
     public ProblemaListResponse getProblemiByHackathon(int hackathonId) {
         String query = """
-                SELECT p.problema_id, p.hackathon_id, p.titolo, p.descrizione, 
-                       p.data_pubblicazione, p.pubblicato_da,
-                       u.nome, u.cognome, u.username, u.email
+                SELECT p.problema_id, p.pubblicato_da, p.titolo, p.descrizione, 
+                       p.data_pubblicazione,
+                       u.nome, u.cognome, u.username, u.email, u.utente_id,
+                       gh.giudice_hackathon_id, gh.hackathon_id
                 FROM problema p
-                JOIN utenti u ON p.pubblicato_da = u.utente_id
-                WHERE p.hackathon_id = ?
+                JOIN giudici_hackathon gh ON p.pubblicato_da = gh.giudice_hackathon_id
+                JOIN utenti u ON gh.giudice_id = u.utente_id
+                WHERE gh.hackathon_id = ?
                 ORDER BY p.data_pubblicazione DESC
                 """;
 
@@ -76,10 +77,10 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
             while (rs.next()) {
                 problemi.add(mapResultSetToProblema(rs));
             }
-            return new ProblemaListResponse(problemi, "Problemi dell'hackathon caricati con successo!");
+            return new ProblemaListResponse(problemi, "Problemi dell'hackathon caricati!");
         } catch (SQLException e) {
             e.printStackTrace();
-            return new ProblemaListResponse(null, "Errore durante il caricamento dei problemi!");
+            return new ProblemaListResponse(null, "Errore durante il caricamento!");
         }
     }
 
@@ -106,17 +107,20 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
     private Problema mapResultSetToProblema(ResultSet rs) throws SQLException {
         Problema problema = new Problema();
         problema.setProblemaId(rs.getInt("problema_id"));
-        problema.setHackathonId(rs.getInt("hackathon_id"));
         problema.setTitolo(rs.getString("titolo"));
         problema.setDescrizione(rs.getString("descrizione"));
         problema.setDataPubblicazione(rs.getTimestamp("data_pubblicazione").toLocalDateTime());
         problema.setPubblicatoDaId(rs.getInt("pubblicato_da"));
 
         // Mappa il giudice che ha pubblicato
-        Utente pubblicatoDa = new Utente(rs.getString("username"), rs.getString("email"), "", // Password non esposta
-                rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
-        pubblicatoDa.setUtenteId(rs.getInt("pubblicato_da"));
-        problema.setPubblicatoDa(pubblicatoDa);
+        Utente pubblicatoDaUtente = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
+        pubblicatoDaUtente.setUtenteId(rs.getInt("utente_id"));
+
+        GiudiceHackathon pubblicatoDaGiudiceHackathon = new GiudiceHackathon();
+        pubblicatoDaGiudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
+        pubblicatoDaGiudiceHackathon.setGiudice(pubblicatoDaUtente);
+        pubblicatoDaGiudiceHackathon.setHackathonId(rs.getInt("hackathon_id"));
+        problema.setPubblicatoDa(pubblicatoDaGiudiceHackathon);
 
         return problema;
     }

@@ -145,70 +145,6 @@ VALUES (5, 'GameDev Marathon',
 -- REGISTRAZIONI_APERTE
 
 -- ==================================================
--- CREAZIONE PROBLEMI PER ALCUNI HACKATHON
--- ==================================================
-
-BEGIN;
-
--- DISABILITA TEMPORANEAMENTE I TRIGGER
-ALTER TABLE problema DISABLE TRIGGER ALL;
-
-INSERT INTO problema (hackathon_id, titolo, descrizione, pubblicato_da)
-VALUES (1, 'Riconoscimento Automatico Emozioni',
-        'Sviluppare un sistema AI che riconosca le emozioni umane da video in tempo reale', 1),
-       (1, 'Assistente Virtuale Intelligente', 'Creare un chatbot che possa aiutare gli studenti universitari', 1),
-       (2, 'DeFi Lending Platform', 'Sviluppare una piattaforma di prestiti decentralizzata su blockchain', 2),
-       (3, 'Smart Recycling System', 'Sistema IoT per ottimizzare la raccolta differenziata', 3);
-
--- RIABILITA I TRIGGER
-ALTER TABLE problema ENABLE TRIGGER ALL;
-
--- ==================================================
--- INVITI GIUDICI
--- ==================================================
-
-BEGIN;
-
--- DISABILITA TEMPORANEAMENTE I TRIGGER
-ALTER TABLE giudici_hackathon DISABLE TRIGGER ALL;
-
--- Hackathon 1 (TERMINATO) - tutti accettati
-INSERT INTO giudici_hackathon (hackathon_id, giudice_id, invitato_da, stato_invito_id)
-VALUES (1, 6, 1, 2), -- prof.ferrari - ACCEPTED
-       (1, 7, 1, 2), -- prof.russo - ACCEPTED
-       (1, 8, 1, 2), -- prof.romano - ACCEPTED
-       (1, 11, 1, 2);
--- dott.fontana - ACCEPTED
-
--- Hackathon 2 (IN_CORSO) - misti
-INSERT INTO giudici_hackathon (hackathon_id, giudice_id, invitato_da, stato_invito_id)
-VALUES (2, 6, 2, 2),  -- prof.ferrari - ACCEPTED
-       (2, 9, 2, 2),  -- prof.gallo - ACCEPTED
-       (2, 12, 2, 1), -- dott.ricci - PENDING
-       (2, 13, 2, 2);
--- ing.lombardi - ACCEPTED
-
--- Hackathon 3 (REGISTRAZIONI_CHIUSE) - alcuni pending
-INSERT INTO giudici_hackathon (hackathon_id, giudice_id, invitato_da, stato_invito_id)
-VALUES (3, 7, 3, 2),  -- prof.russo - ACCEPTED
-       (3, 10, 3, 1), -- prof.costa - PENDING
-       (3, 14, 3, 2), -- ing.moretti - ACCEPTED
-       (3, 15, 3, 3);
--- arch.barbieri - DECLINED
-
--- Hackathon 4 (REGISTRAZIONI_APERTE) - tutti pending
-INSERT INTO giudici_hackathon (hackathon_id, giudice_id, invitato_da, stato_invito_id)
-VALUES (4, 6, 4, 1), -- prof.ferrari - PENDING
-       (4, 8, 4, 1), -- prof.romano - PENDING
-       (4, 11, 4, 1);
--- dott.fontana - PENDING
-
--- RIABILITA I TRIGGER
-ALTER TABLE giudici_hackathon ENABLE TRIGGER ALL;
-
-COMMIT;
-
--- ==================================================
 -- CREAZIONE TEAM
 -- ==================================================
 
@@ -237,7 +173,7 @@ INSERT INTO team (nome, hackathon_id, definitivo)
 VALUES ('Health Hackers', 4, false),
        ('MedTech Mavens', 4, false);
 
--- Team per Hackathon 5 (REGISTRAZIONI_APERTE - quasi pieno)
+-- Team per Hackathon 5 (REGISTRAZIONI_APERTE)
 INSERT INTO team (nome, hackathon_id, definitivo)
 VALUES ('Pixel Pirates', 5, false),
        ('Game Changers', 5, false),
@@ -273,6 +209,7 @@ VALUES (16, 1, 1),
        (29, 1, 4),
        (30, 1, 4);
 
+-- Alcuni utenti registrati ma senza team
 INSERT INTO registrazioni (utente_id, hackathon_id)
 VALUES (31, 1),
        (32, 1);
@@ -306,6 +243,7 @@ VALUES (33, 2, 5),
        (40, 2, 8),
        (41, 2, 8);
 
+-- Alcuni utenti registrati ma senza team
 INSERT INTO registrazioni (utente_id, hackathon_id)
 VALUES (42, 2),
        (43, 2),
@@ -399,43 +337,89 @@ ALTER TABLE membri_team ENABLE TRIGGER ALL;
 COMMIT;
 
 -- ==================================================
--- INVITI TEAM
+-- ASSEGNAZIONE GIUDICI AGLI HACKATHON
+-- ==================================================
+
+-- Assegnazione diretta giudici (senza inviti per semplicità)
+INSERT INTO giudici_hackathon (hackathon_id, giudice_id)
+VALUES
+-- Hackathon 1 (TERMINATO)
+(1, 6),
+(1, 7),
+(1, 8),
+(1, 11),
+-- Hackathon 2 (IN_CORSO)
+(2, 6),
+(2, 9),
+(2, 13),
+-- Hackathon 3 (REGISTRAZIONI_CHIUSE)
+(3, 7),
+(3, 14),
+-- Hackathon 4 (REGISTRAZIONI_APERTE)
+(4, 6),
+(4, 8),
+(4, 11);
+
+-- ==================================================
+-- INVITI GIUDICI (NUOVA TABELLA)
+-- ==================================================
+
+-- Inviti per giudicare hackathon (gestiti separatamente)
+INSERT INTO inviti_giudice (invitante_id, invitato_id, hackathon_id, stato_invito_id, data_invito)
+VALUES
+-- Hackathon 1 (tutti accettati)
+(1, 6, 1, 2, '2024-11-01 10:00:00'),
+(1, 7, 1, 2, '2024-11-01 10:15:00'),
+(1, 8, 1, 2, '2024-11-01 10:30:00'),
+(1, 11, 1, 2, '2024-11-01 11:00:00'),
+
+-- Hackathon 2 (misti)
+(2, 6, 2, 2, CURRENT_DATE - INTERVAL '5 days'),
+(2, 9, 2, 2, CURRENT_DATE - INTERVAL '5 days'),
+(2, 12, 2, 1, CURRENT_DATE - INTERVAL '3 days'), -- PENDING
+(2, 13, 2, 2, CURRENT_DATE - INTERVAL '4 days'),
+
+-- Hackathon 3 (alcuni pending/declined)
+(3, 7, 3, 2, CURRENT_DATE - INTERVAL '2 days'),
+(3, 10, 3, 1, CURRENT_DATE - INTERVAL '2 days'), -- PENDING
+(3, 14, 3, 2, CURRENT_DATE - INTERVAL '2 days'),
+(3, 15, 3, 3, CURRENT_DATE - INTERVAL '2 days'), -- DECLINED
+
+-- Hackathon 4 (tutti pending)
+(4, 6, 4, 1, CURRENT_DATE - INTERVAL '1 day'),
+(4, 8, 4, 1, CURRENT_DATE - INTERVAL '1 day'),
+(4, 11, 4, 1, CURRENT_DATE - INTERVAL '1 day');
+
+-- ==================================================
+-- PROBLEMI PUBBLICATI DAI GIUDICI
 -- ==================================================
 
 BEGIN;
 
 -- DISABILITA TEMPORANEAMENTE I TRIGGER
-ALTER TABLE inviti_team DISABLE TRIGGER ALL;
+ALTER TABLE problema DISABLE TRIGGER ALL;
 
--- Inviti per Hackathon 2 (IN_CORSO)
--- Team 6 cerca un terzo membro
-INSERT INTO inviti_team (team_id, invitante_id, invitato_id, messaggio_motivazionale, stato_invito_id)
-VALUES (6, 19, 25, 'Ciao! Stiamo cercando un esperto di smart contracts, ti va di unirti?', 1), -- PENDING
-       (6, 19, 26, 'Abbiamo bisogno di un developer React per il frontend!', 3);
--- DECLINED
+-- I problemi ora sono pubblicati da giudici_hackathon_id
+INSERT INTO problema (pubblicato_da, titolo, descrizione, data_pubblicazione)
+VALUES
+-- Hackathon 1 (giudice_hackathon_id: 1-4)
+(1, 'Riconoscimento Automatico Emozioni',
+ 'Sviluppare un sistema AI che riconosca le emozioni umane da video in tempo reale',
+ '2024-11-15 10:30:00'),
+(2, 'Assistente Virtuale Intelligente',
+ 'Creare un chatbot che possa aiutare gli studenti universitari nelle loro attività quotidiane',
+ '2024-11-15 11:00:00'),
 
--- Team 7 cerca membri
-INSERT INTO inviti_team (team_id, invitante_id, invitato_id, messaggio_motivazionale, stato_invito_id)
-VALUES (7, 21, 25, 'Stiamo costruendo una DeFi app innovativa, unisciti a noi!', 1), -- PENDING
-       (7, 21, 27, 'Cerchiamo sviluppatori appassionati di blockchain', 1);
--- PENDING
-
--- Inviti per Hackathon 3 (REGISTRAZIONI_CHIUSE)
--- Team 9 cerca di completarsi
-INSERT INTO inviti_team (team_id, invitante_id, invitato_id, messaggio_motivazionale, stato_invito_id)
-VALUES (9, 28, 31, 'Unisciti ai Green Innovators!', 2),                -- ACCEPTED (ma non ancora nel team per test)
-       (9, 28, 32, 'Cerchiamo esperti IoT per il nostro progetto', 1), -- PENDING
-       (9, 28, 33, 'Ti interessa la sostenibilità? Vieni con noi!', 1);
--- PENDING
-
--- Inviti per Hackathon 4
-INSERT INTO inviti_team (team_id, invitante_id, invitato_id, messaggio_motivazionale, stato_invito_id)
-VALUES (12, 36, 38, 'Stiamo sviluppando una app per la telemedicina', 1), -- PENDING
-       (12, 36, 39, 'Cerchiamo un data scientist per analisi mediche', 2);
--- ACCEPTED
+-- Hackathon 2 (giudice_hackathon_id: 5-7)
+(5, 'DeFi Lending Platform',
+ 'Sviluppare una piattaforma di prestiti decentralizzata su blockchain Ethereum',
+ CURRENT_DATE - INTERVAL '1 day' + TIME '10:00:00'),
+(6, 'NFT Marketplace con Royalties',
+ 'Marketplace per NFT con sistema automatico di royalties per i creatori',
+ CURRENT_DATE - INTERVAL '1 day' + TIME '11:30:00');
 
 -- RIABILITA I TRIGGER
-ALTER TABLE inviti_team ENABLE TRIGGER ALL;
+ALTER TABLE problema ENABLE TRIGGER ALL;
 
 COMMIT;
 
@@ -448,26 +432,23 @@ BEGIN;
 -- DISABILITA TEMPORANEAMENTE I TRIGGER
 ALTER TABLE progressi DISABLE TRIGGER ALL;
 
--- Progressi Hackathon 1 (TERMINATO)
-INSERT INTO progressi (team_id, documento_path, documento_nome, caricato_da)
-VALUES (1, '/uploads/h1/team1/architecture.pdf', 'architecture.pdf', 16),
-       (1, '/uploads/h1/team1/prototype_v1.zip', 'prototype_v1.zip', 17),
-       (1, '/uploads/h1/team1/presentation.pptx', 'AI_Wizards_Final.pptx', 16),
-       (2, '/uploads/h1/team2/ml_model.zip', 'neural_network_model.zip', 20),
-       (2, '/uploads/h1/team2/demo.mp4', 'chatbot_demo.mp4', 21),
-       (3, '/uploads/h1/team3/research.pdf', 'deep_learning_research.pdf', 24),
-       (4, '/uploads/h1/team4/source.zip', 'ml_masters_source.zip', 27);
+-- I progressi ora sono caricati da membro_team_id
+INSERT INTO progressi (caricato_da, documento_path, documento_nome, data_caricamento)
+VALUES
+-- Hackathon 1 (TERMINATO) - usando membro_team_id
+(1, '/uploads/h1/team1/architecture.pdf', 'AI_Architecture_v1.pdf', '2024-11-15 14:30:00'),
+(2, '/uploads/h1/team1/prototype_v1.zip', 'emotion_recognition_proto.zip', '2024-11-15 18:45:00'),
+(1, '/uploads/h1/team1/presentation.pptx', 'AI_Wizards_Final_Pitch.pptx', '2024-11-16 16:30:00'),
+(5, '/uploads/h1/team2/ml_model.zip', 'neural_network_model_v2.zip', '2024-11-15 20:15:00'),
+(6, '/uploads/h1/team2/demo.mp4', 'chatbot_demo_interactive.mp4', '2024-11-16 12:20:00'),
+(9, '/uploads/h1/team3/research.pdf', 'deep_learning_research_paper.pdf', '2024-11-16 10:00:00'),
+(13, '/uploads/h1/team4/source.zip', 'ml_masters_complete_source.zip', '2024-11-16 15:45:00'),
 
--- Progressi Hackathon 2 (IN_CORSO)
-INSERT INTO progressi (team_id, documento_path, documento_nome, caricato_da)
-VALUES (5, '/uploads/h2/team5/contract.sol',
-        'lending_contract.sol', 16),
-       (5, '/uploads/h2/team5/frontend.zip', 'dapp_frontend.zip',
-        17),
-       (6, '/uploads/h2/team6/whitepaper.pdf',
-        'crypto_crusaders_wp.pdf', 19),
-       (8, '/uploads/h2/team8/audit.pdf', 'security_audit.pdf',
-        22);
+-- Hackathon 2 (IN_CORSO)
+(17, '/uploads/h2/team5/contract.sol', 'lending_smart_contract.sol', CURRENT_DATE - INTERVAL '4 hours'),
+(18, '/uploads/h2/team5/frontend.zip', 'dapp_react_frontend.zip', CURRENT_DATE - INTERVAL '2 hours'),
+(21, '/uploads/h2/team6/whitepaper.pdf', 'crypto_crusaders_whitepaper.pdf', CURRENT_DATE - INTERVAL '6 hours'),
+(25, '/uploads/h2/team8/audit.pdf', 'smart_contract_security_audit.pdf', CURRENT_DATE - INTERVAL '3 hours');
 
 -- RIABILITA I TRIGGER
 ALTER TABLE progressi ENABLE TRIGGER ALL;
@@ -478,56 +459,111 @@ COMMIT;
 -- COMMENTI DEI GIUDICI
 -- ==================================================
 
+-- I commenti ora usano giudice_hackathon_id
+INSERT INTO commenti (progresso_id, giudice_hackathon_id, testo, data_commento)
+VALUES
 -- Commenti Hackathon 1 (TERMINATO)
-INSERT INTO commenti (progresso_id, giudice_id, testo)
-VALUES (1, 6, 'Ottima architettura, ben strutturata e scalabile. Complimenti per l''approccio modulare.'),
-       (1, 7, 'Mi piace l''uso dei design pattern. Suggerirei di documentare meglio le API.'),
-       (2, 6, 'Il prototipo funziona bene! Performance da migliorare ma l''idea è solida.'),
-       (2, 8, 'Impressionante per essere una prima versione. Il riconoscimento è accurato.'),
-       (3, 6, 'Presentazione chiara e coinvolgente. Ottimo lavoro di team!'),
-       (4, 7, 'Approccio innovativo al training del modello. Dataset ben curato.'),
-       (5, 8, 'Demo efficace, mostra bene le potenzialità del chatbot.'),
-       (6, 11, 'Research di alto livello, pubblicabile su conference internazionali.');
+(1, 1, 'Ottima architettura, ben strutturata e scalabile. Complimenti per l''approccio modulare ai microservizi.',
+ '2024-11-15 15:00:00'),
+(1, 2, 'Mi piace l''uso dei design pattern. Suggerirei di documentare meglio le API e aggiungere più test unitari.',
+ '2024-11-15 15:30:00'),
+(2, 1, 'Il prototipo funziona bene! Performance da migliorare ma l''idea è solida e innovativa.',
+ '2024-11-15 19:00:00'),
+(2, 3, 'Impressionante per essere una prima versione. Il riconoscimento emotivo è sorprendentemente accurato.',
+ '2024-11-15 19:15:00'),
+(3, 1, 'Presentazione chiara e coinvolgente. Ottimo lavoro di team e comunicazione efficace!', '2024-11-16 17:00:00'),
+(4, 2, 'Approccio innovativo al training del modello. Dataset ben curato e preprocessing accurato.',
+ '2024-11-15 20:30:00'),
+(5, 3, 'Demo molto efficace, mostra bene le potenzialità del chatbot universitario.', '2024-11-16 12:45:00'),
+(6, 4, 'Research di alto livello, potenzialmente pubblicabile su conference internazionali di settore.',
+ '2024-11-16 10:30:00'),
 
 -- Commenti Hackathon 2 (IN_CORSO)
-INSERT INTO commenti (progresso_id, giudice_id, testo)
-VALUES (8, 6, 'Smart contract ben scritto, attenzione alle gas fees.'),
-       (9, 9, 'UI/UX molto intuitiva, ottimo lavoro sul frontend!'),
-       (10, 13, 'Whitepaper completo e dettagliato. Tokenomics da rivedere.');
+(8, 5, 'Smart contract ben scritto e sicuro. Attenzione alle gas fees e ottimizzazioni possibili.',
+ CURRENT_DATE - INTERVAL '3 hours'),
+(9, 5, 'UI/UX molto intuitiva per una DApp. Ottimo lavoro sul design del frontend!', CURRENT_DATE - INTERVAL '1 hour'),
+(10, 6, 'Whitepaper completo e dettagliato. Tokenomics interessante ma da approfondire ulteriormente.',
+ CURRENT_DATE - INTERVAL '5 hours');
 
 -- ==================================================
 -- VOTI (solo per team definitivi)
 -- ==================================================
 
--- Voti Hackathon 1 (TERMINATO) - tutti i team sono votabili
-INSERT INTO voti (hackathon_id, team_id, giudice_id, valore)
-VALUES (1, 1, 6, 9),
-       (1, 1, 7, 8),
-       (1, 1, 8, 9),
-       (1, 1, 11, 10),
-       (1, 2, 6, 7),
-       (1, 2, 7, 8),
-       (1, 2, 8, 7),
-       (1, 2, 11, 8),
-       (1, 3, 6, 8),
-       (1, 3, 7, 9),
-       (1, 3, 8, 8),
-       (1, 3, 11, 7),
-       (1, 4, 6, 10),
-       (1, 4, 7, 9),
-       (1, 4, 8, 10),
-       (1, 4, 11, 9);
+-- I voti ora usano giudice_hackathon_id e non hanno hackathon_id
+INSERT INTO voti (team_id, giudice_hackathon_id, valore, data_voto)
+VALUES
+-- Hackathon 1 (TERMINATO) - tutti i team sono definitivi e votabili
+(1, 1, 9, '2024-11-16 18:00:00'),
+(1, 2, 8, '2024-11-16 18:00:00'),
+(1, 3, 9, '2024-11-16 18:00:00'),
+(1, 4, 10, '2024-11-16 18:00:00'),
+(2, 1, 7, '2024-11-16 18:00:00'),
+(2, 2, 8, '2024-11-16 18:00:00'),
+(2, 3, 7, '2024-11-16 18:00:00'),
+(2, 4, 8, '2024-11-16 18:00:00'),
+(3, 1, 8, '2024-11-16 18:00:00'),
+(3, 2, 9, '2024-11-16 18:00:00'),
+(3, 3, 8, '2024-11-16 18:00:00'),
+(3, 4, 7, '2024-11-16 18:00:00'),
+(4, 1, 10, '2024-11-16 18:00:00'),
+(4, 2, 9, '2024-11-16 18:00:00'),
+(4, 3, 10, '2024-11-16 18:00:00'),
+(4, 4, 9, '2024-11-16 18:00:00'),
 
--- Voti Hackathon 2 (IN_CORSO) - solo team definitivi (5, 6, 8)
-INSERT
-INTO voti (hackathon_id, team_id, giudice_id, valore)
-VALUES (2, 5, 9, 9),
-       (2, 5, 13, 8),
-       (2, 6, 6, 7),
-       (2, 6, 9, 6),
-       (2, 8, 6, 9),
-       (2, 8, 9, 10),
-       (2, 8, 13, 9);
+-- Hackathon 2 (IN_CORSO) - solo team definitivi (5, 6, 8)
+(5, 5, 9, CURRENT_DATE),
+(5, 7, 8, CURRENT_DATE),
+(6, 5, 7, CURRENT_DATE),
+(6, 6, 6, CURRENT_DATE),
+(8, 5, 9, CURRENT_DATE),
+(8, 6, 10, CURRENT_DATE),
+(8, 7, 9, CURRENT_DATE);
+
+-- ==================================================
+-- INVITI TEAM
+-- ==================================================
+
+BEGIN;
+
+-- DISABILITA TEMPORANEAMENTE I TRIGGER
+ALTER TABLE inviti_team DISABLE TRIGGER ALL;
+
+-- Gli inviti ora usano membro_team_id come invitante_id
+INSERT INTO inviti_team (invitante_id, invitato_id, messaggio_motivazionale, stato_invito_id, data_invito)
+VALUES
+-- Inviti per Hackathon 2 (IN_CORSO)
+-- Team 6 (Crypto Crusaders) cerca un terzo membro
+(21, 42, 'Ciao! Stiamo cercando un esperto di smart contracts per il nostro team. Ti va di unirti?', 1,
+ CURRENT_DATE - INTERVAL '2 hours'),  -- PENDING
+(21, 43, 'Abbiamo bisogno di un developer React esperto per il frontend della nostra DApp!', 3,
+ CURRENT_DATE - INTERVAL '4 hours'),  -- DECLINED
+
+-- Team 7 (DeFi Developers) cerca membri
+(23, 42, 'Stiamo costruendo una DeFi app innovativa, unisciti a noi per rivoluzionare la finanza!', 1,
+ CURRENT_DATE - INTERVAL '3 hours'),  -- PENDING
+(23, 44, 'Cerchiamo sviluppatori appassionati di blockchain e tecnologie decentralizzate', 1,
+ CURRENT_DATE - INTERVAL '1 hour'),   -- PENDING
+
+-- Inviti per Hackathon 3 (REGISTRAZIONI_CHIUSE)
+-- Team 9 (Green Innovators) cerca di completarsi
+(27, 48, 'Unisciti ai Green Innovators per salvare il pianeta con la tecnologia!', 2,
+ CURRENT_DATE - INTERVAL '1 day'),    -- ACCEPTED (ma non ancora nel team per testare trigger)
+(27, 49, 'Cerchiamo esperti IoT per il nostro progetto di smart recycling', 1,
+ CURRENT_DATE - INTERVAL '1 day'),    -- PENDING
+(27, 50, 'Ti interessa la sostenibilità ambientale? Vieni a innovare con noi!', 1,
+ CURRENT_DATE - INTERVAL '20 hours'), -- PENDING
+
+-- Inviti per Hackathon 4 (REGISTRAZIONI_APERTE)
+(30, 20, 'Stiamo sviluppando una app rivoluzionaria per la telemedicina', 1,
+ CURRENT_DATE - INTERVAL '6 hours'),  -- PENDING
+(30, 21, 'Cerchiamo un data scientist per analisi predittive in ambito sanitario', 2,
+ CURRENT_DATE - INTERVAL '8 hours');
+-- ACCEPTED
+
+-- RIABILITA I TRIGGER
+ALTER TABLE inviti_team ENABLE TRIGGER ALL;
+
+COMMIT;
 
 -- ==================================================
 -- RESET DELLE SEQUENZE DOPO POPOLAMENTO MANUALE
@@ -536,3 +572,12 @@ VALUES (2, 5, 9, 9),
 SELECT setval('utenti_utente_id_seq', (SELECT MAX(utente_id) FROM utenti));
 SELECT setval('hackathon_hackathon_id_seq', (SELECT MAX(hackathon_id) FROM hackathon));
 SELECT setval('team_team_id_seq', (SELECT MAX(team_id) FROM team));
+SELECT setval('giudici_hackathon_giudice_hackathon_id_seq', (SELECT MAX(giudice_hackathon_id) FROM giudici_hackathon));
+SELECT setval('membri_team_membro_team_id_seq', (SELECT MAX(membro_team_id) FROM membri_team));
+SELECT setval('registrazioni_registrazione_id_seq', (SELECT MAX(registrazione_id) FROM registrazioni));
+SELECT setval('problema_problema_id_seq', (SELECT MAX(problema_id) FROM problema));
+SELECT setval('progressi_progresso_id_seq', (SELECT MAX(progresso_id) FROM progressi));
+SELECT setval('commenti_commento_id_seq', (SELECT MAX(commento_id) FROM commenti));
+SELECT setval('voti_voto_id_seq', (SELECT MAX(voto_id) FROM voti));
+SELECT setval('inviti_team_invito_id_seq', (SELECT MAX(invito_id) FROM inviti_team));
+SELECT setval('inviti_giudice_invito_id_seq', (SELECT MAX(invito_id) FROM inviti_giudice));

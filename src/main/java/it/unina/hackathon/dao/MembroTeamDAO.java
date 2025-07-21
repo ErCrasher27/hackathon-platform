@@ -7,7 +7,7 @@ public interface MembroTeamDAO {
 
     MembroTeamListResponse getMembriByTeam(int teamId);
 
-    ResponseResult deleteMembro(int membroId);
+    ResponseResult deleteMembro(int membroTeamId);
 
     ResponseResult isLeader(int utenteId, int teamId);
 

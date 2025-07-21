@@ -5,6 +5,7 @@ import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Problema;
 import it.unina.hackathon.utils.UtilsUi;
+import it.unina.hackathon.utils.responses.GiudiceHackathonResponse;
 import it.unina.hackathon.utils.responses.HackathonResponse;
 import it.unina.hackathon.utils.responses.ProblemaListResponse;
 import it.unina.hackathon.utils.responses.ProblemaResponse;
@@ -420,13 +421,16 @@ public class GestisciProblemiGUI implements GUIHandler {
             String titolo = titoloField.getText().trim();
             String descrizione = descrizioneArea.getText().trim();
 
-            ProblemaResponse response = controller.pubblicaProblema(hackathonId, titolo, descrizione);
+            GiudiceHackathonResponse gh = controller.getGiudiceHackathonByUtenteHackathon(controller.getIdUtenteCorrente(), hackathonId);
+            if (gh != null) {
+                ProblemaResponse response = controller.pubblicaProblema(gh.giudiceHackathon().getGiudiceHackathonId(), titolo, descrizione);
 
-            if (response.problema() != null) {
-                showInfoMessage("Problema pubblicato con successo!");
-                loadProblemiData();
-            } else {
-                showErrorMessage("Errore nella pubblicazione: " + response.message());
+                if (response.problema() != null) {
+                    showInfoMessage("Problema pubblicato con successo!");
+                    loadProblemiData();
+                } else {
+                    showErrorMessage("Errore nella pubblicazione: " + response.message());
+                }
             }
         } catch (Exception e) {
             showErrorMessage("Errore nella pubblicazione: " + e.getMessage());
@@ -445,7 +449,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
         dataPubblicazioneValueLabel.setText(problemaSelezionato.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
 
-        pubblicatoDaValueLabel.setText(problemaSelezionato.getPubblicatoDa() != null ? problemaSelezionato.getPubblicatoDa().getNomeCompleto() : "N/A");
+        pubblicatoDaValueLabel.setText(problemaSelezionato.getPubblicatoDa() != null ? problemaSelezionato.getPubblicatoDa().getGiudice().getNomeCompleto() : "N/A");
 
         setFormEnabled(false);
     }
@@ -546,7 +550,8 @@ public class GestisciProblemiGUI implements GUIHandler {
 
                 case 0 -> problema.getTitolo();
                 case 1 -> problema.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                case 2 -> problema.getPubblicatoDa() != null ? problema.getPubblicatoDa().getNomeCompleto() : "N/A";
+                case 2 ->
+                        problema.getPubblicatoDa() != null ? problema.getPubblicatoDa().getGiudice().getNomeCompleto() : "N/A";
                 default -> "";
             };
         }

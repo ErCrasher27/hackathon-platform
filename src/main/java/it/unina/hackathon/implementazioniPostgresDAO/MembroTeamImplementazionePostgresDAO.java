@@ -58,11 +58,11 @@ public class MembroTeamImplementazionePostgresDAO implements MembroTeamDAO {
     }
 
     @Override
-    public ResponseResult deleteMembro(int membroId) {
+    public ResponseResult deleteMembro(int membroTeamId) {
         String query = "DELETE FROM membri_team WHERE membro_team_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, membroId);
+            ps.setInt(1, membroTeamId);
 
             int affectedRows = ps.executeUpdate();
 

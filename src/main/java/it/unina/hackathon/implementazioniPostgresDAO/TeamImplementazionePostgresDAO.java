@@ -6,6 +6,7 @@ import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.TeamListResponse;
 import it.unina.hackathon.utils.responses.TeamResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.*;
@@ -54,18 +55,79 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     }
 
     @Override
-    public TeamListResponse getTeamByHackathon(int hackathonId) {
+    public TeamResponse getTeamByPartecipanteHackathon(int utenteId, int hackathonId) {
         String query = """
                 SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo,
-                       COUNT(mt.utente_id) as numero_membri,
-                       h.max_dimensione_team,
-                       STRING_AGG(u.nome || ' ' || u.cognome, ', ') as nomi_membri
+                       mt.ruolo_team
+                FROM membri_team mt
+                JOIN team t ON mt.team_id = t.team_id
+                WHERE mt.utente_id = ? AND t.hackathon_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, utenteId);
+            ps.setInt(2, hackathonId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Team team = new Team();
+                team.setTeamId(rs.getInt("team_id"));
+                team.setNome(rs.getString("nome"));
+                team.setHackathonId(rs.getInt("hackathon_id"));
+                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
+                team.setDefinitivo(rs.getBoolean("definitivo"));
+
+                return new TeamResponse(team, "Team del partecipante trovato con successo!");
+            } else {
+                return new TeamResponse(null, "Il partecipante non fa parte di alcun team per questo hackathon!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new TeamResponse(null, "Errore durante la ricerca del team del partecipante: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public TeamResponse getTeamByMembroTeam(int membroTeamId) {
+        String query = """
+                SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo
+                FROM membri_team mt
+                JOIN team t ON mt.team_id = t.team_id
+                WHERE mt.membro_team_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, membroTeamId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Team team = new Team();
+                team.setTeamId(rs.getInt("team_id"));
+                team.setNome(rs.getString("nome"));
+                team.setHackathonId(rs.getInt("hackathon_id"));
+                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
+                team.setDefinitivo(rs.getBoolean("definitivo"));
+
+                return new TeamResponse(team, "Team trovato con successo tramite membro_team_id!");
+            } else {
+                return new TeamResponse(null, "Nessun team trovato per il membro specificato.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new TeamResponse(null, "Errore durante la ricerca del team tramite membro_team_id: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public TeamListResponse getTeamByHackathon(int hackathonId) {
+        String query = """
+                SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo
                 FROM team t
                 JOIN hackathon h ON t.hackathon_id = h.hackathon_id
                 LEFT JOIN membri_team mt ON t.team_id = mt.team_id
                 LEFT JOIN utenti u ON mt.utente_id = u.utente_id
                 WHERE t.hackathon_id = ?
-                GROUP BY t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo, h.max_dimensione_team
+                GROUP BY t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo
                 ORDER BY t.data_creazione DESC
                 """;
 
@@ -82,6 +144,55 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return new TeamListResponse(null, "Errore durante il caricamento dei team!");
+        }
+    }
+
+    @Override
+    public ResponseIntResult contaNumeroMembri(int teamId) {
+        String query = """
+                SELECT COUNT(*) AS numero_membri
+                FROM membri_team
+                WHERE team_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, teamId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int count = rs.getInt("numero_membri");
+                return new ResponseIntResult(count, "Numero di membri calcolato con successo!");
+            } else {
+                return new ResponseIntResult(-1, "Team non trovato!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseIntResult(-1, "Errore durante il conteggio dei membri: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseIntResult contaTeamFormati(int hackathonId) {
+        String query = """
+                SELECT COUNT(DISTINCT t.team_id) AS numero_team
+                FROM team t
+                JOIN membri_team mt ON t.team_id = mt.team_id
+                WHERE t.hackathon_id = ?
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hackathonId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int count = rs.getInt("numero_team");
+                return new ResponseIntResult(count, "Numero di team formati calcolato con successo!");
+            } else {
+                return new ResponseIntResult(-1, "Hackathon non trovato!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ResponseIntResult(-1, "Errore durante il conteggio dei team: " + e.getMessage());
         }
     }
 
@@ -131,41 +242,6 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
         }
     }
 
-    @Override
-    public TeamResponse getTeamByPartecipanteHackathon(int partecipanteId, int hackathonId) {
-        String query = """
-                SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo,
-                       mt.ruolo_team,
-                       (SELECT COUNT(*) FROM membri_team mt3 WHERE mt3.team_id = t.team_id) as numero_membri
-                FROM membri_team mt
-                JOIN team t ON mt.team_id = t.team_id
-                WHERE mt.utente_id = ? AND t.hackathon_id = ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, partecipanteId);
-            ps.setInt(2, hackathonId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                Team team = new Team();
-                team.setTeamId(rs.getInt("team_id"));
-                team.setNome(rs.getString("nome"));
-                team.setHackathonId(rs.getInt("hackathon_id"));
-                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
-                team.setDefinitivo(rs.getBoolean("definitivo"));
-                team.setNumeroMembri(rs.getInt("numero_membri"));
-
-                return new TeamResponse(team, "Team del partecipante trovato con successo!");
-            } else {
-                return new TeamResponse(null, "Il partecipante non fa parte di alcun team per questo hackathon!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new TeamResponse(null, "Errore durante la ricerca del team del partecipante: " + e.getMessage());
-        }
-    }
-
     private Team mapResultSetToTeam(ResultSet rs) throws SQLException {
         Team team = new Team();
         team.setTeamId(rs.getInt("team_id"));
@@ -173,11 +249,6 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
         team.setHackathonId(rs.getInt("hackathon_id"));
         team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
         team.setDefinitivo(rs.getBoolean("definitivo"));
-        team.setNumeroMembri(rs.getInt("numero_membri"));
-        team.setMaxDimensione(rs.getInt("max_dimensione_team"));
-
-        String nomiMembri = rs.getString("nomi_membri");
-        team.setNomiMembri(nomiMembri != null ? nomiMembri : "Nessun membro");
 
         return team;
     }

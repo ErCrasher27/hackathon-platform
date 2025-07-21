@@ -2,12 +2,12 @@ package it.unina.hackathon.gui.giudice;
 
 import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
-import it.unina.hackathon.model.GiudiceHackathon;
 import it.unina.hackathon.model.Hackathon;
+import it.unina.hackathon.model.InvitoGiudice;
 import it.unina.hackathon.model.enums.StatoInvito;
-import it.unina.hackathon.utils.responses.GiudiceHackathonListResponse;
 import it.unina.hackathon.utils.responses.HackathonListResponse;
 import it.unina.hackathon.utils.responses.HackathonResponse;
+import it.unina.hackathon.utils.responses.InvitoGiudiceListResponse;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -30,7 +30,7 @@ public class HomeGiudiceGUI implements GUIHandler {
     // endregion
 
     // region Components
-    private final List<GiudiceHackathon> inviti;
+    private final List<InvitoGiudice> inviti;
     private final List<Hackathon> hackathonAssegnati;
     private JFrame frame;
     private JPanel mainPanel;
@@ -259,7 +259,7 @@ public class HomeGiudiceGUI implements GUIHandler {
                 boolean hasSelection = selectedRow != -1;
 
                 if (hasSelection) {
-                    GiudiceHackathon invito = inviti.get(selectedRow);
+                    InvitoGiudice invito = inviti.get(selectedRow);
                     boolean isPending = invito.getStatoInvito() == StatoInvito.PENDING;
                     accettaInvitoButton.setEnabled(isPending);
                     rifiutaInvitoButton.setEnabled(isPending);
@@ -332,10 +332,10 @@ public class HomeGiudiceGUI implements GUIHandler {
             aggiornaInvitiButton.setText("Caricamento...");
             aggiornaInvitiButton.setEnabled(false);
 
-            GiudiceHackathonListResponse response = controller.getInvitiGiudiceRicevuti();
-            if (response.giudiciHackathon() != null) {
+            InvitoGiudiceListResponse response = controller.getInvitiGiudiceRicevuti();
+            if (response.invitiGiudice() != null) {
                 inviti.clear();
-                inviti.addAll(response.giudiciHackathon());
+                inviti.addAll(response.invitiGiudice());
                 invitiTableModel.fireTableDataChanged();
             } else {
                 showErrorMessage("Errore nel caricamento degli inviti: " + response.message());
@@ -379,7 +379,7 @@ public class HomeGiudiceGUI implements GUIHandler {
     private void accettaInvito() {
         int selectedRow = invitiTable.getSelectedRow();
         if (selectedRow != -1) {
-            GiudiceHackathon invito = inviti.get(selectedRow);
+            InvitoGiudice invito = inviti.get(selectedRow);
 
             if (invito.getStatoInvito() != StatoInvito.PENDING) {
                 showErrorMessage("Puoi accettare solo inviti in stato 'In Attesa'");
@@ -390,7 +390,7 @@ public class HomeGiudiceGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = controller.accettaInvitoGiudice(invito.getGiudiceHackathonId());
+                    var response = controller.accettaInvitoGiudice(invito.getInvitoId());
                     if (response.result()) {
                         showInfoMessage("Invito accettato con successo!");
                         loadInviti();
@@ -408,7 +408,7 @@ public class HomeGiudiceGUI implements GUIHandler {
     private void rifiutaInvito() {
         int selectedRow = invitiTable.getSelectedRow();
         if (selectedRow != -1) {
-            GiudiceHackathon invito = inviti.get(selectedRow);
+            InvitoGiudice invito = inviti.get(selectedRow);
 
             if (invito.getStatoInvito() != StatoInvito.PENDING) {
                 showErrorMessage("Puoi rifiutare solo inviti in stato 'In Attesa'");
@@ -419,7 +419,7 @@ public class HomeGiudiceGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = controller.rifiutaInvitoGiudice(invito.getGiudiceHackathonId());
+                    var response = controller.rifiutaInvitoGiudice(invito.getInvitoId());
                     if (response.result()) {
                         showInfoMessage("Invito rifiutato.");
                         loadInviti();
@@ -485,11 +485,11 @@ public class HomeGiudiceGUI implements GUIHandler {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            GiudiceHackathon invito = inviti.get(rowIndex);
+            InvitoGiudice invito = inviti.get(rowIndex);
             HackathonResponse hackathon = controller.getDettagliHackathon(invito.getHackathonId());
             return switch (columnIndex) {
                 case 0 -> hackathon.hackathon() != null ? hackathon.hackathon().getTitolo() : "N/A";
-                case 1 -> invito.getInvitatoDa() != null ? invito.getInvitatoDa().getNomeCompleto() : "N/A";
+                case 1 -> invito.getInvitante() != null ? invito.getInvitante().getNomeCompleto() : "N/A";
                 case 2 -> invito.getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 3 -> hackathon.hackathon() != null ? hackathon.hackathon().getSede() : "N/A";
                 case 4 -> invito.getStatoInvito().getDisplayName();
@@ -499,7 +499,7 @@ public class HomeGiudiceGUI implements GUIHandler {
     }
 
     private class HackathonAssegnatiTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Titolo", "Sede", "Data Inizio", "Data Fine", "Stato", "Team"};
+        private final String[] columnNames = {"Titolo", "Sede", "Data Inizio", "Data Fine", "Stato"};
 
         @Override
         public int getRowCount() {

@@ -1,8 +1,10 @@
 package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.ProgressoDAO;
+import it.unina.hackathon.model.MembroTeam;
 import it.unina.hackathon.model.Progresso;
 import it.unina.hackathon.model.Utente;
+import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.ProgressoListResponse;
@@ -27,17 +29,15 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     @Override
     public ProgressoResponse saveProgresso(Progresso progresso) {
         String query = """
-                INSERT INTO progressi (team_id, titolo, descrizione, documento_path, documento_nome, 
-                                     data_caricamento, caricato_da) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO progressi (caricato_da, documento_path, documento_nome, data_caricamento) 
+                VALUES (?, ?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, progresso.getTeamId());
-            ps.setString(4, progresso.getDocumentoPath());
-            ps.setString(5, progresso.getDocumentoNome());
-            ps.setTimestamp(6, Timestamp.valueOf(progresso.getDataCaricamento()));
-            ps.setInt(7, progresso.getCaricatoDaId());
+            ps.setInt(1, progresso.getCaricatoDaId());
+            ps.setString(2, progresso.getDocumentoPath());
+            ps.setString(3, progresso.getDocumentoNome());
+            ps.setTimestamp(4, Timestamp.valueOf(progresso.getDataCaricamento()));
 
             int affectedRows = ps.executeUpdate();
 
@@ -59,12 +59,14 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     @Override
     public ProgressoListResponse getProgressiByTeam(int teamId) {
         String query = """
-                SELECT p.progresso_id, p.team_id, p.documento_path, 
-                       p.documento_nome, p.data_caricamento, p.caricato_da,
-                       u.nome, u.cognome, u.username, u.email
+                SELECT p.progresso_id, p.caricato_da, p.documento_path, 
+                       p.documento_nome, p.data_caricamento,
+                       u.nome, u.cognome, u.username, u.email, u.utente_id,
+                       mt.membro_team_id, mt.team_id, mt.ruolo_team
                 FROM progressi p
-                JOIN utenti u ON p.caricato_da = u.utente_id
-                WHERE p.team_id = ?
+                JOIN membri_team mt ON p.caricato_da = mt.membro_team_id
+                JOIN utenti u ON mt.utente_id = u.utente_id
+                WHERE mt.team_id = ?
                 ORDER BY p.data_caricamento DESC
                 """;
 
@@ -77,10 +79,10 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
             while (rs.next()) {
                 progressi.add(mapResultSetToProgresso(rs));
             }
-            return new ProgressoListResponse(progressi, "Progressi del team caricati con successo!");
+            return new ProgressoListResponse(progressi, "Progressi del team caricati!");
         } catch (SQLException e) {
             e.printStackTrace();
-            return new ProgressoListResponse(null, "Errore durante il caricamento dei progressi del team!");
+            return new ProgressoListResponse(null, "Errore durante il caricamento!");
         }
     }
 
@@ -107,18 +109,21 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     private Progresso mapResultSetToProgresso(ResultSet rs) throws SQLException {
         Progresso progresso = new Progresso();
         progresso.setProgressoId(rs.getInt("progresso_id"));
-        progresso.setTeamId(rs.getInt("team_id"));
         progresso.setDocumentoPath(rs.getString("documento_path"));
         progresso.setDocumentoNome(rs.getString("documento_nome"));
         progresso.setDataCaricamento(rs.getTimestamp("data_caricamento").toLocalDateTime());
         progresso.setCaricatoDaId(rs.getInt("caricato_da"));
 
-        // Mappa l'utente che ha caricato
-        Utente caricatoDa = new Utente(rs.getString("username"), rs.getString("email"), "", // Password non esposta
-                rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE // Default per chi carica progressi
-        );
-        caricatoDa.setUtenteId(rs.getInt("caricato_da"));
-        progresso.setCaricatoDa(caricatoDa);
+        // Mappa il membro del team che ha caricato
+        Utente caricatoDaUtente = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE);
+        caricatoDaUtente.setUtenteId(rs.getInt("utente_id"));
+
+        MembroTeam caricatoDaMembroTeam = new MembroTeam();
+        caricatoDaMembroTeam.setMembroTeamId(rs.getInt("membro_team_id"));
+        caricatoDaMembroTeam.setTeamId(rs.getInt("team_id"));
+        caricatoDaMembroTeam.setUtente(caricatoDaUtente);
+        caricatoDaMembroTeam.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_team")));
+        progresso.setCaricatoDa(caricatoDaMembroTeam);
 
         return progresso;
     }

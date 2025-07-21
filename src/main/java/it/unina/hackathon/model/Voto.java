@@ -8,15 +8,15 @@ public class Voto {
     // region Proprietà
 
     private int votoId;
-    private int hackathonId;
     private int teamId;
     private int giudiceId;
     private int valore;
     private LocalDateTime dataVoto;
-    private Utente giudice;
+    private GiudiceHackathon giudice;
     private Team team;
 
     // Campi per la classifica
+    // TODO MOVE OUT OF HERE
     private Integer posizione;
     private Double mediaVoti;
     private Integer numeroVoti;
@@ -29,9 +29,8 @@ public class Voto {
         this.dataVoto = LocalDateTime.now();
     }
 
-    public Voto(int hackathonId, int teamId, int giudiceId, int valore) {
+    public Voto(int teamId, int giudiceId, int valore) {
         this();
-        this.hackathonId = hackathonId;
         this.teamId = teamId;
         this.giudiceId = giudiceId;
         this.valore = valore;
@@ -43,14 +42,6 @@ public class Voto {
 
     public void setVotoId(int votoId) {
         this.votoId = votoId;
-    }
-
-    public int getHackathonId() {
-        return hackathonId;
-    }
-
-    public void setHackathonId(int hackathonId) {
-        this.hackathonId = hackathonId;
     }
 
     public int getTeamId() {
@@ -85,11 +76,11 @@ public class Voto {
         this.dataVoto = dataVoto;
     }
 
-    public Utente getGiudice() {
+    public GiudiceHackathon getGiudice() {
         return giudice;
     }
 
-    public void setGiudice(Utente giudice) {
+    public void setGiudice(GiudiceHackathon giudice) {
         this.giudice = giudice;
     }
 
@@ -162,7 +153,7 @@ public class Voto {
 
     @Override
     public String toString() {
-        return String.format("Voto{id=%d, valore=%d/10, hackathon=%d, team=%d, giudice=%d}", votoId, valore, hackathonId, teamId, giudiceId);
+        return String.format("Voto{id=%d, valore=%d/10, team=%d, giudice=%d}", votoId, valore, teamId, giudiceId);
     }
 
     // endregion

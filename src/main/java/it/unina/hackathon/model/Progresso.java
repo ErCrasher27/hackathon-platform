@@ -8,12 +8,11 @@ public class Progresso {
     // region Proprietà
 
     private int progressoId;
-    private int teamId;
     private int caricatoDaId;
     private String documentoPath;
     private String documentoNome;
     private LocalDateTime dataCaricamento;
-    private Utente caricatoDa;
+    private MembroTeam caricatoDa;
 
     // endregion
 
@@ -23,9 +22,8 @@ public class Progresso {
         this.dataCaricamento = LocalDateTime.now();
     }
 
-    public Progresso(int teamId, String documentoPath) {
+    public Progresso(String documentoPath) {
         this();
-        this.teamId = teamId;
         this.documentoPath = documentoPath;
     }
 
@@ -39,14 +37,6 @@ public class Progresso {
 
     public void setProgressoId(int progressoId) {
         this.progressoId = progressoId;
-    }
-
-    public int getTeamId() {
-        return teamId;
-    }
-
-    public void setTeamId(int teamId) {
-        this.teamId = teamId;
     }
 
     public int getCaricatoDaId() {
@@ -81,11 +71,11 @@ public class Progresso {
         this.dataCaricamento = dataCaricamento;
     }
 
-    public Utente getCaricatoDa() {
+    public MembroTeam getCaricatoDa() {
         return caricatoDa;
     }
 
-    public void setCaricatoDa(Utente caricatoDa) {
+    public void setCaricatoDa(MembroTeam caricatoDa) {
         this.caricatoDa = caricatoDa;
     }
 
@@ -108,7 +98,7 @@ public class Progresso {
 
     @Override
     public String toString() {
-        return String.format("Progresso{id=%d, team=%d, caricato=%s}", progressoId, teamId, dataCaricamento != null ? dataCaricamento.toLocalDate() : "N/A");
+        return String.format("Progresso{id=%d, caricato=%s}", progressoId, dataCaricamento != null ? dataCaricamento.toLocalDate() : "N/A");
     }
 
     // endregion

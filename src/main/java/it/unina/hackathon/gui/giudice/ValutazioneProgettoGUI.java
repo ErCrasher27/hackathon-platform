@@ -5,6 +5,7 @@ import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.*;
 import it.unina.hackathon.utils.UtilsUi;
 import it.unina.hackathon.utils.responses.*;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -488,7 +489,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         if (teamSelezionato == null) return;
 
         try {
-            VotoResponse response = controller.getVotoTeam(hackathonId, teamSelezionato.getTeamId());
+            VotoResponse response = controller.getVotoTeam(teamSelezionato.getTeamId());
             votoCorrente = response.voto();
             updateVotoDisplay();
         } catch (Exception e) {
@@ -613,13 +614,16 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         }
 
         try {
-            CommentoResponse response = controller.scriviCommento(progressoSelezionato.getProgressoId(), testo);
-            if (response.commento() != null) {
-                showInfoMessage("Commento aggiunto con successo!");
-                nuovoCommentoArea.setText("");
-                loadCommentiData();
-            } else {
-                showErrorMessage("Errore nell'aggiunta del commento: " + response.message());
+            GiudiceHackathonResponse gh = controller.getGiudiceHackathonByUtenteHackathon(controller.getIdUtenteCorrente(), hackathonId);
+            if (gh != null) {
+                CommentoResponse response = controller.scriviCommento(gh.giudiceHackathon().getGiudiceHackathonId(), progressoSelezionato.getProgressoId(), testo);
+                if (response.commento() != null) {
+                    showInfoMessage("Commento aggiunto con successo!");
+                    nuovoCommentoArea.setText("");
+                    loadCommentiData();
+                } else {
+                    showErrorMessage("Errore nell'aggiunta del commento: " + response.message());
+                }
             }
         } catch (Exception e) {
             showErrorMessage("Errore nell'aggiunta del commento: " + e.getMessage());
@@ -640,12 +644,15 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         int valore = votoSlider.getValue();
 
         try {
-            VotoResponse response = controller.assegnaVoto(hackathonId, teamSelezionato.getTeamId(), valore);
-            if (response.voto() != null) {
-                showInfoMessage("Voto assegnato con successo!");
-                loadVotoData();
-            } else {
-                showErrorMessage("Errore nell'assegnazione del voto: " + response.message());
+            GiudiceHackathonResponse gh = controller.getGiudiceHackathonByUtenteHackathon(controller.getIdUtenteCorrente(), hackathonId);
+            if (gh != null) {
+                VotoResponse response = controller.assegnaVoto(gh.giudiceHackathon().getGiudiceHackathonId(), teamSelezionato.getTeamId(), valore);
+                if (response.voto() != null) {
+                    showInfoMessage("Voto assegnato con successo!");
+                    loadVotoData();
+                } else {
+                    showErrorMessage("Errore nell'assegnazione del voto: " + response.message());
+                }
             }
         } catch (Exception e) {
             showErrorMessage("Errore nell'assegnazione del voto: " + e.getMessage());
@@ -666,8 +673,8 @@ public class ValutazioneProgettoGUI implements GUIHandler {
                 Commento commento = commentiList.get(i);
                 sb.append("=== Commento ").append(i + 1).append(" ===\n");
                 sb.append("Data: ").append(commento.getDataCommento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))).append("\n");
-                if (commento.getGiudice() != null) {
-                    sb.append("Giudice: ").append(commento.getGiudice().getNomeCompleto()).append("\n");
+                if (commento.getGiudiceHackathon() != null) {
+                    sb.append("Giudice: ").append(commento.getGiudiceHackathon().getGiudice().getNomeCompleto()).append("\n");
                 }
                 sb.append("Testo: ").append(commento.getTesto()).append("\n\n");
             }
@@ -739,9 +746,10 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             Team team = teamList.get(rowIndex);
+            ResponseIntResult contaNumeroMembri = controller.contaNumeroMembri(team.getTeamId());
             return switch (columnIndex) {
                 case 0 -> team.getNome();
-                case 1 -> team.getNumeroMembri() + " membri";
+                case 1 -> ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " membri";
                 default -> "";
             };
         }
@@ -770,7 +778,8 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             Progresso progresso = progressiList.get(rowIndex);
             return switch (columnIndex) {
                 case 0 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                case 1 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
+                case 1 ->
+                        progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getUtente().getNomeCompleto() : "N/A";
                 case 2 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
                 default -> "";
             };

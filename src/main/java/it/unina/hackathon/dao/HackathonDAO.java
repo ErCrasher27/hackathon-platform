@@ -14,11 +14,11 @@ public interface HackathonDAO {
 
     HackathonListResponse getHackathonByHackathonStatus(HackathonStatus hs);
 
-    HackathonListResponse getHackathonsByOrganizzatore(int organizzatoreId);
+    HackathonListResponse getHackathonsByOrganizzatore(int utenteId);
 
-    HackathonListResponse getHackathonsByPartecipante(int partecipanteId);
+    HackathonListResponse getHackathonsByPartecipante(int utenteId);
 
-    HackathonListResponse getHackathonAccettati(int giudiceId);
+    HackathonListResponse getHackathonAccettati(int utenteId);
 
     ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato);
 

@@ -30,6 +30,10 @@ public class MembroTeam {
 
     // region Getter e Setter
 
+    public int getMembroTeamId() {
+        return membroTeamId;
+    }
+
     public void setMembroTeamId(int membroTeamId) {
         this.membroTeamId = membroTeamId;
     }
@@ -80,14 +84,6 @@ public class MembroTeam {
 
     public void setTeam(Team team) {
         this.team = team;
-    }
-
-    // endregion
-
-    // region Business
-
-    public String getNomeUtente() {
-        return utente != null ? utente.getNomeCompleto() : "N/A";
     }
 
     // endregion

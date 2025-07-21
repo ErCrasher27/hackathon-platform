@@ -9,10 +9,10 @@ public class Commento {
 
     private int commentoId;
     private int progressoId;
-    private int giudiceId;
+    private int giudiceHackathonId;
     private String testo;
     private LocalDateTime dataCommento;
-    private Utente giudice;
+    private GiudiceHackathon giudiceHackathon;
     private Progresso progresso;
 
     // endregion
@@ -26,7 +26,7 @@ public class Commento {
     public Commento(int progressoId, int giudiceId, String testo) {
         this();
         this.progressoId = progressoId;
-        this.giudiceId = giudiceId;
+        this.giudiceHackathonId = giudiceId;
         this.testo = testo;
     }
 
@@ -42,12 +42,8 @@ public class Commento {
         return progressoId;
     }
 
-    public int getGiudiceId() {
-        return giudiceId;
-    }
-
-    public void setGiudiceId(int giudiceId) {
-        this.giudiceId = giudiceId;
+    public int getGiudiceHackathonId() {
+        return giudiceHackathonId;
     }
 
     public String getTesto() {
@@ -62,12 +58,12 @@ public class Commento {
         this.dataCommento = dataCommento;
     }
 
-    public Utente getGiudice() {
-        return giudice;
+    public GiudiceHackathon getGiudiceHackathon() {
+        return giudiceHackathon;
     }
 
-    public void setGiudice(Utente giudice) {
-        this.giudice = giudice;
+    public void setGiudiceHackathon(GiudiceHackathon giudiceHackathon) {
+        this.giudiceHackathon = giudiceHackathon;
     }
 
     public Progresso getProgresso() {
@@ -97,7 +93,7 @@ public class Commento {
 
     @Override
     public String toString() {
-        return String.format("Commento{id=%d, progresso=%d, giudice=%d, data=%s}", commentoId, progressoId, giudiceId, dataCommento != null ? dataCommento.toLocalDate() : "N/A");
+        return String.format("Commento{id=%d, progresso=%d, giudice=%d, data=%s}", commentoId, progressoId, giudiceHackathonId, dataCommento != null ? dataCommento.toLocalDate() : "N/A");
     }
 
     // endregion

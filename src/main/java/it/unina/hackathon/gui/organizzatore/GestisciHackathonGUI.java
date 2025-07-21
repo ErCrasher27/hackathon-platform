@@ -2,7 +2,11 @@ package it.unina.hackathon.gui.organizzatore;
 
 import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
-import it.unina.hackathon.model.*;
+import it.unina.hackathon.model.Hackathon;
+import it.unina.hackathon.model.Team;
+import it.unina.hackathon.model.Utente;
+import it.unina.hackathon.model.Voto;
+import it.unina.hackathon.utils.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.*;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
@@ -217,23 +221,13 @@ public class GestisciHackathonGUI implements GUIHandler {
         invitaButton.setForeground(Color.WHITE);
         invitaButton.setPreferredSize(new Dimension(140, 35));
 
-        JButton rimuoviButton = new JButton("🗑 Rimuovi Invito");
-        rimuoviButton.setBackground(new Color(211, 47, 47)); // Rosso
-        rimuoviButton.setForeground(Color.WHITE);
-        rimuoviButton.setPreferredSize(new Dimension(150, 35));
-
         JButton aggiornaGiudiciButton = new JButton("🔄 Aggiorna");
         aggiornaGiudiciButton.setPreferredSize(new Dimension(120, 35));
 
-        // Inizialmente disabilita il pulsante rimuovi
-        rimuoviButton.setEnabled(false);
-
         giudiciTopPanel.add(invitaButton);
-        giudiciTopPanel.add(rimuoviButton);
         giudiciTopPanel.add(aggiornaGiudiciButton);
 
-        // Table setup con listener per abilitare/disabilitare il pulsante rimuovi
-        String[] giudiciColumns = {"Nome", "Cognome", "Email", "Stato Invito", "Data Invito"};
+        String[] giudiciColumns = {"Nome", "Cognome", "Email", "Stato", "Data Invito"};
         giudiciTableModel = new DefaultTableModel(giudiciColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -245,14 +239,6 @@ public class GestisciHackathonGUI implements GUIHandler {
         giudiciTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         giudiciTable.setRowHeight(30);
 
-        // Listener per abilitare/disabilitare pulsante rimuovi
-        giudiciTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                boolean hasSelection = giudiciTable.getSelectedRow() != -1;
-                rimuoviButton.setEnabled(hasSelection);
-            }
-        });
-
         JScrollPane giudiciScrollPane = new JScrollPane(giudiciTable);
         giudiciScrollPane.setBorder(BorderFactory.createTitledBorder("Giudici Invitati"));
 
@@ -261,7 +247,6 @@ public class GestisciHackathonGUI implements GUIHandler {
 
         // Event listeners
         invitaButton.addActionListener(_ -> apriDialogInvitaGiudice());
-        rimuoviButton.addActionListener(_ -> rimuoviGiudiceSelezionato());
         aggiornaGiudiciButton.addActionListener(_ -> {
             caricaGiudiciInvitati();
             caricaClassifica();
@@ -291,7 +276,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         partecipantiScrollPane.setPreferredSize(new Dimension(0, 300));
 
         // Team table (bottom)
-        String[] teamColumns = {"Nome Team", "Numero Membri", "Stato", "Data Creazione"};
+        String[] teamColumns = {"Nome Team", "Stato", "Data Creazione"};
         teamTableModel = new DefaultTableModel(teamColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -384,15 +369,11 @@ public class GestisciHackathonGUI implements GUIHandler {
                     Object[] row = {posizione, nomeTeam, mediaVoti, numeroVoti};
                     classificaTableModel.addRow(row);
                 }
-            } else {
-                // Aggiungi riga informativa se non ci sono voti
-                Object[] row = {"--", "Nessun team votato", "--", "--", "--"};
-                classificaTableModel.addRow(row);
             }
         } catch (Exception e) {
             showError(frame, "Errore nel caricamento classifica: " + e.getMessage());
             // Aggiungi riga di errore
-            Object[] row = {"--", "Errore nel caricamento", "--", "--", "--"};
+            Object[] row = {"--", "Errore nel caricamento", "--", "--"};
             classificaTableModel.addRow(row);
         }
     }
@@ -421,11 +402,12 @@ public class GestisciHackathonGUI implements GUIHandler {
         try {
             giudiciTableModel.setRowCount(0);
 
-            GiudiceHackathonListResponse response = controller.getGiudiciInvitati(hackathonId);
+            UtenteListResponse response = controller.getGiudiciInvitati(hackathonId);
 
-            if (response.giudiciHackathon() != null) {
-                for (GiudiceHackathon gh : response.giudiciHackathon()) {
-                    Object[] row = {gh.getGiudice() != null ? gh.getGiudice().getNome() : "N/A", gh.getGiudice() != null ? gh.getGiudice().getCognome() : "N/A", gh.getGiudice() != null ? gh.getGiudice().getEmail() : "N/A", gh.getStatoInvito().getDisplayName(), gh.getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))};
+            if (response.utenti() != null) {
+                for (Utente giudice : response.utenti()) {
+                    InvitoGiudiceResponse invitoGiudice = controller.getInvitoByInvitatoHackathon(giudice.getUtenteId(), hackathonId);
+                    Object[] row = {giudice.getNome(), giudice.getCognome(), giudice.getEmail(), invitoGiudice.invitoGiudice() != null ? invitoGiudice.invitoGiudice().getStatoInvito() : "N/A", invitoGiudice.invitoGiudice() != null ? invitoGiudice.invitoGiudice().getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
                     giudiciTableModel.addRow(row);
                 }
             }
@@ -460,7 +442,7 @@ public class GestisciHackathonGUI implements GUIHandler {
 
             if (response.teams() != null) {
                 for (Team team : response.teams()) {
-                    Object[] row = {team.getNome(), team.getNumeroMembri(), team.isDefinitivo() ? "Definitivo" : "In formazione", team.getDataCreazione() != null ? team.getDataCreazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
+                    Object[] row = {team.getNome(), team.isDefinitivo() ? "Definitivo" : "In formazione", team.getDataCreazione() != null ? team.getDataCreazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
                     teamTableModel.addRow(row);
                 }
             }
@@ -471,14 +453,14 @@ public class GestisciHackathonGUI implements GUIHandler {
 
     private void apriDialogInvitaGiudice() {
         try {
-            GiudiceHackathonListResponse response = controller.getGiudiciNonInvitati(hackathonId);
+            UtenteListResponse response = controller.getGiudiciNonInvitati(hackathonId);
 
-            if (response.giudiciHackathon() == null || response.giudiciHackathon().isEmpty()) {
+            if (response.utenti() == null || response.utenti().isEmpty()) {
                 showError(frame, "Non ci sono giudici disponibili da invitare!");
                 return;
             }
 
-            String[] nomiGiudici = response.giudiciHackathon().stream().map(g -> g.getGiudice().getNome() + " " + g.getGiudice().getCognome() + " (" + g.getGiudice().getUsername() + ")").toArray(String[]::new);
+            String[] nomiGiudici = response.utenti().stream().map(g -> g.getNome() + " " + g.getCognome() + " (" + g.getUsername() + ")").toArray(String[]::new);
 
             String selected = (String) JOptionPane.showInputDialog(frame, "Seleziona il giudice da invitare:", "Invita Giudice", JOptionPane.QUESTION_MESSAGE, null, nomiGiudici, nomiGiudici[0]);
 
@@ -492,8 +474,8 @@ public class GestisciHackathonGUI implements GUIHandler {
                 }
 
                 if (selectedIndex >= 0) {
-                    GiudiceHackathon giudiceSelezionato = response.giudiciHackathon().get(selectedIndex);
-                    ResponseResult result = controller.invitaGiudice(hackathonId, giudiceSelezionato.getGiudiceId());
+                    Utente giudiceSelezionato = response.utenti().get(selectedIndex);
+                    ResponseResult result = controller.invitaGiudice(giudiceSelezionato.getUtenteId(), hackathonId);
 
                     if (result.result()) {
                         showSuccess(frame, result.message());
@@ -506,65 +488,6 @@ public class GestisciHackathonGUI implements GUIHandler {
             }
         } catch (Exception e) {
             showError(frame, "Errore nell'invito giudice: " + e.getMessage());
-        }
-    }
-
-    private boolean puoRimuovereInvito(String statoInvito) {
-        // Puoi rimuovere inviti solo se sono in stato PENDING o DECLINED
-        // Non permettere rimozione di inviti ACCEPTED per mantenere l'integrità
-        return "In Attesa".equals(statoInvito) || "Rifiutato".equals(statoInvito);
-    }
-
-    private void rimuoviGiudiceSelezionato() {
-        int selectedRow = giudiciTable.getSelectedRow();
-        if (selectedRow == -1) {
-            showError(frame, "Seleziona un giudice da rimuovere!");
-            return;
-        }
-
-        String nomeGiudice = (String) giudiciTableModel.getValueAt(selectedRow, 0);
-        String cognomeGiudice = (String) giudiciTableModel.getValueAt(selectedRow, 1);
-        String statoInvito = (String) giudiciTableModel.getValueAt(selectedRow, 3);
-
-        // Validazione dello stato dell'invito
-        if (!puoRimuovereInvito(statoInvito)) {
-            showError(frame, "Non è possibile rimuovere un invito accettato. " + "Il giudice fa già parte dell'hackathon!");
-            return;
-        }
-
-        // Messaggio di conferma personalizzato in base allo stato
-        String messaggioConferma;
-        if ("In Attesa".equals(statoInvito)) {
-            messaggioConferma = String.format("Rimuovere l'invito in attesa per %s %s?\n" + "Il giudice non potrà più accettare questo invito.", nomeGiudice, cognomeGiudice);
-        } else {
-            messaggioConferma = String.format("Rimuovere l'invito rifiutato da %s %s?\n" + "Questo eliminerà definitivamente il record dell'invito.", nomeGiudice, cognomeGiudice);
-        }
-
-        int confirm = JOptionPane.showConfirmDialog(frame, messaggioConferma, "Conferma Rimozione", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                GiudiceHackathonListResponse giudiciResponse = controller.getGiudiciInvitati(hackathonId);
-
-                if (giudiciResponse.giudiciHackathon() != null && selectedRow < giudiciResponse.giudiciHackathon().size()) {
-                    GiudiceHackathon giudiceSelezionato = giudiciResponse.giudiciHackathon().get(selectedRow);
-                    int giudiceId = giudiceSelezionato.getGiudiceId();
-
-                    ResponseResult result = controller.rimuoviInvitoGiudice(hackathonId, giudiceId);
-
-                    if (result.result()) {
-                        showSuccess(frame, result.message());
-                        caricaGiudiciInvitati();
-                        aggiornaStatistiche();
-                    } else {
-                        showError(frame, "Errore nella rimozione dell'invito: " + result.message());
-                    }
-                } else {
-                    showError(frame, "Errore nel recupero dei dati del giudice selezionato!");
-                }
-            } catch (Exception e) {
-                showError(frame, "Errore imprevisto durante la rimozione: " + e.getMessage());
-            }
         }
     }
 

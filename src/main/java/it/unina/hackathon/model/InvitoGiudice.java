@@ -5,24 +5,24 @@ import it.unina.hackathon.model.enums.StatoInvito;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class InvitoTeam {
+public class InvitoGiudice {
 
     // region Proprietà
 
     private int invitoId;
     private int invitanteId;
     private int invitatoId;
-    private String messaggioMotivazionale;
+    private int hackathonId;
     private StatoInvito statoInvito;
     private LocalDateTime dataInvito;
-    private MembroTeam invitante;
+    private Utente invitante;
     private Utente invitato;
 
     // endregion
 
     // region Costruttori
 
-    public InvitoTeam() {
+    public InvitoGiudice() {
         this.dataInvito = LocalDateTime.now();
         this.statoInvito = StatoInvito.PENDING;
     }
@@ -47,12 +47,16 @@ public class InvitoTeam {
         this.invitatoId = invitatoId;
     }
 
-    public String getMessaggioMotivazionale() {
-        return messaggioMotivazionale;
+    public int getHackathonId() {
+        return hackathonId;
     }
 
-    public void setMessaggioMotivazionale(String messaggioMotivazionale) {
-        this.messaggioMotivazionale = messaggioMotivazionale;
+    public void setHackathonId(int hackathonId) {
+        this.hackathonId = hackathonId;
+    }
+
+    public StatoInvito getStatoInvito() {
+        return statoInvito;
     }
 
     public void setStatoInvito(StatoInvito statoInvito) {
@@ -67,16 +71,12 @@ public class InvitoTeam {
         this.dataInvito = dataInvito;
     }
 
-    public MembroTeam getInvitante() {
+    public Utente getInvitante() {
         return invitante;
     }
 
-    public void setInvitante(MembroTeam invitante) {
+    public void setInvitante(Utente invitante) {
         this.invitante = invitante;
-    }
-
-    public Utente getInvitato() {
-        return invitato;
     }
 
     public void setInvitato(Utente invitato) {
@@ -91,7 +91,7 @@ public class InvitoTeam {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        InvitoTeam that = (InvitoTeam) o;
+        InvitoGiudice that = (InvitoGiudice) o;
         return invitoId == that.invitoId && invitanteId == that.invitanteId && invitatoId == that.invitatoId;
     }
 
@@ -102,7 +102,7 @@ public class InvitoTeam {
 
     @Override
     public String toString() {
-        return "InvitoTeam{" + "invitoId=" + invitoId + ", invitanteId=" + invitanteId + ", invitatoId=" + invitatoId + ", statoInvito=" + statoInvito + ", dataInvito=" + dataInvito + '}';
+        return "InvitoGiudice{" + "invitoId=" + invitoId + ", invitanteId=" + invitanteId + ", invitatoId=" + invitatoId + ", statoInvito=" + statoInvito + ", dataInvito=" + dataInvito + '}';
     }
 
     // endregion

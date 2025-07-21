@@ -8,7 +8,7 @@ public interface VotoDAO {
 
     VotoResponse saveVoto(Voto voto);
 
-    VotoResponse getVotoByGiudiceTeamHackathon(int giudiceId, int teamId, int hackathonId);
+    VotoResponse getVotoByGiudiceTeamHackathon(int giudiceHackathonId, int teamId);
 
     VotoListResponse getClassificaByHackathon(int hackathonId);
 

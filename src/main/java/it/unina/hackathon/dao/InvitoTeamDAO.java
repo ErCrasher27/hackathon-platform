@@ -6,10 +6,10 @@ import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface InvitoTeamDAO {
 
-    InvitoTeamListResponse getInvitiRicevuti(int partecipanteId);
+    InvitoTeamListResponse getInvitiRicevuti(int utenteId, int hackathonId);
 
-    ResponseResult inviaInvito(int teamId, int utenteIdDaInvitare, int invitanteId, String messaggio);
+    ResponseResult inviaInvito(int membroTeamInvitanteId, int utenteInvitatoId, String messaggio);
 
-    ResponseResult rispondiInvito(int invitoId, StatoInvito risposta);
+    ResponseResult rispondiInvito(int invitoTeamId, StatoInvito risposta);
 
 }

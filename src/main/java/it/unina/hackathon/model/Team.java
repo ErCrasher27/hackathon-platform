@@ -1,23 +1,17 @@
 package it.unina.hackathon.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class Team {
 
     // region Proprietà
 
-    private final List<Utente> membri;
     private int teamId;
     private String nome;
     private int hackathonId;
     private LocalDateTime dataCreazione;
     private boolean definitivo;
-    private int numeroMembri;
-    private String nomiMembri;
-    private int maxDimensione;
 
     // endregion
 
@@ -26,7 +20,6 @@ public class Team {
     public Team() {
         this.dataCreazione = LocalDateTime.now();
         this.definitivo = false;
-        this.membri = new ArrayList<>();
     }
 
     public Team(String nome, int hackathonId) {
@@ -79,26 +72,6 @@ public class Team {
         this.definitivo = definitivo;
     }
 
-    public int getNumeroMembri() {
-        return numeroMembri > 0 ? numeroMembri : (membri != null ? membri.size() : 0);
-    }
-
-    public void setNumeroMembri(int numeroMembri) {
-        this.numeroMembri = numeroMembri;
-    }
-
-    public void setNomiMembri(String nomiMembri) {
-        this.nomiMembri = nomiMembri;
-    }
-
-    public int getMaxDimensione() {
-        return maxDimensione;
-    }
-
-    public void setMaxDimensione(int maxDimensione) {
-        this.maxDimensione = maxDimensione;
-    }
-
     // endregion
 
     // region Overrides
@@ -118,7 +91,7 @@ public class Team {
 
     @Override
     public String toString() {
-        return String.format("Team{id=%d, nome='%s', hackathonId=%d, membri=%d, definitivo=%b}", teamId, nome, hackathonId, getNumeroMembri(), definitivo);
+        return String.format("Team{id=%d, nome='%s', hackathonId=%d, definitivo=%b}", teamId, nome, hackathonId, definitivo);
     }
 
     // endregion

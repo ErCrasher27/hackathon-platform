@@ -10,6 +10,7 @@ import it.unina.hackathon.utils.responses.HackathonResponse;
 import it.unina.hackathon.utils.responses.ProgressoListResponse;
 import it.unina.hackathon.utils.responses.ProgressoResponse;
 import it.unina.hackathon.utils.responses.TeamResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import javax.swing.*;
@@ -678,7 +679,8 @@ public class GestisciProgettoGUI implements GUIHandler {
                 // Verifica se è leader
                 isLeader = controller.verificaLeaderTeam(controller.getIdUtenteCorrente(), teamCorrente.getTeamId()).result();
 
-                teamInfoLabel.setText("Team: " + teamCorrente.getNome() + " (" + teamCorrente.getNumeroMembri() + " membri)");
+                ResponseIntResult contaNumeroMembri = controller.contaNumeroMembri(teamCorrente.getTeamId());
+                teamInfoLabel.setText("Team: " + teamCorrente.getNome() + " (" + ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " membri)");
 
                 // Aggiorna UI in base al ruolo
                 updateUIForRole();
@@ -748,7 +750,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
     private void loadInviti() {
         try {
-            var response = controller.getInvitiTeamRicevuti();
+            var response = controller.getInvitiTeamRicevuti(hackathonId);
             if (response.invitiTeam() != null) {
                 invitiRicevuti.clear();
                 invitiRicevuti.addAll(response.invitiTeam());
@@ -858,7 +860,8 @@ public class GestisciProgettoGUI implements GUIHandler {
             InvitoTeam invito = invitiRicevuti.get(selectedRow);
 
             String azione = accetta ? "accettare" : "rifiutare";
-            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " l'invito del team '" + invito.getTeam().getNome() + "'?", "Conferma", JOptionPane.YES_NO_OPTION);
+            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getMembroTeamId());
+            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " l'invito del team '" + ((teamInvito.team() != null) ? teamInvito.team().getNome() : "N/A") + "'?", "Conferma", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
@@ -959,7 +962,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                             messaggioInvito = "Ti invitiamo a unirti al nostro team!";
                         }
 
-                        var inviteResult = controller.invitaUtenteInTeam(teamCorrente.getTeamId(), partecipanteSelezionato.getUtenteId(), messaggioInvito);
+                        var inviteResult = controller.invitaUtenteInTeam(partecipanteSelezionato.getUtenteId(), messaggioInvito);
 
                         if (inviteResult.result()) {
                             showInfoMessage("Invito inviato con successo a " + partecipanteSelezionato.getNome() + " " + partecipanteSelezionato.getCognome());
@@ -979,7 +982,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         if (selectedRow != -1) {
             MembroTeam membro = membriList.get(selectedRow);
 
-            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi rimuovere " + membro.getNomeUtente() + " dal team?", "Conferma Rimozione", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi rimuovere " + membro.getUtente().getNomeCompleto() + " dal team?", "Conferma Rimozione", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
@@ -1033,9 +1036,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         try {
             String url = fileSelezionato.getAbsolutePath();
 
-            ProgressoResponse response = controller.caricaProgresso(teamCorrente.getTeamId(),   // Usa il nome del file come titolo
-                    // Descrizione vuota
-                    url);
+            ProgressoResponse response = controller.caricaProgresso(url);
 
             if (response.progresso() != null) {
                 showInfoMessage("Progresso caricato con successo!");
@@ -1105,7 +1106,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Info pubblicazione
         String info = "Pubblicato il: " + problemaSelezionato.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         if (problemaSelezionato.getPubblicatoDa() != null) {
-            info += " da " + problemaSelezionato.getPubblicatoDa().getNomeCompleto();
+            info += " da " + problemaSelezionato.getPubblicatoDa().getGiudice().getNomeCompleto();
         }
         JLabel infoLabel = new JLabel(info);
         infoLabel.setFont(infoLabel.getFont().deriveFont(Font.ITALIC));
@@ -1162,9 +1163,10 @@ public class GestisciProgettoGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             Team team = teams.get(rowIndex);
+            ResponseIntResult contaNumeroMembri = controller.contaNumeroMembri(team.getTeamId());
             return switch (columnIndex) {
                 case 0 -> team.getNome();
-                case 1 -> team.getNumeroMembri() + "/" + team.getMaxDimensione();
+                case 1 -> ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A");
                 default -> "";
             };
         }
@@ -1191,10 +1193,11 @@ public class GestisciProgettoGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             InvitoTeam invito = invitiRicevuti.get(rowIndex);
+            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getMembroTeamId());
             return switch (columnIndex) {
-                case 0 -> invito.getTeam().getNome();
+                case 0 -> ((teamInvito.team() != null) ? teamInvito.team().getNome() : "N/A");
                 case 1 ->
-                        invito.getInvitante().getNomeCompleto() != null ? invito.getInvitante().getNomeCompleto() : "N/A";
+                        invito.getInvitante().getUtente().getNomeCompleto() != null ? invito.getInvitante().getUtente().getNomeCompleto() : "N/A";
                 case 2 -> invito.getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 3 -> invito.getMessaggioMotivazionale() != null ? invito.getMessaggioMotivazionale() : "";
                 default -> "";
@@ -1288,7 +1291,8 @@ public class GestisciProgettoGUI implements GUIHandler {
             return switch (columnIndex) {
                 case 0 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
                 case 1 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                case 2 -> progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getNomeCompleto() : "N/A";
+                case 2 ->
+                        progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getUtente().getNomeCompleto() : "N/A";
                 default -> "";
             };
         }

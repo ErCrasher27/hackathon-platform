@@ -12,7 +12,7 @@ public class Progresso {
     private String documentoPath;
     private String documentoNome;
     private LocalDateTime dataCaricamento;
-    private MembroTeam caricatoDa;
+    private Registrazione caricatoDa;
 
     // endregion
 
@@ -71,11 +71,11 @@ public class Progresso {
         this.dataCaricamento = dataCaricamento;
     }
 
-    public MembroTeam getCaricatoDa() {
+    public Registrazione getCaricatoDa() {
         return caricatoDa;
     }
 
-    public void setCaricatoDa(MembroTeam caricatoDa) {
+    public void setCaricatoDa(Registrazione caricatoDa) {
         this.caricatoDa = caricatoDa;
     }
 

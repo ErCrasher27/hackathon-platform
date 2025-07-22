@@ -15,7 +15,7 @@ public class InvitoTeam {
     private String messaggioMotivazionale;
     private StatoInvito statoInvito;
     private LocalDateTime dataInvito;
-    private MembroTeam invitante;
+    private Registrazione invitante;
     private Utente invitato;
 
     // endregion
@@ -67,11 +67,11 @@ public class InvitoTeam {
         this.dataInvito = dataInvito;
     }
 
-    public MembroTeam getInvitante() {
+    public Registrazione getInvitante() {
         return invitante;
     }
 
-    public void setInvitante(MembroTeam invitante) {
+    public void setInvitante(Registrazione invitante) {
         this.invitante = invitante;
     }
 

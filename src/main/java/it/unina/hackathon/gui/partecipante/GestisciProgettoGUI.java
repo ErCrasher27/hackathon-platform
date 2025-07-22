@@ -35,7 +35,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     // endregion
 
     // region Data Lists
-    private final List<MembroTeam> membriList;
+    private final List<Registrazione> membriList;
     private final List<Progresso> progressiList;
     private final List<Problema> problemiList;
     private final List<Team> teams;
@@ -588,7 +588,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = membriTable.getSelectedRow();
                 if (isLeader && selectedRow != -1) {
-                    MembroTeam membro = membriList.get(selectedRow);
+                    Registrazione membro = membriList.get(selectedRow);
                     rimuoviMembroButton.setEnabled(membro.getRuolo() != RuoloTeam.LEADER);
                 } else {
                     rimuoviMembroButton.setEnabled(false);
@@ -860,7 +860,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             InvitoTeam invito = invitiRicevuti.get(selectedRow);
 
             String azione = accetta ? "accettare" : "rifiutare";
-            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getMembroTeamId());
+            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getRegistrazioneId());
             int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " l'invito del team '" + ((teamInvito.team() != null) ? teamInvito.team().getNome() : "N/A") + "'?", "Conferma", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
@@ -980,7 +980,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     private void rimuoviMembro() {
         int selectedRow = membriTable.getSelectedRow();
         if (selectedRow != -1) {
-            MembroTeam membro = membriList.get(selectedRow);
+            Registrazione membro = membriList.get(selectedRow);
 
             int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi rimuovere " + membro.getUtente().getNomeCompleto() + " dal team?", "Conferma Rimozione", JOptionPane.YES_NO_OPTION);
 
@@ -1193,7 +1193,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             InvitoTeam invito = invitiRicevuti.get(rowIndex);
-            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getMembroTeamId());
+            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getRegistrazioneId());
             return switch (columnIndex) {
                 case 0 -> ((teamInvito.team() != null) ? teamInvito.team().getNome() : "N/A");
                 case 1 ->
@@ -1256,7 +1256,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            MembroTeam membro = membriList.get(rowIndex);
+            Registrazione membro = membriList.get(rowIndex);
             return switch (columnIndex) {
                 case 0 -> membro.getUtente() != null ? membro.getUtente().getNomeCompleto() : "N/A";
                 case 1 -> membro.getUtente() != null ? membro.getUtente().getUsername() : "N/A";

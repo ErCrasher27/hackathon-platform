@@ -49,7 +49,7 @@ public class HackathonController {
     private final CommentoDAO commentoDAO;
     private final VotoDAO votoDAO;
     private final ProgressoDAO progressoDAO;
-    private final MembroTeamDAO membroTeamDAO;
+    private final RegistrazioneDAO membroTeamDAO;
     private final InvitoTeamDAO invitoTeamDAO;
     private Utente utenteCorrente;
 
@@ -71,7 +71,7 @@ public class HackathonController {
         this.commentoDAO = new CommentoImplementazionePostgresDAO();
         this.votoDAO = new VotoImplementazionePostgresDAO();
         this.progressoDAO = new ProgressoImplementazionePostgresDAO();
-        this.membroTeamDAO = new MembroTeamImplementazionePostgresDAO();
+        this.membroTeamDAO = new RegistrazioneImplementazionePostgresDAO();
         this.invitoTeamDAO = new InvitoTeamImplementazionePostgresDAO();
     }
 
@@ -666,8 +666,8 @@ public class HackathonController {
      * @param teamId ID del team
      * @return lista dei membri del team
      */
-    public MembroTeamListResponse getMembriTeam(int teamId) {
-        return membroTeamDAO.getMembriByTeam(teamId);
+    public RegistrazioneListResponse getMembriTeam(int teamId) {
+        return membroTeamDAO.getRegistrazioniByTeam(teamId);
     }
 
     /**
@@ -677,7 +677,7 @@ public class HackathonController {
      * @return esito dell'operazione
      */
     public ResponseResult rimuoviMembroTeam(int membroTeamId) {
-        return membroTeamDAO.deleteMembro(membroTeamId);
+        return membroTeamDAO.deleteRegistrazione(membroTeamId);
     }
 
     /**

@@ -1,8 +1,8 @@
 package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.ProgressoDAO;
-import it.unina.hackathon.model.MembroTeam;
 import it.unina.hackathon.model.Progresso;
+import it.unina.hackathon.model.Registrazione;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.model.enums.TipoUtente;
@@ -118,8 +118,8 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
         Utente caricatoDaUtente = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE);
         caricatoDaUtente.setUtenteId(rs.getInt("utente_id"));
 
-        MembroTeam caricatoDaMembroTeam = new MembroTeam();
-        caricatoDaMembroTeam.setMembroTeamId(rs.getInt("membro_team_id"));
+        Registrazione caricatoDaMembroTeam = new Registrazione();
+        caricatoDaMembroTeam.setRegistrazioneId(rs.getInt("membro_team_id"));
         caricatoDaMembroTeam.setTeamId(rs.getInt("team_id"));
         caricatoDaMembroTeam.setUtente(caricatoDaUtente);
         caricatoDaMembroTeam.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_team")));

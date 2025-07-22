@@ -2,7 +2,7 @@ package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.InvitoTeamDAO;
 import it.unina.hackathon.model.InvitoTeam;
-import it.unina.hackathon.model.MembroTeam;
+import it.unina.hackathon.model.Registrazione;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.model.enums.StatoInvito;
@@ -11,7 +11,10 @@ import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.InvitoTeamListResponse;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,29 +30,28 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     }
 
     @Override
-    public InvitoTeamListResponse getInvitiRicevuti(int utenteId, int hackathonId) {
+    public InvitoTeamListResponse getInvitiRicevuti(int utentePartecipanteId, int hackathonId) {
         String query = """
-                SELECT i.invito_id, i.invitante_id, i.invitato_id, 
-                       i.messaggio_motivazionale, i.stato_invito_id, i.data_invito,
-                       mt.membro_team_id, mt.team_id, mt.ruolo_team, mt.data_ingresso,
+                SELECT i.invito_id, i.invitante_reg_fk_registrazioni, i.invitato_fk_utenti, 
+                       i.messaggio, i.stato_fk_stati_invito, i.data_invito,
+                       mt.membro_team_id, r.team_fk_teams, r.ruolo_fk_ruoli_team, mt.data_ingresso,
                        u_invitante.utente_id as invitante_utente_id,
                        u_invitante.nome as invitante_nome, u_invitante.cognome as invitante_cognome, 
                        u_invitante.username as invitante_username, u_invitante.email as invitante_email,
                        u_invitato.nome as invitato_nome, u_invitato.cognome as invitato_cognome,
                        u_invitato.username as invitato_username, u_invitato.email as invitato_email
                 FROM inviti_team i
-                JOIN membri_team mt ON i.invitante_id = mt.membro_team_id
-                JOIN team t ON mt.team_id = t.team_id
-                JOIN utenti u_invitante ON mt.utente_id = u_invitante.utente_id
-                JOIN utenti u_invitato ON i.invitato_id = u_invitato.utente_id
-                WHERE i.invitato_id = ? AND t.hackathon_id = ?
+                JOIN registrazioni r i.invitante_reg_fk_registrazioni = r.partecipante_fk_utenti
+                JOIN utenti u_invitante ON r.partecipante_fk_utenti = u_invitante.utente_id
+                JOIN utenti u_invitato ON i.invitato_fk_utenti = u_invitato.utente_id
+                WHERE i.invitato_fk_utenti = ? AND r.hackathon_fk_hackathons = ?
                 ORDER BY i.data_invito DESC
                 """;
 
         List<InvitoTeam> inviti = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteId);
+            ps.setInt(1, utentePartecipanteId);
             ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
@@ -64,19 +66,18 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     }
 
     @Override
-    public ResponseResult inviaInvito(int membroTeamInvitanteId, int utenteInvitatoId, String messaggio) {
+    public ResponseResult inviaInvito(int registrazioneInvitanteId, int utenteInvitatoId, String messaggio) {
         String query = """
-                INSERT INTO inviti_team (invitante_id, invitato_id, messaggio_motivazionale, 
-                                       stato_invito_id, data_invito) 
+                INSERT INTO inviti_team (invitante_reg_fk_registrazioni, invitato_fk_utenti, messaggio, 
+                                       stato_fk_stati_invito, data_invito) 
                 VALUES (?, ?, ?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, membroTeamInvitanteId);
+            ps.setInt(1, registrazioneInvitanteId);
             ps.setInt(2, utenteInvitatoId);
             ps.setString(3, messaggio);
             ps.setInt(4, StatoInvito.PENDING.getId());
-            ps.setTimestamp(5, Timestamp.valueOf(java.time.LocalDateTime.now()));
 
             int affectedRows = ps.executeUpdate();
 
@@ -98,14 +99,13 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     public ResponseResult rispondiInvito(int invitoTeamId, StatoInvito risposta) {
         String query = """
                 UPDATE inviti_team 
-                SET stato_invito_id = ?
-                WHERE invito_id = ? AND stato_invito_id = ?
+                SET stato_fk_stati_invito = ?
+                WHERE invito_id = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, risposta.getId());
             ps.setInt(2, invitoTeamId);
-            ps.setInt(3, StatoInvito.PENDING.getId()); // Solo inviti in attesa possono essere modificati
 
             int affectedRows = ps.executeUpdate();
 
@@ -124,28 +124,29 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     private InvitoTeam mapResultSetToInvitoTeam(ResultSet rs) throws SQLException {
         InvitoTeam invito = new InvitoTeam();
         invito.setInvitoId(rs.getInt("invito_id"));
-        invito.setInvitanteId(rs.getInt("invitante_id")); // membro_team_id
-        invito.setInvitatoId(rs.getInt("invitato_id"));
-        invito.setMessaggioMotivazionale(rs.getString("messaggio_motivazionale"));
-        invito.setStatoInvito(StatoInvito.fromId(rs.getInt("stato_invito_id")));
+        invito.setInvitanteId(rs.getInt("invitante_reg_fk_registrazioni"));
+        invito.setInvitatoId(rs.getInt("invitato_fk_utenti"));
+        invito.setMessaggioMotivazionale(rs.getString("messaggio"));
+        invito.setStatoInvito(StatoInvito.fromId(rs.getInt("stato_fk_stati_invito")));
         invito.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
 
-        // Mappa l'invitante (membro del team)
-        Utente invitanteUtente = new Utente(rs.getString("invitante_username"), rs.getString("invitante_email"), "", rs.getString("invitante_nome"), rs.getString("invitante_cognome"), TipoUtente.PARTECIPANTE);
-        invitanteUtente.setUtenteId(rs.getInt("invitante_utente_id"));
+        // Mappa l'invitante
+        Utente invitanteUtentePartecipante = new Utente(rs.getString("invitante_username"), rs.getString("invitante_email"), "", rs.getString("invitante_nome"), rs.getString("invitante_cognome"), TipoUtente.PARTECIPANTE);
+        invitanteUtentePartecipante.setUtenteId(rs.getInt("invitante_utente_id"));
 
-        MembroTeam invitanteMembroTeam = new MembroTeam();
-        invitanteMembroTeam.setMembroTeamId(rs.getInt("membro_team_id"));
-        invitanteMembroTeam.setTeamId(rs.getInt("team_id"));
-        invitanteMembroTeam.setUtente(invitanteUtente);
-        invitanteMembroTeam.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_team")));
-        invitanteMembroTeam.setDataIngresso(rs.getTimestamp("data_ingresso").toLocalDateTime());
-        invito.setInvitante(invitanteMembroTeam);
+        Registrazione invitanteRegistrazione = new Registrazione();
+        invitanteRegistrazione.setRegistrazioneId(rs.getInt("invitante_reg_fk_registrazioni"));
+        invitanteRegistrazione.setTeamId(rs.getInt("team_fk_teams"));
+        invitanteRegistrazione.setUtente(invitanteUtentePartecipante);
+        invitanteRegistrazione.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_fk_ruoli_team")));
+        invitanteRegistrazione.setDataRegistrazione(rs.getTimestamp("data_registrazione").toLocalDateTime());
+        invitanteRegistrazione.setDataIngressoTeam(rs.getTimestamp("data_ingresso_team").toLocalDateTime());
+        invito.setInvitante(invitanteRegistrazione);
 
         // Mappa l'invitato
-        Utente invitato = new Utente(rs.getString("invitato_username"), rs.getString("invitato_email"), "", rs.getString("invitato_nome"), rs.getString("invitato_cognome"), TipoUtente.PARTECIPANTE);
-        invitato.setUtenteId(rs.getInt("invitato_id"));
-        invito.setInvitato(invitato);
+        Utente invitatoUtentePartecipante = new Utente(rs.getString("invitato_username"), rs.getString("invitato_email"), "", rs.getString("invitato_nome"), rs.getString("invitato_cognome"), TipoUtente.PARTECIPANTE);
+        invitatoUtentePartecipante.setUtenteId(rs.getInt("invitato_fk_utenti"));
+        invito.setInvitato(invitatoUtentePartecipante);
 
         return invito;
     }

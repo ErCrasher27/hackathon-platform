@@ -5,13 +5,14 @@ import it.unina.hackathon.model.enums.RuoloTeam;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class MembroTeam {
+public class Registrazione {
 
     // region Proprietà
 
-    private int membroTeamId;
+    private int registrazioneId;
     private int teamId;
     private int utenteId;
+    private LocalDateTime dataRegistrazione;
     private LocalDateTime dataIngresso;
     private RuoloTeam ruolo;
     private Utente utente;
@@ -21,7 +22,7 @@ public class MembroTeam {
 
     // region Costruttori
 
-    public MembroTeam() {
+    public Registrazione() {
         this.dataIngresso = LocalDateTime.now();
         this.ruolo = RuoloTeam.MEMBRO; // Default
     }
@@ -30,12 +31,12 @@ public class MembroTeam {
 
     // region Getter e Setter
 
-    public int getMembroTeamId() {
-        return membroTeamId;
+    public int getRegistrazioneId() {
+        return registrazioneId;
     }
 
-    public void setMembroTeamId(int membroTeamId) {
-        this.membroTeamId = membroTeamId;
+    public void setRegistrazioneId(int membroTeamId) {
+        this.registrazioneId = membroTeamId;
     }
 
     public int getTeamId() {
@@ -58,7 +59,11 @@ public class MembroTeam {
         return dataIngresso;
     }
 
-    public void setDataIngresso(LocalDateTime dataIngresso) {
+    public void setDataRegistrazione(LocalDateTime dataRegistrazione) {
+        this.dataRegistrazione = dataRegistrazione;
+    }
+
+    public void setDataIngressoTeam(LocalDateTime dataIngresso) {
         this.dataIngresso = dataIngresso;
     }
 
@@ -94,18 +99,18 @@ public class MembroTeam {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        MembroTeam that = (MembroTeam) obj;
-        return membroTeamId == that.membroTeamId;
+        Registrazione that = (Registrazione) obj;
+        return registrazioneId == that.registrazioneId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(membroTeamId);
+        return Objects.hash(registrazioneId);
     }
 
     @Override
     public String toString() {
-        return String.format("MembroTeam{id=%d, team=%d, utente=%d, ruolo=%s}", membroTeamId, teamId, utenteId, ruolo != null ? ruolo.name() : "null");
+        return String.format("Registrazione{id=%d, team=%d, utente=%d, ruolo=%s}", registrazioneId, teamId, utenteId, ruolo != null ? ruolo.getDisplayName() : "null");
     }
 
     // endregion

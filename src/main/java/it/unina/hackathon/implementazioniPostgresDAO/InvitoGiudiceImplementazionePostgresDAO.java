@@ -10,7 +10,10 @@ import it.unina.hackathon.utils.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.InvitoGiudiceListResponse;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +29,10 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     }
 
     @Override
-    public InvitoGiudiceListResponse getInvitiRicevuti(int utenteId) {
+    public InvitoGiudiceListResponse getInvitiRicevuti(int utenteGiudiceId) {
         String query = """
-                SELECT i.invito_id, i.invitante_id, i.invitato_id, i.hackathon_id,
-                       i.stato_invito_id, i.data_invito,
+                SELECT i.invito_id, i.invitante_fk_utenti, i.invitato_fk_utenti, i.hackathon_fk_hackathons,
+                       i.stato_fk_stati_invito, i.data_invito,
                        u_invitante.utente_id as invitante_utente_id,
                        u_invitante.nome as invitante_nome, u_invitante.cognome as invitante_cognome,
                        u_invitante.username as invitante_username, u_invitante.email as invitante_email,
@@ -46,7 +49,7 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
         List<InvitoGiudice> inviti = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteId);
+            ps.setInt(1, utenteGiudiceId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -60,29 +63,29 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     }
 
     @Override
-    public InvitoGiudiceResponse getInvitoByInvitatoHackathon(int utenteId, int hackathonId) {
+    public InvitoGiudiceResponse getInvitoByInvitatoHackathon(int utenteInvitatoId, int hackathonId) {
         String query = """
-                SELECT invito_id, invitante_id, invitato_id, hackathon_id, stato_invito_id, data_invito
-                FROM inviti_giudice
-                WHERE invitato_id = ? AND hackathon_id = ?
+                SELECT i.invito_id, i.invitante_fk_utenti, i.invitato_fk_utenti, i.hackathon_fk_hackathons,
+                           i.stato_fk_stati_invito, i.data_invito,
+                           u_invitante.utente_id as invitante_utente_id,
+                           u_invitante.nome as invitante_nome, u_invitante.cognome as invitante_cognome,
+                           u_invitante.username as invitante_username, u_invitante.email as invitante_email,
+                           u_invitato.utente_id as invitato_utente_id,
+                           u_invitato.nome as invitato_nome, u_invitato.cognome as invitato_cognome,
+                           u_invitato.username as invitato_username, u_invitato.email as invitato_email
+                    FROM inviti_giudice i
+                    JOIN utenti u_invitante ON i.invitante_id = u_invitante.utente_id
+                    JOIN utenti u_invitato ON i.invitato_id = u_invitato.utente_id
+                    WHERE i.invitato_fk_utenti = ? AND i.hackathon_fk_hackathons = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteId);
+            ps.setInt(1, utenteInvitatoId);
             ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                // Assumo che tu abbia una classe InvitoGiudice con questi campi
-                InvitoGiudice invito = new InvitoGiudice();
-                invito.setInvitoId(rs.getInt("invito_id"));
-                invito.setInvitanteId(rs.getInt("invitante_id"));
-                invito.setInvitatoId(rs.getInt("invitato_id"));
-                invito.setHackathonId(rs.getInt("hackathon_id"));
-                invito.setStatoInvito(StatoInvito.fromId(rs.getInt("stato_invito_id")));
-                invito.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
-
-                return new InvitoGiudiceResponse(invito, "Invito trovato con successo.");
+                return new InvitoGiudiceResponse(mapResultSetToInvitoGiudice(rs), "Invito trovato con successo.");
             } else {
                 return new InvitoGiudiceResponse(null, "Nessun invito trovato per l'utente nell'hackathon specificato.");
             }
@@ -95,9 +98,9 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     @Override
     public ResponseResult inviaInvito(int utenteInvitanteId, int utenteInvitatoId, int hackathonId) {
         String query = """
-                INSERT INTO inviti_giudice (invitante_id, invitato_id, hackathon_id, 
-                                          stato_invito_id, data_invito) 
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO inviti_giudice (invitante_fk_utenti, invitato_fk_utenti, hackathon_fk_hackathons, 
+                                          stato_fk_stati_invito) 
+                VALUES (?, ?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -105,7 +108,6 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
             ps.setInt(2, utenteInvitatoId);
             ps.setInt(3, hackathonId);
             ps.setInt(4, StatoInvito.PENDING.getId());
-            ps.setTimestamp(5, Timestamp.valueOf(java.time.LocalDateTime.now()));
 
             int affectedRows = ps.executeUpdate();
 
@@ -147,14 +149,13 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     public ResponseResult rispondiInvito(int invitoGiudiceId, StatoInvito risposta) {
         String query = """
                 UPDATE inviti_giudice 
-                SET stato_invito_id = ?
-                WHERE invito_id = ? AND stato_invito_id = ?
+                SET stato_fk_stati_invito = ?
+                WHERE invito_id = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, risposta.getId());
             ps.setInt(2, invitoGiudiceId);
-            ps.setInt(3, StatoInvito.PENDING.getId());
 
             int affectedRows = ps.executeUpdate();
 
@@ -177,13 +178,13 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
 
     private void aggiungiGiudiceHackathon(int invitoGiudiceId) throws SQLException {
         String selectQuery = """
-                SELECT invitato_id, hackathon_id 
+                SELECT invitato_fk_utenti, hackathon_fk_hackathons 
                 FROM inviti_giudice 
                 WHERE invito_id = ?
                 """;
 
         String insertQuery = """
-                INSERT INTO giudici_hackathon (hackathon_id, giudice_id) 
+                INSERT INTO giudici_hackathon (hackathon_fk_hackathons, giudice_fk_utenti) 
                 VALUES (?, ?)
                 """;
 
@@ -193,8 +194,8 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
             ResultSet rs = selectPs.executeQuery();
 
             if (rs.next()) {
-                insertPs.setInt(1, rs.getInt("hackathon_id"));
-                insertPs.setInt(2, rs.getInt("invitato_id"));
+                insertPs.setInt(1, rs.getInt("hackathon_fk_hackathons"));
+                insertPs.setInt(2, rs.getInt("invitato_fk_utenti"));
                 insertPs.executeUpdate();
             }
         }
@@ -205,7 +206,7 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
         invito.setInvitoId(rs.getInt("invito_id"));
         invito.setInvitanteId(rs.getInt("invitante_id"));
         invito.setInvitatoId(rs.getInt("invitato_id"));
-        invito.setHackathonId(rs.getInt("hackathon_id")); // Solo l'ID, non l'oggetto completo
+        invito.setHackathonId(rs.getInt("hackathon_id"));
         invito.setStatoInvito(StatoInvito.fromId(rs.getInt("stato_invito_id")));
         invito.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
 

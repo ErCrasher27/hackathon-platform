@@ -9,7 +9,7 @@ public class GiudiceHackathon {
 
     private int giudiceHackathonId;
     private int hackathonId;
-    private int giudiceId;
+    private int utenteGiudiceId;
     private Utente utenteGiudice;
     private LocalDateTime dataAssegnazione;
 
@@ -33,8 +33,8 @@ public class GiudiceHackathon {
         this.hackathonId = hackathonId;
     }
 
-    public void setGiudiceId(int giudiceId) {
-        this.giudiceId = giudiceId;
+    public void setUtenteGiudiceId(int utenteGiudiceId) {
+        this.utenteGiudiceId = utenteGiudiceId;
     }
 
     public Utente getUtenteGiudice() {
@@ -72,7 +72,7 @@ public class GiudiceHackathon {
 
     @Override
     public String toString() {
-        return String.format("GiudiceHackathon{id=%d, hackathonId=%d, giudiceId=%d}", giudiceHackathonId, hackathonId, giudiceId);
+        return String.format("GiudiceHackathon{id=%d, hackathonId=%d, giudiceId=%d}", giudiceHackathonId, hackathonId, utenteGiudiceId);
     }
 
     // endregion

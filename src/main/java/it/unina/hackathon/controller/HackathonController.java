@@ -224,7 +224,7 @@ public class HackathonController {
      */
     public HackathonResponse creaHackathon(String titolo, String descrizione, String sede, LocalDateTime dataInizio, LocalDateTime dataFine, int maxIscrizioni, int maxMembriTeam) {
         Hackathon nuovoHackathon = new Hackathon(titolo, descrizione, sede, dataInizio, dataFine, maxIscrizioni, maxMembriTeam);
-        nuovoHackathon.setOrganizzatoreId(getIdUtenteCorrente());
+        nuovoHackathon.setUtenteOrganizzatoreId(getIdUtenteCorrente());
         nuovoHackathon.apriRegistrazioni();
 
         // Valida i dati dell'hackathon

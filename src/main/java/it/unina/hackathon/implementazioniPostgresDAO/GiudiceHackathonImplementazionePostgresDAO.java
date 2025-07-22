@@ -73,7 +73,7 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
     private GiudiceHackathon mapToGiudiceHackathon(ResultSet rs) throws SQLException {
         GiudiceHackathon giudice = new GiudiceHackathon();
         giudice.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        giudice.setGiudiceId(rs.getInt("giudice_id"));
+        giudice.setUtenteGiudiceId(rs.getInt("giudice_id"));
         giudice.setHackathonId(rs.getInt("hackathon_id"));
         giudice.setDataAssegnazione(rs.getTimestamp("data_assegnazione").toLocalDateTime());
         return giudice;

@@ -20,7 +20,7 @@ public class Hackathon {
     private int maxIscritti;
     private int maxDimensioneTeam;
     private HackathonStatus status;
-    private int organizzatoreId;
+    private int utenteOrganizzatoreId;
     private LocalDateTime dataCreazione;
 
     // endregion
@@ -91,6 +91,10 @@ public class Hackathon {
         return dataChiusuraRegistrazioni;
     }
 
+    public void setDataChiusuraRegistrazioni(LocalDateTime dataChiusuraRegistrazioni) {
+        this.dataChiusuraRegistrazioni = dataChiusuraRegistrazioni;
+    }
+
     public int getMaxIscritti() {
         return maxIscritti;
     }
@@ -107,12 +111,12 @@ public class Hackathon {
         this.status = status;
     }
 
-    public int getOrganizzatoreId() {
-        return organizzatoreId;
+    public int getUtenteOrganizzatoreId() {
+        return utenteOrganizzatoreId;
     }
 
-    public void setOrganizzatoreId(int organizzatoreId) {
-        this.organizzatoreId = organizzatoreId;
+    public void setUtenteOrganizzatoreId(int utenteOrganizzatoreId) {
+        this.utenteOrganizzatoreId = utenteOrganizzatoreId;
     }
 
     public void setDataCreazione(LocalDateTime dataCreazione) {

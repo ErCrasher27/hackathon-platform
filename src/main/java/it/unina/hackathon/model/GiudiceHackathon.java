@@ -1,5 +1,6 @@
 package it.unina.hackathon.model;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class GiudiceHackathon {
@@ -9,7 +10,8 @@ public class GiudiceHackathon {
     private int giudiceHackathonId;
     private int hackathonId;
     private int giudiceId;
-    private Utente giudice;
+    private Utente utenteGiudice;
+    private LocalDateTime dataAssegnazione;
 
     // endregion
 
@@ -35,12 +37,20 @@ public class GiudiceHackathon {
         this.giudiceId = giudiceId;
     }
 
-    public Utente getGiudice() {
-        return giudice;
+    public Utente getUtenteGiudice() {
+        return utenteGiudice;
     }
 
-    public void setGiudice(Utente giudice) {
-        this.giudice = giudice;
+    public void setUtenteGiudice(Utente utenteGiudice) {
+        this.utenteGiudice = utenteGiudice;
+    }
+
+    public LocalDateTime getDataAssegnazione() {
+        return dataAssegnazione;
+    }
+
+    public void setDataAssegnazione(LocalDateTime dataAssegnazione) {
+        this.dataAssegnazione = dataAssegnazione;
     }
 
     // endregion

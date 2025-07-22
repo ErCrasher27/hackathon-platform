@@ -674,7 +674,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
                 sb.append("=== Commento ").append(i + 1).append(" ===\n");
                 sb.append("Data: ").append(commento.getDataCommento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))).append("\n");
                 if (commento.getGiudiceHackathon() != null) {
-                    sb.append("Giudice: ").append(commento.getGiudiceHackathon().getGiudice().getNomeCompleto()).append("\n");
+                    sb.append("Giudice: ").append(commento.getGiudiceHackathon().getUtenteGiudice().getNomeCompleto()).append("\n");
                 }
                 sb.append("Testo: ").append(commento.getTesto()).append("\n\n");
             }

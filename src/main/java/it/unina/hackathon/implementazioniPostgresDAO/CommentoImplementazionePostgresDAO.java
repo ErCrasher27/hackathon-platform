@@ -92,7 +92,7 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
 
         GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
         giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        giudiceHackathon.setGiudice(utenteGiudice);
+        giudiceHackathon.setUtenteGiudice(utenteGiudice);
 
         commento.setGiudiceHackathon(giudiceHackathon);
 

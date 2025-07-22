@@ -118,7 +118,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
 
         GiudiceHackathon pubblicatoDaGiudiceHackathon = new GiudiceHackathon();
         pubblicatoDaGiudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        pubblicatoDaGiudiceHackathon.setGiudice(pubblicatoDaUtente);
+        pubblicatoDaGiudiceHackathon.setUtenteGiudice(pubblicatoDaUtente);
         pubblicatoDaGiudiceHackathon.setHackathonId(rs.getInt("hackathon_id"));
         problema.setPubblicatoDa(pubblicatoDaGiudiceHackathon);
 

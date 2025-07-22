@@ -1106,7 +1106,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Info pubblicazione
         String info = "Pubblicato il: " + problemaSelezionato.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         if (problemaSelezionato.getPubblicatoDa() != null) {
-            info += " da " + problemaSelezionato.getPubblicatoDa().getGiudice().getNomeCompleto();
+            info += " da " + problemaSelezionato.getPubblicatoDa().getUtenteGiudice().getNomeCompleto();
         }
         JLabel infoLabel = new JLabel(info);
         infoLabel.setFont(infoLabel.getFont().deriveFont(Font.ITALIC));

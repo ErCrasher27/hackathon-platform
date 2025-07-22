@@ -153,7 +153,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
 
         GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
         giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        giudiceHackathon.setGiudice(giudiceUtente);
+        giudiceHackathon.setUtenteGiudice(giudiceUtente);
         voto.setGiudice(giudiceHackathon);
 
         return voto;

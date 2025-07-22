@@ -23,10 +23,10 @@ public class Commento {
         this.dataCommento = LocalDateTime.now();
     }
 
-    public Commento(int progressoId, int giudiceId, String testo) {
+    public Commento(int progressoId, int giudiceHackathonId, String testo) {
         this();
         this.progressoId = progressoId;
-        this.giudiceHackathonId = giudiceId;
+        this.giudiceHackathonId = giudiceHackathonId;
         this.testo = testo;
     }
 
@@ -93,7 +93,7 @@ public class Commento {
 
     @Override
     public String toString() {
-        return String.format("Commento{id=%d, progresso=%d, giudice=%d, data=%s}", commentoId, progressoId, giudiceHackathonId, dataCommento != null ? dataCommento.toLocalDate() : "N/A");
+        return String.format("Commento{id=%d, progresso=%d, giudice_hackathon=%d}", commentoId, progressoId, giudiceHackathonId);
     }
 
     // endregion

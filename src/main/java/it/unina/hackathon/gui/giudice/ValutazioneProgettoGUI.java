@@ -616,7 +616,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         try {
             GiudiceHackathonResponse gh = controller.getGiudiceHackathonByUtenteHackathon(controller.getIdUtenteCorrente(), hackathonId);
             if (gh != null) {
-                CommentoResponse response = controller.scriviCommento(gh.giudiceHackathon().getGiudiceHackathonId(), progressoSelezionato.getProgressoId(), testo);
+                CommentoResponse response = controller.scriviCommento(progressoSelezionato.getProgressoId(), gh.giudiceHackathon().getGiudiceHackathonId(), testo);
                 if (response.commento() != null) {
                     showInfoMessage("Commento aggiunto con successo!");
                     nuovoCommentoArea.setText("");

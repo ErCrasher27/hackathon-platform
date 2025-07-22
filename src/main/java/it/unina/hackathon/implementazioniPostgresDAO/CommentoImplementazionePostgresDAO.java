@@ -27,15 +27,14 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
     @Override
     public CommentoResponse saveCommento(Commento commento) {
         String query = """
-                INSERT INTO commenti (progresso_id, giudice_hackathon_id, testo, data_commento) 
-                VALUES (?, ?, ?, ?)
+                INSERT INTO commenti (progresso_fk_progressi, giudice_hack_fk_giudici_hackathon, testo) 
+                VALUES (?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, commento.getProgressoId());
             ps.setInt(2, commento.getGiudiceHackathonId());
             ps.setString(3, commento.getTesto());
-            ps.setTimestamp(4, Timestamp.valueOf(commento.getDataCommento()));
             int affectedRows = ps.executeUpdate();
 
             if (affectedRows > 0) {
@@ -56,13 +55,13 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
     @Override
     public CommentoListResponse getCommentiByProgresso(int progressoId) {
         String query = """
-                SELECT c.commento_id, c.progresso_id, c.giudice_hackathon_id, c.testo, c.data_commento,
+                SELECT c.commento_id, c.progresso_fk_progressi, c.giudice_hack_fk_giudici_hackathon, c.testo, c.data_commento,
                        u.nome, u.cognome, u.username, u.email, u.utente_id,
                        gh.giudice_hackathon_id
                 FROM commenti c
-                JOIN giudici_hackathon gh ON c.giudice_hackathon_id = gh.giudice_hackathon_id
-                JOIN utenti u ON gh.giudice_id = u.utente_id
-                WHERE c.progresso_id = ?
+                JOIN giudici_hackathon gh ON c.giudice_hack_fk_giudici_hackathon = gh.giudice_hackathon_id
+                JOIN utenti u ON gh.giudice_hackathon_id = u.utente_id
+                WHERE c.progresso_fk_progressi = ?
                 ORDER BY c.data_commento DESC
                 """;
 
@@ -88,12 +87,13 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
         commento.setDataCommento(rs.getTimestamp("data_commento").toLocalDateTime());
 
         // Mappa il giudice
-        Utente giudice = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
-        giudice.setUtenteId(rs.getInt("utente_id"));
+        Utente utenteGiudice = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
+        utenteGiudice.setUtenteId(rs.getInt("utente_id"));
 
         GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
         giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        giudiceHackathon.setGiudice(giudice);
+        giudiceHackathon.setGiudice(utenteGiudice);
+
         commento.setGiudiceHackathon(giudiceHackathon);
 
         return commento;

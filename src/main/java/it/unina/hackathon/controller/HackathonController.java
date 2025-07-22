@@ -508,11 +508,12 @@ public class HackathonController {
     /**
      * Scrive un commento su un progresso.
      *
-     * @param progressoId   ID del progresso
-     * @param testoCommento testo del commento
+     * @param progressoId        ID del progresso
+     * @param giudiceHackathonId ID del giudice hackathon
+     * @param testoCommento      testo del commento
      * @return risposta contenente il commento creato
      */
-    public CommentoResponse scriviCommento(int giudiceHackathonId, int progressoId, String testoCommento) {
+    public CommentoResponse scriviCommento(int progressoId, int giudiceHackathonId, String testoCommento) {
         Commento nuovoCommento = new Commento(progressoId, giudiceHackathonId, testoCommento);
         return commentoDAO.saveCommento(nuovoCommento);
     }

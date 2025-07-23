@@ -268,7 +268,7 @@ public class HackathonController {
      * @return lista dei giudici non invitati
      */
     public UtenteListResponse getGiudiciNonInvitati(int hackathonId) {
-        return utenteDAO.getGiudiciNonInvitati(hackathonId);
+        return utenteDAO.getUtentiGiudiciNonInvitati(hackathonId);
     }
 
     /**
@@ -278,7 +278,7 @@ public class HackathonController {
      * @return lista dei giudici invitati
      */
     public UtenteListResponse getGiudiciInvitati(int hackathonId) {
-        return utenteDAO.getGiudiciInvitati(hackathonId);
+        return utenteDAO.getUtentiGiudiciInvitati(hackathonId);
     }
 
     /**

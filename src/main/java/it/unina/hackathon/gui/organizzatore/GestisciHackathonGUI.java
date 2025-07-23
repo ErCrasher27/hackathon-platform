@@ -6,7 +6,6 @@ import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Team;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.Voto;
-import it.unina.hackathon.utils.responses.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.*;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
@@ -424,7 +423,7 @@ public class GestisciHackathonGUI implements GUIHandler {
 
             if (response.utenti() != null) {
                 for (Utente partecipante : response.utenti()) {
-                    TeamResponse team = controller.getTeamPartecipante(partecipante.getUtenteId(), hackathonId);
+                    TeamResponse team = controller.getTeamPartecipante(hackathonId);
                     Object[] row = {partecipante.getNome(), partecipante.getCognome(), partecipante.getUsername(), partecipante.getEmail(), team.team() != null ? team.team().getNome() : "N/A", partecipante.getDataRegistrazione() != null ? partecipante.getDataRegistrazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
                     partecipantiTableModel.addRow(row);
                 }

@@ -219,13 +219,8 @@ public class HackathonController {
         return invitoGiudiceDAO.aggiornaStatoInvito(invitoGiudiceId, StatoInvito.DECLINED);
     }
 
-    public HackathonListResponse getHackathonAssegnati(int hackathonId) {
-        GiudiceHackathonResponse giudiceHackathonCorrente = giudiceHackathonDAO.getGiudiceHackathonByUtenteGiudiceHackathon(getIdUtenteCorrente(), hackathonId);
-        if (giudiceHackathonCorrente.giudiceHackathon() != null) {
-            return hackathonDAO.getHackathonByGiudiceHackathon(giudiceHackathonCorrente.giudiceHackathon().getGiudiceHackathonId());
-        } else {
-            return new HackathonListResponse(null, "Impossibile caricare gli hackathon!");
-        }
+    public HackathonListResponse getHackathonAssegnati() {
+        return hackathonDAO.getHackathonByGiudice(getIdUtenteCorrente());
     }
 
     public HackathonResponse getDettagliHackathon(int hackathonId) {

@@ -913,20 +913,20 @@ public class GestisciProgettoGUI implements GUIHandler {
         try {
             var response = controller.getPartecipantiDisponibili(hackathonId);
 
-            if (response.utenti() == null || response.utenti().isEmpty()) {
+            if (response.registrazioni() == null) {
                 showErrorMessage("Non ci sono partecipanti registrati all'hackathon!");
                 return;
             }
 
             // Filtra i partecipanti rimuovendo quelli già registrazioni del team
-            List<Utente> partecipantiInvitabili = response.utenti().stream().filter(partecipante -> membriList.stream().noneMatch(membro -> membro.getUtentePartecipante() != null && membro.getUtentePartecipante().getUtenteId() == partecipante.getUtenteId())).toList();
+            List<Registrazione> partecipantiInvitabili = response.registrazioni().stream().filter(partecipante -> membriList.stream().noneMatch(membro -> membro.getUtentePartecipante() != null && membro.getUtentePartecipante().getUtenteId() == partecipante.getUtentePartecipanteId())).toList();
 
             if (partecipantiInvitabili.isEmpty()) {
                 showErrorMessage("Non ci sono partecipanti disponibili da invitare!");
                 return;
             }
 
-            String[] nomiPartecipanti = partecipantiInvitabili.stream().map(p -> p.getNome() + " " + p.getCognome() + " (" + p.getUsername() + ")").toArray(String[]::new);
+            String[] nomiPartecipanti = partecipantiInvitabili.stream().map(p -> p.getUtentePartecipante().getNome() + " " + p.getUtentePartecipante().getCognome() + " (" + p.getUtentePartecipante().getUsername() + ")").toArray(String[]::new);
 
             String selected = (String) JOptionPane.showInputDialog(frame, "Seleziona il partecipante da invitare:", "Invita Membro", JOptionPane.QUESTION_MESSAGE, null, nomiPartecipanti, nomiPartecipanti[0]);
 
@@ -940,7 +940,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                 }
 
                 if (selectedIndex >= 0) {
-                    Utente partecipanteSelezionato = partecipantiInvitabili.get(selectedIndex);
+                    Registrazione partecipanteSelezionato = partecipantiInvitabili.get(selectedIndex);
 
                     // Dialog per messaggio personalizzato
                     JTextArea messageArea = new JTextArea(4, 30);
@@ -951,7 +951,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                     JScrollPane scrollPane = new JScrollPane(messageArea);
                     scrollPane.setPreferredSize(new Dimension(350, 100));
 
-                    Object[] message = {"Messaggio per " + partecipanteSelezionato.getNome() + " " + partecipanteSelezionato.getCognome() + ":", scrollPane};
+                    Object[] message = {"Messaggio per " + partecipanteSelezionato.getUtentePartecipante().getNome() + " " + partecipanteSelezionato.getUtentePartecipante().getCognome() + ":", scrollPane};
 
                     int option = JOptionPane.showConfirmDialog(frame, message, "Messaggio di Invito", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
@@ -962,10 +962,10 @@ public class GestisciProgettoGUI implements GUIHandler {
                             messaggioInvito = "Ti invitiamo a unirti al nostro team!";
                         }
 
-                        var inviteResult = controller.invitaUtenteInTeam(partecipanteSelezionato.getUtenteId(), messaggioInvito);
+                        var inviteResult = controller.invitaUtenteInTeam(partecipanteSelezionato.getUtentePartecipanteId(), messaggioInvito);
 
                         if (inviteResult.result()) {
-                            showInfoMessage("Invito inviato con successo a " + partecipanteSelezionato.getNome() + " " + partecipanteSelezionato.getCognome());
+                            showInfoMessage("Invito inviato con successo a " + partecipanteSelezionato.getUtentePartecipante().getNome() + " " + partecipanteSelezionato.getUtentePartecipante().getCognome());
                         } else {
                             showErrorMessage("Errore nell'invito: " + inviteResult.message());
                         }
@@ -1258,7 +1258,8 @@ public class GestisciProgettoGUI implements GUIHandler {
         public Object getValueAt(int rowIndex, int columnIndex) {
             Registrazione membro = membriList.get(rowIndex);
             return switch (columnIndex) {
-                case 0 -> membro.getUtentePartecipante() != null ? membro.getUtentePartecipante().getNomeCompleto() : "N/A";
+                case 0 ->
+                        membro.getUtentePartecipante() != null ? membro.getUtentePartecipante().getNomeCompleto() : "N/A";
                 case 1 -> membro.getUtentePartecipante() != null ? membro.getUtentePartecipante().getUsername() : "N/A";
                 case 2 -> membro.getRuolo() != null ? membro.getRuolo().getDisplayName() : "N/A";
                 case 3 -> membro.getDataIngresso().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));

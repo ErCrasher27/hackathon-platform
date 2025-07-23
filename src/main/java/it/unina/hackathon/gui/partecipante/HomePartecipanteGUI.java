@@ -361,8 +361,8 @@ public class HomePartecipanteGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = controller.registratiHackathon(hackathon.getHackathonId());
-                    if (response.result()) {
+                    var response = controller.registratiAdHackathon(hackathon.getHackathonId());
+                    if (response.registrazione() != null) {
                         showInfoMessage("Registrazione completata con successo!");
                         loadHackathonDisponibili();
                         loadMieiHackathon();

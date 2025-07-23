@@ -30,7 +30,7 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     }
 
     @Override
-    public InvitoTeamListResponse getInvitiRicevuti(int utentePartecipanteId, int hackathonId) {
+    public InvitoTeamListResponse getInvitiTeamByUtentePartecipanteHackathon(int utentePartecipanteId, int hackathonId) {
         String query = """
                 SELECT i.invito_id, i.invitante_reg_fk_registrazioni, i.invitato_fk_utenti, 
                        i.messaggio, i.stato_fk_stati_invito, i.data_invito,
@@ -66,7 +66,7 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     }
 
     @Override
-    public ResponseResult inviaInvito(int registrazioneInvitanteId, int utenteInvitatoId, String messaggio) {
+    public ResponseResult saveInvitoUtente(int registrazioneInvitanteId, int utentePartecipanteInvitatoId, String messaggio) {
         String query = """
                 INSERT INTO inviti_team (invitante_reg_fk_registrazioni, invitato_fk_utenti, messaggio, 
                                        stato_fk_stati_invito, data_invito) 
@@ -75,7 +75,7 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, registrazioneInvitanteId);
-            ps.setInt(2, utenteInvitatoId);
+            ps.setInt(2, utentePartecipanteInvitatoId);
             ps.setString(3, messaggio);
             ps.setInt(4, StatoInvito.PENDING.getId());
 
@@ -96,7 +96,7 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     }
 
     @Override
-    public ResponseResult rispondiInvito(int invitoTeamId, StatoInvito risposta) {
+    public ResponseResult aggiornaStatoInvito(int invitoTeamId, StatoInvito risposta) {
         String query = """
                 UPDATE inviti_team 
                 SET stato_fk_stati_invito = ?
@@ -124,8 +124,8 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
     private InvitoTeam mapResultSetToInvitoTeam(ResultSet rs) throws SQLException {
         InvitoTeam invito = new InvitoTeam();
         invito.setInvitoId(rs.getInt("invito_id"));
-        invito.setInvitanteId(rs.getInt("invitante_reg_fk_registrazioni"));
-        invito.setInvitatoId(rs.getInt("invitato_fk_utenti"));
+        invito.setRegistrazioneInvitanteId(rs.getInt("invitante_reg_fk_registrazioni"));
+        invito.setUtentePartecipanteInvitatoId(rs.getInt("invitato_fk_utenti"));
         invito.setMessaggioMotivazionale(rs.getString("messaggio"));
         invito.setStatoInvito(StatoInvito.fromId(rs.getInt("stato_fk_stati_invito")));
         invito.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
@@ -137,16 +137,16 @@ public class InvitoTeamImplementazionePostgresDAO implements InvitoTeamDAO {
         Registrazione invitanteRegistrazione = new Registrazione();
         invitanteRegistrazione.setRegistrazioneId(rs.getInt("invitante_reg_fk_registrazioni"));
         invitanteRegistrazione.setTeamId(rs.getInt("team_fk_teams"));
-        invitanteRegistrazione.setUtente(invitanteUtentePartecipante);
+        invitanteRegistrazione.setUtentePartecipante(invitanteUtentePartecipante);
         invitanteRegistrazione.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_fk_ruoli_team")));
         invitanteRegistrazione.setDataRegistrazione(rs.getTimestamp("data_registrazione").toLocalDateTime());
         invitanteRegistrazione.setDataIngressoTeam(rs.getTimestamp("data_ingresso_team").toLocalDateTime());
-        invito.setInvitante(invitanteRegistrazione);
+        invito.setRegistrazioneInvitante(invitanteRegistrazione);
 
         // Mappa l'invitato
         Utente invitatoUtentePartecipante = new Utente(rs.getString("invitato_username"), rs.getString("invitato_email"), "", rs.getString("invitato_nome"), rs.getString("invitato_cognome"), TipoUtente.PARTECIPANTE);
         invitatoUtentePartecipante.setUtenteId(rs.getInt("invitato_fk_utenti"));
-        invito.setInvitato(invitatoUtentePartecipante);
+        invito.setUtentePartecipanteInvitato(invitatoUtentePartecipante);
 
         return invito;
     }

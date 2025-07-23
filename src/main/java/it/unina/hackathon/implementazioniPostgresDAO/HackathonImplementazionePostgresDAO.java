@@ -75,8 +75,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                Hackathon hackathon = mapResultSetToHackathon(rs);
-                return new HackathonResponse(hackathon, "Hackathon trovato con successo!");
+                return new HackathonResponse(mapResultSetToHackathon(rs), "Hackathon trovato con successo!");
             } else {
                 return new HackathonResponse(null, "Hackathon non trovato!");
             }
@@ -87,7 +86,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     }
 
     @Override
-    public HackathonListResponse getHackathonByHackathonStatus(HackathonStatus hs) {
+    public HackathonListResponse getHackathonsByHackathonStatus(HackathonStatus hs) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
                                   h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
@@ -117,7 +116,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     }
 
     @Override
-    public HackathonListResponse getHackathonsByOrganizzatore(int utenteOrganizzatoreId) {
+    public HackathonListResponse getHackathonsByOrganizzatore(int utentePartecipanteId) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
                                   h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
@@ -130,7 +129,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
         List<Hackathon> hackathonList = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteOrganizzatoreId);
+            ps.setInt(1, utentePartecipanteId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -176,7 +175,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     }
 
     @Override
-    public HackathonListResponse getHackathonAccettati(int utenteGiudiceId) {
+    public HackathonListResponse getHackathonByGiudiceHackathon(int giudiceHackathonId) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
                                    h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
@@ -190,7 +189,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
         List<Hackathon> hackathons = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteGiudiceId);
+            ps.setInt(1, giudiceHackathonId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {

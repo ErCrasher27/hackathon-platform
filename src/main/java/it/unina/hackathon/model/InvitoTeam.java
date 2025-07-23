@@ -10,13 +10,13 @@ public class InvitoTeam {
     // region Proprietà
 
     private int invitoId;
-    private int invitanteId;
-    private int invitatoId;
+    private int registrazioneInvitanteId;
+    private int utentePartecipanteInvitatoId;
     private String messaggioMotivazionale;
     private StatoInvito statoInvito;
     private LocalDateTime dataInvito;
-    private Registrazione invitante;
-    private Utente invitato;
+    private Registrazione registrazioneInvitante;
+    private Utente utentePartecipanteInvitato;
 
     // endregion
 
@@ -39,12 +39,12 @@ public class InvitoTeam {
         this.invitoId = invitoId;
     }
 
-    public void setInvitanteId(int invitanteId) {
-        this.invitanteId = invitanteId;
+    public void setRegistrazioneInvitanteId(int registrazioneInvitanteId) {
+        this.registrazioneInvitanteId = registrazioneInvitanteId;
     }
 
-    public void setInvitatoId(int invitatoId) {
-        this.invitatoId = invitatoId;
+    public void setUtentePartecipanteInvitatoId(int utentePartecipanteInvitatoId) {
+        this.utentePartecipanteInvitatoId = utentePartecipanteInvitatoId;
     }
 
     public String getMessaggioMotivazionale() {
@@ -67,20 +67,20 @@ public class InvitoTeam {
         this.dataInvito = dataInvito;
     }
 
-    public Registrazione getInvitante() {
-        return invitante;
+    public Registrazione getRegistrazioneInvitante() {
+        return registrazioneInvitante;
     }
 
-    public void setInvitante(Registrazione invitante) {
-        this.invitante = invitante;
+    public void setRegistrazioneInvitante(Registrazione registrazioneInvitante) {
+        this.registrazioneInvitante = registrazioneInvitante;
     }
 
-    public Utente getInvitato() {
-        return invitato;
+    public Utente getUtentePartecipanteInvitato() {
+        return utentePartecipanteInvitato;
     }
 
-    public void setInvitato(Utente invitato) {
-        this.invitato = invitato;
+    public void setUtentePartecipanteInvitato(Utente utentePartecipanteInvitato) {
+        this.utentePartecipanteInvitato = utentePartecipanteInvitato;
     }
 
     // endregion
@@ -92,17 +92,17 @@ public class InvitoTeam {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         InvitoTeam that = (InvitoTeam) o;
-        return invitoId == that.invitoId && invitanteId == that.invitanteId && invitatoId == that.invitatoId;
+        return invitoId == that.invitoId && registrazioneInvitanteId == that.registrazioneInvitanteId && utentePartecipanteInvitatoId == that.utentePartecipanteInvitatoId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(invitoId, invitanteId, invitatoId);
+        return Objects.hash(invitoId, registrazioneInvitanteId, utentePartecipanteInvitatoId);
     }
 
     @Override
     public String toString() {
-        return "InvitoTeam{" + "invitoId=" + invitoId + ", invitanteId=" + invitanteId + ", invitatoId=" + invitatoId + ", statoInvito=" + statoInvito + ", dataInvito=" + dataInvito + '}';
+        return "InvitoTeam{" + "invitoId=" + invitoId + ", invitanteId=" + registrazioneInvitanteId + ", invitatoId=" + utentePartecipanteInvitatoId + ", statoInvito=" + statoInvito + ", dataInvito=" + dataInvito + '}';
     }
 
     // endregion

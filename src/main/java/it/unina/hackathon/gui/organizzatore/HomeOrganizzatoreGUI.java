@@ -161,7 +161,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
             aggiornaButton.setText("Caricamento...");
             aggiornaButton.setEnabled(false);
 
-            HackathonListResponse response = controller.getHackathonOrganizzatore(controller.getIdUtenteCorrente());
+            HackathonListResponse response = controller.getHackathonOrganizzatore();
 
             if (response.hackathons() != null) {
                 hackathonList = response.hackathons();

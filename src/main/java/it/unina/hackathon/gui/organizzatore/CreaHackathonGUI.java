@@ -254,7 +254,7 @@ public class CreaHackathonGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         creaButton.addActionListener(_ -> creaHackathon());
-        annullaButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
+        annullaButton.addActionListener(_ -> controller.vaiAllaHome(frame));
     }
 
     @Override
@@ -358,7 +358,7 @@ public class CreaHackathonGUI implements GUIHandler {
 
             if (response.hackathon() != null) {
                 showSuccess(frame, response.message());
-                controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente());
+                controller.vaiAllaHome(frame);
             } else {
                 showError(frame, response.message());
             }

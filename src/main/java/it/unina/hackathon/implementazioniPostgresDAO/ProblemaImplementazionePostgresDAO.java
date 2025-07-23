@@ -33,7 +33,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, problema.getPubblicatoDaId());
+            ps.setInt(1, problema.getPubblicatoDaGiudiceHackathonId());
             ps.setString(2, problema.getTitolo());
             ps.setString(3, problema.getDescrizione());
 
@@ -85,7 +85,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
     }
 
     @Override
-    public ResponseResult deleteProblema(int problemaId) {
+    public ResponseResult rimuoviProblema(int problemaId) {
         String query = "DELETE FROM problemi WHERE problema_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -110,7 +110,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
         problema.setTitolo(rs.getString("titolo"));
         problema.setDescrizione(rs.getString("descrizione"));
         problema.setDataPubblicazione(rs.getTimestamp("data_pubblicazione").toLocalDateTime());
-        problema.setPubblicatoDaId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
+        problema.setPubblicatoDaGiudiceHackathonId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
 
         // Mappa il giudice
         Utente utenteGiudice = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
@@ -120,7 +120,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
         pubblicatoDaGiudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
         pubblicatoDaGiudiceHackathon.setUtenteGiudice(utenteGiudice);
         pubblicatoDaGiudiceHackathon.setHackathonId(rs.getInt("hackathon_fk_hackathons"));
-        problema.setPubblicatoDa(pubblicatoDaGiudiceHackathon);
+        problema.setPubblicatoDaGiudiceHackathon(pubblicatoDaGiudiceHackathon);
 
         return problema;
     }

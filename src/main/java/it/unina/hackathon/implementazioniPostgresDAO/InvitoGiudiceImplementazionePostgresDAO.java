@@ -6,8 +6,8 @@ import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.enums.StatoInvito;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
-import it.unina.hackathon.utils.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.InvitoGiudiceListResponse;
+import it.unina.hackathon.utils.responses.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.Connection;
@@ -29,7 +29,7 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     }
 
     @Override
-    public InvitoGiudiceListResponse getInvitiRicevuti(int utenteGiudiceId) {
+    public InvitoGiudiceListResponse getInvitiGiudiceByUtenteGiudice(int utenteGiudiceId) {
         String query = """
                 SELECT i.invito_id, i.invitante_fk_utenti, i.invitato_fk_utenti, i.hackathon_fk_hackathons,
                        i.stato_fk_stati_invito, i.data_invito,
@@ -63,7 +63,7 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     }
 
     @Override
-    public InvitoGiudiceResponse getInvitoByInvitatoHackathon(int utenteInvitatoId, int hackathonId) {
+    public InvitoGiudiceResponse getInvitoGiudiceByUtenteGiudiceHackathon(int utenteGiudiceId, int hackathonId) {
         String query = """
                 SELECT i.invito_id, i.invitante_fk_utenti, i.invitato_fk_utenti, i.hackathon_fk_hackathons,
                            i.stato_fk_stati_invito, i.data_invito,
@@ -80,7 +80,7 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteInvitatoId);
+            ps.setInt(1, utenteGiudiceId);
             ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
@@ -96,7 +96,7 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     }
 
     @Override
-    public ResponseResult inviaInvito(int utenteInvitanteId, int utenteInvitatoId, int hackathonId) {
+    public ResponseResult saveInvitoGiudice(int utenteOrganizzatoreInvitanteId, int utenteGiudiceInvitatoId, int hackathonId) {
         String query = """
                 INSERT INTO inviti_giudice (invitante_fk_utenti, invitato_fk_utenti, hackathon_fk_hackathons, 
                                           stato_fk_stati_invito) 
@@ -104,8 +104,8 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteInvitanteId);
-            ps.setInt(2, utenteInvitatoId);
+            ps.setInt(1, utenteOrganizzatoreInvitanteId);
+            ps.setInt(2, utenteGiudiceInvitatoId);
             ps.setInt(3, hackathonId);
             ps.setInt(4, StatoInvito.PENDING.getId());
 
@@ -126,27 +126,7 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     }
 
     @Override
-    public ResponseResult rimuoviInvito(int invitoGiudiceId) {
-        String query = "DELETE FROM inviti_giudice WHERE invito_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, invitoGiudiceId);
-
-            int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                return new ResponseResult(true, "Invito rimosso con successo!");
-            } else {
-                return new ResponseResult(false, "Invito non trovato!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ResponseResult(false, "Errore durante la rimozione dell'invito!");
-        }
-    }
-
-    @Override
-    public ResponseResult rispondiInvito(int invitoGiudiceId, StatoInvito risposta) {
+    public ResponseResult aggiornaStatoInvito(int invitoGiudiceId, StatoInvito risposta) {
         String query = """
                 UPDATE inviti_giudice 
                 SET stato_fk_stati_invito = ?
@@ -204,8 +184,8 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
     private InvitoGiudice mapResultSetToInvitoGiudice(ResultSet rs) throws SQLException {
         InvitoGiudice invito = new InvitoGiudice();
         invito.setInvitoId(rs.getInt("invito_id"));
-        invito.setInvitanteId(rs.getInt("invitante_id"));
-        invito.setInvitatoId(rs.getInt("invitato_id"));
+        invito.setUtenteOrganizzatoreInvitanteId(rs.getInt("invitante_id"));
+        invito.setUtenteGiudiceInvitatoId(rs.getInt("invitato_id"));
         invito.setHackathonId(rs.getInt("hackathon_id"));
         invito.setStatoInvito(StatoInvito.fromId(rs.getInt("stato_invito_id")));
         invito.setDataInvito(rs.getTimestamp("data_invito").toLocalDateTime());
@@ -213,12 +193,12 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
         // Mappa l'invitante
         Utente invitante = new Utente(rs.getString("invitante_username"), rs.getString("invitante_email"), "", rs.getString("invitante_nome"), rs.getString("invitante_cognome"), TipoUtente.ORGANIZZATORE);
         invitante.setUtenteId(rs.getInt("invitante_utente_id"));
-        invito.setInvitante(invitante);
+        invito.setUtenteOrganizzatoreInvitante(invitante);
 
         // Mappa l'invitato
         Utente invitato = new Utente(rs.getString("invitato_username"), rs.getString("invitato_email"), "", rs.getString("invitato_nome"), rs.getString("invitato_cognome"), TipoUtente.GIUDICE);
         invitato.setUtenteId(rs.getInt("invitato_utente_id"));
-        invito.setInvitato(invitato);
+        invito.setUtenteGiudiceInvitato(invitato);
 
         return invito;
     }

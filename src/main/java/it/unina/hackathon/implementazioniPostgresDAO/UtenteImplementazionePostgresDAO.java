@@ -27,7 +27,12 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
     }
 
     @Override
-    public UtenteListResponse getUtentiGiudiciNonInvitati(int hackathonId) {
+    public UtenteListResponse getUtentiPartecipantiByHackathon(int hackathonId) {
+        return null;
+    }
+
+    @Override
+    public UtenteListResponse getUtentiGiudiciNonInvitatiByHackathon(int hackathonId) {
         String query = """
                 SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
                        u.data_registrazione, u.ruolo_fk_ruoli_utente
@@ -58,7 +63,7 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
     }
 
     @Override
-    public UtenteListResponse getUtentiGiudiciInvitati(int hackathonId) {
+    public UtenteListResponse getUtentiGiudiciInvitatiByHackathon(int hackathonId) {
         String query = """
                  SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
                        u.data_registrazione, u.ruolo_fk_ruoli_utente

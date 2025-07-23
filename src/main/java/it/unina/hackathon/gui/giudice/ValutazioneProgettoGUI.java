@@ -147,7 +147,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         // Header
-        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame));
 
         // Team selection
         teamTable.getSelectionModel().addListSelectionListener(e -> {
@@ -431,7 +431,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             teamTable.setEnabled(false);
             aggiornaTeamButton.setEnabled(false);
 
-            TeamListResponse response = controller.getTeamHackathon(hackathonId);
+            TeamListResponse response = controller.getTeamsHackathon(hackathonId);
             if (response.teams() != null) {
                 teamList.clear();
                 teamList.addAll(response.teams());
@@ -614,7 +614,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         }
 
         try {
-            GiudiceHackathonResponse gh = controller.getGiudiceHackathonByUtenteHackathon(controller.getIdUtenteCorrente(), hackathonId);
+            GiudiceHackathonResponse gh = controller.getGiudiceHackathon(hackathonId);
             if (gh != null) {
                 CommentoResponse response = controller.scriviCommento(progressoSelezionato.getProgressoId(), gh.giudiceHackathon().getGiudiceHackathonId(), testo);
                 if (response.commento() != null) {
@@ -644,7 +644,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         int valore = votoSlider.getValue();
 
         try {
-            GiudiceHackathonResponse gh = controller.getGiudiceHackathonByUtenteHackathon(controller.getIdUtenteCorrente(), hackathonId);
+            GiudiceHackathonResponse gh = controller.getGiudiceHackathon(hackathonId);
             if (gh != null) {
                 VotoResponse response = controller.assegnaVoto(gh.giudiceHackathon().getGiudiceHackathonId(), teamSelezionato.getTeamId(), valore);
                 if (response.voto() != null) {
@@ -749,7 +749,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             ResponseIntResult contaNumeroMembri = controller.contaNumeroMembri(team.getTeamId());
             return switch (columnIndex) {
                 case 0 -> team.getNome();
-                case 1 -> ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " membri";
+                case 1 -> ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " registrazioni";
                 default -> "";
             };
         }
@@ -779,7 +779,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             return switch (columnIndex) {
                 case 0 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 1 ->
-                        progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getUtente().getNomeCompleto() : "N/A";
+                        progresso.getCaricatoDaRegistrazione() != null ? progresso.getCaricatoDaRegistrazione().getUtentePartecipante().getNomeCompleto() : "N/A";
                 case 2 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
                 default -> "";
             };

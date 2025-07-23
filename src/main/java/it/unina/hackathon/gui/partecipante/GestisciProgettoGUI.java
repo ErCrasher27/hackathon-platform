@@ -181,7 +181,7 @@ public class GestisciProgettoGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         // Header
-        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame));
 
         // Team events
         setupTeamEvents();
@@ -672,15 +672,15 @@ public class GestisciProgettoGUI implements GUIHandler {
     private void loadTeamInfo() {
         try {
             // Prima controlla se ha un team
-            TeamResponse response = controller.getTeamPartecipante(controller.getIdUtenteCorrente(), hackathonId);
+            TeamResponse response = controller.getTeamPartecipante(hackathonId);
             if (response.team() != null) {
                 teamCorrente = response.team();
 
                 // Verifica se è leader
-                isLeader = controller.verificaLeaderTeam(controller.getIdUtenteCorrente(), teamCorrente.getTeamId()).result();
+                isLeader = controller.verificaLeaderTeam(teamCorrente.getTeamId()).result();
 
                 ResponseIntResult contaNumeroMembri = controller.contaNumeroMembri(teamCorrente.getTeamId());
-                teamInfoLabel.setText("Team: " + teamCorrente.getNome() + " (" + ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " membri)");
+                teamInfoLabel.setText("Team: " + teamCorrente.getNome() + " (" + ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " registrazioni)");
 
                 // Aggiorna UI in base al ruolo
                 updateUIForRole();
@@ -732,7 +732,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             teamTable.setEnabled(false);
             aggiornaTeamButton.setEnabled(false);
 
-            var response = controller.getTeamHackathon(hackathonId);
+            var response = controller.getTeamsHackathon(hackathonId);
             if (response.teams() != null) {
                 teams.clear();
                 teams.addAll(response.teams());
@@ -771,15 +771,15 @@ public class GestisciProgettoGUI implements GUIHandler {
             aggiornaMembriButton.setEnabled(false);
 
             var response = controller.getMembriTeam(teamCorrente.getTeamId());
-            if (response.membri() != null) {
+            if (response.registrazioni() != null) {
                 membriList.clear();
-                membriList.addAll(response.membri());
+                membriList.addAll(response.registrazioni());
                 membriTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento membri: " + response.message());
+                showErrorMessage("Errore nel caricamento registrazioni: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nel caricamento membri: " + e.getMessage());
+            showErrorMessage("Errore nel caricamento registrazioni: " + e.getMessage());
         } finally {
             membriTable.setEnabled(true);
             aggiornaMembriButton.setEnabled(true);
@@ -860,7 +860,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             InvitoTeam invito = invitiRicevuti.get(selectedRow);
 
             String azione = accetta ? "accettare" : "rifiutare";
-            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getRegistrazioneId());
+            TeamResponse teamInvito = controller.getTeam(invito.getRegistrazioneInvitante().getRegistrazioneId());
             int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " l'invito del team '" + ((teamInvito.team() != null) ? teamInvito.team().getNome() : "N/A") + "'?", "Conferma", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
@@ -890,7 +890,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             InvitoTeam richiesta = richiesteIngresso.get(selectedRow);
 
             String azione = accetta ? "accettare" : "rifiutare";
-            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " la richiesta di " + richiesta.getInvitato().getNomeCompleto() + "?", "Conferma", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " la richiesta di " + richiesta.getUtentePartecipanteInvitato().getNomeCompleto() + "?", "Conferma", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
@@ -918,8 +918,8 @@ public class GestisciProgettoGUI implements GUIHandler {
                 return;
             }
 
-            // Filtra i partecipanti rimuovendo quelli già membri del team
-            List<Utente> partecipantiInvitabili = response.utenti().stream().filter(partecipante -> membriList.stream().noneMatch(membro -> membro.getUtente() != null && membro.getUtente().getUtenteId() == partecipante.getUtenteId())).toList();
+            // Filtra i partecipanti rimuovendo quelli già registrazioni del team
+            List<Utente> partecipantiInvitabili = response.utenti().stream().filter(partecipante -> membriList.stream().noneMatch(membro -> membro.getUtentePartecipante() != null && membro.getUtentePartecipante().getUtenteId() == partecipante.getUtenteId())).toList();
 
             if (partecipantiInvitabili.isEmpty()) {
                 showErrorMessage("Non ci sono partecipanti disponibili da invitare!");
@@ -982,11 +982,11 @@ public class GestisciProgettoGUI implements GUIHandler {
         if (selectedRow != -1) {
             Registrazione membro = membriList.get(selectedRow);
 
-            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi rimuovere " + membro.getUtente().getNomeCompleto() + " dal team?", "Conferma Rimozione", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi rimuovere " + membro.getUtentePartecipante().getNomeCompleto() + " dal team?", "Conferma Rimozione", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = controller.rimuoviMembroTeam(membro.getUtenteId());
+                    var response = controller.annullaRegistrazioneHackathon(membro.getUtentePartecipanteId());
                     if (response.result()) {
                         showInfoMessage("Membro rimosso con successo!");
                         loadMembriData();
@@ -1002,7 +1002,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
     private void abbandonaSciogleTeam() {
         String azione = isLeader ? "sciogliere" : "abbandonare";
-        String messaggio = isLeader ? "Sei sicuro di voler sciogliere il team '" + teamCorrente.getNome() + "'?\n" + "Questa azione rimuoverà tutti i membri dal team!" : "Sei sicuro di voler abbandonare il team '" + teamCorrente.getNome() + "'?";
+        String messaggio = isLeader ? "Sei sicuro di voler sciogliere il team '" + teamCorrente.getNome() + "'?\n" + "Questa azione rimuoverà tutti i registrazioni dal team!" : "Sei sicuro di voler abbandonare il team '" + teamCorrente.getNome() + "'?";
 
         int confirm = JOptionPane.showConfirmDialog(frame, messaggio, "Conferma " + (isLeader ? "Scioglimento" : "Abbandono") + " Team", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
@@ -1105,8 +1105,8 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         // Info pubblicazione
         String info = "Pubblicato il: " + problemaSelezionato.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        if (problemaSelezionato.getPubblicatoDa() != null) {
-            info += " da " + problemaSelezionato.getPubblicatoDa().getUtenteGiudice().getNomeCompleto();
+        if (problemaSelezionato.getPubblicatoDaGiudiceHackathon() != null) {
+            info += " da " + problemaSelezionato.getPubblicatoDaGiudiceHackathon().getUtenteGiudice().getNomeCompleto();
         }
         JLabel infoLabel = new JLabel(info);
         infoLabel.setFont(infoLabel.getFont().deriveFont(Font.ITALIC));
@@ -1193,11 +1193,11 @@ public class GestisciProgettoGUI implements GUIHandler {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             InvitoTeam invito = invitiRicevuti.get(rowIndex);
-            TeamResponse teamInvito = controller.getTeamByMembroTeam(invito.getInvitante().getRegistrazioneId());
+            TeamResponse teamInvito = controller.getTeam(invito.getRegistrazioneInvitante().getRegistrazioneId());
             return switch (columnIndex) {
                 case 0 -> ((teamInvito.team() != null) ? teamInvito.team().getNome() : "N/A");
                 case 1 ->
-                        invito.getInvitante().getUtente().getNomeCompleto() != null ? invito.getInvitante().getUtente().getNomeCompleto() : "N/A";
+                        invito.getRegistrazioneInvitante().getUtentePartecipante().getNomeCompleto() != null ? invito.getRegistrazioneInvitante().getUtentePartecipante().getNomeCompleto() : "N/A";
                 case 2 -> invito.getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 3 -> invito.getMessaggioMotivazionale() != null ? invito.getMessaggioMotivazionale() : "";
                 default -> "";
@@ -1227,7 +1227,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         public Object getValueAt(int rowIndex, int columnIndex) {
             InvitoTeam richiesta = richiesteIngresso.get(rowIndex);
             return switch (columnIndex) {
-                case 0 -> richiesta.getInvitato().getNomeCompleto();
+                case 0 -> richiesta.getUtentePartecipanteInvitato().getNomeCompleto();
                 case 1 -> richiesta.getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 2 ->
                         richiesta.getMessaggioMotivazionale() != null ? richiesta.getMessaggioMotivazionale() : "Richiesta di partecipazione";
@@ -1258,8 +1258,8 @@ public class GestisciProgettoGUI implements GUIHandler {
         public Object getValueAt(int rowIndex, int columnIndex) {
             Registrazione membro = membriList.get(rowIndex);
             return switch (columnIndex) {
-                case 0 -> membro.getUtente() != null ? membro.getUtente().getNomeCompleto() : "N/A";
-                case 1 -> membro.getUtente() != null ? membro.getUtente().getUsername() : "N/A";
+                case 0 -> membro.getUtentePartecipante() != null ? membro.getUtentePartecipante().getNomeCompleto() : "N/A";
+                case 1 -> membro.getUtentePartecipante() != null ? membro.getUtentePartecipante().getUsername() : "N/A";
                 case 2 -> membro.getRuolo() != null ? membro.getRuolo().getDisplayName() : "N/A";
                 case 3 -> membro.getDataIngresso().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 default -> "";
@@ -1292,7 +1292,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                 case 0 -> progresso.getDocumentoNome() != null ? progresso.getDocumentoNome() : "Nessun file";
                 case 1 -> progresso.getDataCaricamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 2 ->
-                        progresso.getCaricatoDa() != null ? progresso.getCaricatoDa().getUtente().getNomeCompleto() : "N/A";
+                        progresso.getCaricatoDaRegistrazione() != null ? progresso.getCaricatoDaRegistrazione().getUtentePartecipante().getNomeCompleto() : "N/A";
                 default -> "";
             };
         }

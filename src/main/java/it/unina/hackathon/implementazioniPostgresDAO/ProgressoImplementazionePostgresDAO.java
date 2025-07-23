@@ -34,7 +34,7 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, progresso.getCaricatoDaId());
+            ps.setInt(1, progresso.getCaricatoDaRegistrazioneId());
             ps.setString(2, progresso.getDocumentoPath());
             ps.setString(3, progresso.getDocumentoNome());
 
@@ -86,7 +86,7 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     }
 
     @Override
-    public ResponseResult deleteProgresso(int progressoId) {
+    public ResponseResult rimuoviProgresso(int progressoId) {
         String query = "DELETE FROM progressi WHERE progresso_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -111,7 +111,7 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
         progresso.setDocumentoPath(rs.getString("documento_path"));
         progresso.setDocumentoNome(rs.getString("documento_nome"));
         progresso.setDataCaricamento(rs.getTimestamp("data_caricamento").toLocalDateTime());
-        progresso.setCaricatoDaId(rs.getInt("registrazione_fk_registrazioni"));
+        progresso.setCaricatoDaRegistrazioneId(rs.getInt("registrazione_fk_registrazioni"));
 
         // Mappa la registrazione
         Utente caricatoDaUtentePartecipante = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE);
@@ -120,9 +120,9 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
         Registrazione caricatoDaRegistrazione = new Registrazione();
         caricatoDaRegistrazione.setRegistrazioneId(rs.getInt("registrazione_fk_registrazioni"));
         caricatoDaRegistrazione.setTeamId(rs.getInt("team_fk_teams"));
-        caricatoDaRegistrazione.setUtente(caricatoDaUtentePartecipante);
+        caricatoDaRegistrazione.setUtentePartecipante(caricatoDaUtentePartecipante);
         caricatoDaRegistrazione.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_fk_ruoli_team")));
-        progresso.setCaricatoDa(caricatoDaRegistrazione);
+        progresso.setCaricatoDaRegistrazione(caricatoDaRegistrazione);
 
         return progresso;
     }

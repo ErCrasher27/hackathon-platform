@@ -331,7 +331,7 @@ public class HomePartecipanteGUI implements GUIHandler {
             aggiornaMieiHackathonButton.setText("Caricamento...");
             aggiornaMieiHackathonButton.setEnabled(false);
 
-            HackathonListResponse response = controller.getHackathonPartecipante(controller.getIdUtenteCorrente());
+            HackathonListResponse response = controller.getHackathonRegistrati();
             if (response.hackathons() != null) {
                 mieiHackathon.clear();
                 mieiHackathon.addAll(response.hackathons());

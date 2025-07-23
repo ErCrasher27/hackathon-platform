@@ -101,7 +101,7 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     }
 
     @Override
-    public TeamListResponse getTeamByHackathon(int hackathonId) {
+    public TeamListResponse getTeamsByHackathon(int hackathonId) {
         String query = """
                 SELECT t.team_id, t.nome, t.hackathon_fk_hackathons, t.data_creazione, t.definitivo
                 FROM teams t
@@ -126,7 +126,7 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     }
 
     @Override
-    public ResponseIntResult contaNumeroMembri(int teamId) {
+    public ResponseIntResult contaRegistrazioniByTeam(int teamId) {
         String query = """
                 SELECT COUNT(*) AS numero_membri
                 FROM teams t
@@ -139,18 +139,18 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return new ResponseIntResult(rs.getInt("numero_membri"), "Numero di membri calcolato con successo!");
+                return new ResponseIntResult(rs.getInt("numero_membri"), "Numero di registrazioni calcolato con successo!");
             } else {
                 return new ResponseIntResult(-1, "Team non trovato!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new ResponseIntResult(-1, "Errore durante il conteggio dei membri: " + e.getMessage());
+            return new ResponseIntResult(-1, "Errore durante il conteggio dei registrazioni: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseIntResult contaTeamFormati(int hackathonId) {
+    public ResponseIntResult contaTeamByHackathon(int hackathonId) {
         String query = """
                 SELECT COUNT(DISTINCT t.team_id) AS numero_team
                 FROM team t

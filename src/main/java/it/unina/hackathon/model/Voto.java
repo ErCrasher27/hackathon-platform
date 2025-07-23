@@ -9,10 +9,10 @@ public class Voto {
 
     private int votoId;
     private int teamId;
-    private int giudiceHacakthonId;
+    private int giudiceHackathonId;
     private int valore;
     private LocalDateTime dataVoto;
-    private GiudiceHackathon giudice;
+    private GiudiceHackathon giudiceHackathon;
     private Team team;
 
     // Campi per la classifica
@@ -32,7 +32,7 @@ public class Voto {
     public Voto(int teamId, int giudiceId, int valore) {
         this();
         this.teamId = teamId;
-        this.giudiceHacakthonId = giudiceId;
+        this.giudiceHackathonId = giudiceId;
         this.valore = valore;
     }
 
@@ -52,12 +52,12 @@ public class Voto {
         this.teamId = teamId;
     }
 
-    public int getGiudiceHacakthonId() {
-        return giudiceHacakthonId;
+    public int getGiudiceHackathonId() {
+        return giudiceHackathonId;
     }
 
-    public void setGiudiceHacakthonId(int giudiceHacakthonId) {
-        this.giudiceHacakthonId = giudiceHacakthonId;
+    public void setGiudiceHackathonId(int giudiceHackathonId) {
+        this.giudiceHackathonId = giudiceHackathonId;
     }
 
     public int getValore() {
@@ -76,12 +76,12 @@ public class Voto {
         this.dataVoto = dataVoto;
     }
 
-    public GiudiceHackathon getGiudice() {
-        return giudice;
+    public GiudiceHackathon getGiudiceHackathon() {
+        return giudiceHackathon;
     }
 
-    public void setGiudice(GiudiceHackathon giudice) {
-        this.giudice = giudice;
+    public void setGiudiceHackathon(GiudiceHackathon giudiceHackathon) {
+        this.giudiceHackathon = giudiceHackathon;
     }
 
     public Team getTeam() {
@@ -153,7 +153,7 @@ public class Voto {
 
     @Override
     public String toString() {
-        return String.format("Voto{id=%d, valore=%d/10, team=%d, giudice=%d}", votoId, valore, teamId, giudiceHacakthonId);
+        return String.format("Voto{id=%d, valore=%d/10, team=%d, giudice=%d}", votoId, valore, teamId, giudiceHackathonId);
     }
 
     // endregion

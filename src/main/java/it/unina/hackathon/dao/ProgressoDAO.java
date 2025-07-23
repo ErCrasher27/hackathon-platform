@@ -11,6 +11,6 @@ public interface ProgressoDAO {
 
     ProgressoListResponse getProgressiByTeam(int teamId);
 
-    ResponseResult deleteProgresso(int progressoId);
+    ResponseResult rimuoviProgresso(int progressoId);
 
 }

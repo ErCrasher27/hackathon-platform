@@ -5,8 +5,8 @@ import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 
 public interface GiudiceHackathonDAO {
 
-    GiudiceHackathonResponse getGiudiceHackathonByUtenteHackathon(int utenteId, int hackathonId);
+    GiudiceHackathonResponse getGiudiceHackathonByUtenteGiudiceHackathon(int utenteGiudiceId, int hackathonId);
 
-    ResponseIntResult contaGiudiciAccettati(int hackathonId);
+    ResponseIntResult contaGiudiceHackathonByHackathon(int hackathonId);
 
 }

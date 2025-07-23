@@ -8,11 +8,11 @@ public class Progresso {
     // region Proprietà
 
     private int progressoId;
-    private int caricatoDaId;
+    private int caricatoDaRegistrazioneId;
     private String documentoPath;
     private String documentoNome;
     private LocalDateTime dataCaricamento;
-    private Registrazione caricatoDa;
+    private Registrazione caricatoDaRegistrazione;
 
     // endregion
 
@@ -39,12 +39,12 @@ public class Progresso {
         this.progressoId = progressoId;
     }
 
-    public int getCaricatoDaId() {
-        return caricatoDaId;
+    public int getCaricatoDaRegistrazioneId() {
+        return caricatoDaRegistrazioneId;
     }
 
-    public void setCaricatoDaId(int caricatoDaId) {
-        this.caricatoDaId = caricatoDaId;
+    public void setCaricatoDaRegistrazioneId(int caricatoDaRegistrazioneId) {
+        this.caricatoDaRegistrazioneId = caricatoDaRegistrazioneId;
     }
 
     public String getDocumentoPath() {
@@ -71,12 +71,12 @@ public class Progresso {
         this.dataCaricamento = dataCaricamento;
     }
 
-    public Registrazione getCaricatoDa() {
-        return caricatoDa;
+    public Registrazione getCaricatoDaRegistrazione() {
+        return caricatoDaRegistrazione;
     }
 
-    public void setCaricatoDa(Registrazione caricatoDa) {
-        this.caricatoDa = caricatoDa;
+    public void setCaricatoDaRegistrazione(Registrazione caricatoDaRegistrazione) {
+        this.caricatoDaRegistrazione = caricatoDaRegistrazione;
     }
 
     // endregion

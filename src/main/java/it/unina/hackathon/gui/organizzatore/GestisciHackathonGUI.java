@@ -6,7 +6,7 @@ import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Team;
 import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.Voto;
-import it.unina.hackathon.utils.InvitoGiudiceResponse;
+import it.unina.hackathon.utils.responses.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.*;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
@@ -108,7 +108,7 @@ public class GestisciHackathonGUI implements GUIHandler {
 
     @Override
     public void setupEventListeners() {
-        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame));
     }
 
     @Override
@@ -122,7 +122,7 @@ public class GestisciHackathonGUI implements GUIHandler {
                 frame.setTitle("Hackathon Platform - Gestisci: " + hackathonCorrente.getTitolo());
             } else {
                 showError(frame, "Errore nel caricamento dei dettagli: " + response.message());
-                controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente());
+                controller.vaiAllaHome(frame);
                 return;
             }
 
@@ -438,7 +438,7 @@ public class GestisciHackathonGUI implements GUIHandler {
         try {
             teamTableModel.setRowCount(0);
 
-            TeamListResponse response = controller.getTeamHackathon(hackathonId);
+            TeamListResponse response = controller.getTeamsHackathon(hackathonId);
 
             if (response.teams() != null) {
                 for (Team team : response.teams()) {

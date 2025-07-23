@@ -1,20 +1,18 @@
 package it.unina.hackathon.dao;
 
 import it.unina.hackathon.model.enums.StatoInvito;
-import it.unina.hackathon.utils.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.InvitoGiudiceListResponse;
+import it.unina.hackathon.utils.responses.InvitoGiudiceResponse;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface InvitoGiudiceDAO {
 
-    InvitoGiudiceListResponse getInvitiRicevuti(int utenteId);
+    InvitoGiudiceListResponse getInvitiGiudiceByUtenteGiudice(int utenteGiudiceId);
 
-    InvitoGiudiceResponse getInvitoByInvitatoHackathon(int utenteId, int hackathonId);
+    InvitoGiudiceResponse getInvitoGiudiceByUtenteGiudiceHackathon(int utenteGiudiceId, int hackathonId);
 
-    ResponseResult inviaInvito(int utenteInvitanteId, int utenteInvitatoId, int hackathonId);
+    ResponseResult saveInvitoGiudice(int utenteOrganizzatoreInvitanteId, int utenteGiudiceInvitatoId, int hackathonId);
 
-    ResponseResult rimuoviInvito(int invitoGiudiceId);
-
-    ResponseResult rispondiInvito(int invitoGiudiceId, StatoInvito risposta);
+    ResponseResult aggiornaStatoInvito(int invitoGiudiceId, StatoInvito risposta);
 
 }

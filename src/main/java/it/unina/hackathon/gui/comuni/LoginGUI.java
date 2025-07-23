@@ -156,7 +156,7 @@ public class LoginGUI implements GUIHandler {
         UtenteResponse response = controller.effettuaLogin(username, password);
 
         if (response.utente() != null) {
-            controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente());
+            controller.vaiAllaHome(frame);
             showSuccess(frame, response.message());
         } else {
             showError(frame, response.message());

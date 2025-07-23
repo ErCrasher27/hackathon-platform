@@ -11,11 +11,12 @@ public class Registrazione {
 
     private int registrazioneId;
     private int teamId;
-    private int utenteId;
+    private int utentePartecipanteId;
+    private int hackathonId;
     private LocalDateTime dataRegistrazione;
     private LocalDateTime dataIngresso;
     private RuoloTeam ruolo;
-    private Utente utente;
+    private Utente utentePartecipante;
     private Team team;
 
     // endregion
@@ -24,7 +25,12 @@ public class Registrazione {
 
     public Registrazione() {
         this.dataIngresso = LocalDateTime.now();
-        this.ruolo = RuoloTeam.MEMBRO; // Default
+    }
+
+    public Registrazione(int utentePartecipanteId, int hackathonId) {
+        this();
+        this.utentePartecipanteId = utentePartecipanteId;
+        this.hackathonId = hackathonId;
     }
 
     // endregion
@@ -47,12 +53,12 @@ public class Registrazione {
         this.teamId = teamId;
     }
 
-    public int getUtenteId() {
-        return utenteId;
+    public int getUtentePartecipanteId() {
+        return utentePartecipanteId;
     }
 
-    public void setUtenteId(int utenteId) {
-        this.utenteId = utenteId;
+    public void setUtentePartecipanteId(int utentePartecipanteId) {
+        this.utentePartecipanteId = utentePartecipanteId;
     }
 
     public LocalDateTime getDataIngresso() {
@@ -75,12 +81,12 @@ public class Registrazione {
         this.ruolo = ruolo;
     }
 
-    public Utente getUtente() {
-        return utente;
+    public Utente getUtentePartecipante() {
+        return utentePartecipante;
     }
 
-    public void setUtente(Utente utente) {
-        this.utente = utente;
+    public void setUtentePartecipante(Utente utentePartecipante) {
+        this.utentePartecipante = utentePartecipante;
     }
 
     public Team getTeam() {
@@ -89,6 +95,14 @@ public class Registrazione {
 
     public void setTeam(Team team) {
         this.team = team;
+    }
+
+    public int getHackathonId() {
+        return hackathonId;
+    }
+
+    public void setHackathonId(int hackathonId) {
+        this.hackathonId = hackathonId;
     }
 
     // endregion
@@ -110,7 +124,7 @@ public class Registrazione {
 
     @Override
     public String toString() {
-        return String.format("Registrazione{id=%d, team=%d, utente=%d, ruolo=%s}", registrazioneId, teamId, utenteId, ruolo != null ? ruolo.getDisplayName() : "null");
+        return String.format("Registrazione{id=%d, team=%d, utente=%d, ruolo=%s}", registrazioneId, teamId, utentePartecipanteId, ruolo != null ? ruolo.getDisplayName() : "null");
     }
 
     // endregion

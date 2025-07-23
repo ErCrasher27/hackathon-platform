@@ -129,7 +129,7 @@ public class GestisciProblemiGUI implements GUIHandler {
     @Override
     public void setupEventListeners() {
         // Header
-        backButton.addActionListener(_ -> controller.vaiAllaHome(frame, controller.getTipoUtenteCorrente()));
+        backButton.addActionListener(_ -> controller.vaiAllaHome(frame));
 
         // Problemi table
         problemiTable.getSelectionModel().addListSelectionListener(e -> {
@@ -421,7 +421,7 @@ public class GestisciProblemiGUI implements GUIHandler {
             String titolo = titoloField.getText().trim();
             String descrizione = descrizioneArea.getText().trim();
 
-            GiudiceHackathonResponse gh = controller.getGiudiceHackathonByUtenteHackathon(controller.getIdUtenteCorrente(), hackathonId);
+            GiudiceHackathonResponse gh = controller.getGiudiceHackathon(hackathonId);
             if (gh != null) {
                 ProblemaResponse response = controller.pubblicaProblema(gh.giudiceHackathon().getGiudiceHackathonId(), titolo, descrizione);
 
@@ -449,7 +449,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
         dataPubblicazioneValueLabel.setText(problemaSelezionato.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
 
-        pubblicatoDaValueLabel.setText(problemaSelezionato.getPubblicatoDa() != null ? problemaSelezionato.getPubblicatoDa().getUtenteGiudice().getNomeCompleto() : "N/A");
+        pubblicatoDaValueLabel.setText(problemaSelezionato.getPubblicatoDaGiudiceHackathon() != null ? problemaSelezionato.getPubblicatoDaGiudiceHackathon().getUtenteGiudice().getNomeCompleto() : "N/A");
 
         setFormEnabled(false);
     }
@@ -551,7 +551,7 @@ public class GestisciProblemiGUI implements GUIHandler {
                 case 0 -> problema.getTitolo();
                 case 1 -> problema.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 2 ->
-                        problema.getPubblicatoDa() != null ? problema.getPubblicatoDa().getUtenteGiudice().getNomeCompleto() : "N/A";
+                        problema.getPubblicatoDaGiudiceHackathon() != null ? problema.getPubblicatoDaGiudiceHackathon().getUtenteGiudice().getNomeCompleto() : "N/A";
                 default -> "";
             };
         }

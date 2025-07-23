@@ -11,6 +11,6 @@ public interface ProblemaDAO {
 
     ProblemaListResponse getProblemiByHackathon(int hackathonId);
 
-    ResponseResult deleteProblema(int problemaId);
+    ResponseResult rimuoviProblema(int problemaId);
 
 }

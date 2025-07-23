@@ -8,6 +8,8 @@ import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.RegistrazioneListResponse;
+import it.unina.hackathon.utils.responses.RegistrazioneResponse;
+import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.Connection;
@@ -58,7 +60,37 @@ public class RegistrazioneImplementazionePostgresDAO implements RegistrazioneDAO
     }
 
     @Override
-    public ResponseResult deleteRegistrazione(int registrazioneId) {
+    public RegistrazioneListResponse getRegistratiConTeamNullByHackathon(int hackathonId) {
+        return null;
+    }
+
+    @Override
+    public RegistrazioneResponse getRegistrazioneByUtentePartecipanteHackathon(int utentePartecipanteId, int hackathonId) {
+        return null;
+    }
+
+    @Override
+    public RegistrazioneResponse saveRegistrazione(Registrazione registrazione) {
+        return null;
+    }
+
+    @Override
+    public ResponseIntResult contaRegistrazioniByHackathon(int hackathonId) {
+        return null;
+    }
+
+    @Override
+    public ResponseResult aggiornaTeamConRuolo(int registrazioneId, Integer teamId, RuoloTeam ruoloTeam) {
+        return null;
+    }
+
+    @Override
+    public ResponseResult aggiornaTeamNullConRuoloNull(int registrazioneId) {
+        return null;
+    }
+
+    @Override
+    public ResponseResult rimuoviRegistrazione(int registrazioneId) {
         String query = "DELETE FROM registrazioni WHERE registrazione_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -78,7 +110,7 @@ public class RegistrazioneImplementazionePostgresDAO implements RegistrazioneDAO
     }
 
     @Override
-    public ResponseResult isLeader(int utentePartecipanteId, int teamId) {
+    public ResponseResult isLeaderByUtentePartecipanteTeam(int utentePartecipanteId, int teamId) {
         String query = """
                 SELECT COUNT(*) 
                 FROM registrazioni 
@@ -110,7 +142,7 @@ public class RegistrazioneImplementazionePostgresDAO implements RegistrazioneDAO
         Registrazione registrazione = new Registrazione();
         registrazione.setRegistrazioneId(rs.getInt("registrazione_id"));
         registrazione.setTeamId(rs.getInt("team_fk_teams"));
-        registrazione.setUtenteId(rs.getInt("partecipante_fk_utenti"));
+        registrazione.setUtentePartecipanteId(rs.getInt("partecipante_fk_utenti"));
         registrazione.setDataIngressoTeam(rs.getTimestamp("data_ingresso_team").toLocalDateTime());
         registrazione.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_fk_ruoli_team")));
 
@@ -118,7 +150,7 @@ public class RegistrazioneImplementazionePostgresDAO implements RegistrazioneDAO
         Utente utentePartecipante = new Utente(rs.getString("username"), rs.getString("email"), "", // Password non esposta
                 rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE);
         utentePartecipante.setUtenteId(rs.getInt("utente_id"));
-        registrazione.setUtente(utentePartecipante);
+        registrazione.setUtentePartecipante(utentePartecipante);
 
         // Mappa il team
         Team team = new Team();

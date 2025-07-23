@@ -31,7 +31,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, voto.getTeamId());
-            ps.setInt(2, voto.getGiudiceHacakthonId());
+            ps.setInt(2, voto.getGiudiceHackathonId());
             ps.setInt(3, voto.getValore());
 
             int affectedRows = ps.executeUpdate();
@@ -133,7 +133,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         Voto voto = new Voto();
         voto.setVotoId(rs.getInt("voto_id"));
         voto.setTeamId(rs.getInt("team_fk_teams"));
-        voto.setGiudiceHacakthonId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
+        voto.setGiudiceHackathonId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
         voto.setValore(rs.getInt("valore"));
         voto.setDataVoto(rs.getTimestamp("data_voto").toLocalDateTime());
 

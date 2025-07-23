@@ -7,9 +7,11 @@ import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 public interface UtenteDAO {
 
-    UtenteListResponse getUtentiGiudiciNonInvitati(int hackathonId);
+    UtenteListResponse getUtentiPartecipantiByHackathon(int hackathonId);
 
-    UtenteListResponse getUtentiGiudiciInvitati(int hackathonId);
+    UtenteListResponse getUtentiGiudiciNonInvitatiByHackathon(int hackathonId);
+
+    UtenteListResponse getUtentiGiudiciInvitatiByHackathon(int hackathonId);
 
     UtenteResponse saveUtente(Utente utente);
 

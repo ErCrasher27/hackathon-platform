@@ -13,10 +13,10 @@ public interface TeamDAO {
 
     TeamResponse getTeamByRegistrazione(int registrazioneId);
 
-    TeamListResponse getTeamByHackathon(int hackathonId);
+    TeamListResponse getTeamsByHackathon(int hackathonId);
 
-    ResponseIntResult contaNumeroMembri(int teamId);
+    ResponseIntResult contaRegistrazioniByTeam(int teamId);
 
-    ResponseIntResult contaTeamFormati(int hackathonId);
+    ResponseIntResult contaTeamByHackathon(int hackathonId);
 
 }

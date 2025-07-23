@@ -489,7 +489,7 @@ public class HomeGiudiceGUI implements GUIHandler {
             HackathonResponse hackathon = controller.getDettagliHackathon(invito.getHackathonId());
             return switch (columnIndex) {
                 case 0 -> hackathon.hackathon() != null ? hackathon.hackathon().getTitolo() : "N/A";
-                case 1 -> invito.getInvitante() != null ? invito.getInvitante().getNomeCompleto() : "N/A";
+                case 1 -> invito.getUtenteOrganizzatoreInvitante() != null ? invito.getUtenteOrganizzatoreInvitante().getNomeCompleto() : "N/A";
                 case 2 -> invito.getDataInvito().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 3 -> hackathon.hackathon() != null ? hackathon.hackathon().getSede() : "N/A";
                 case 4 -> invito.getStatoInvito().getDisplayName();

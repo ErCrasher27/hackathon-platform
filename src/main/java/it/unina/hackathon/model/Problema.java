@@ -8,11 +8,11 @@ public class Problema {
     // region Proprietà
 
     private int problemaId;
-    private int pubblicatoDaId;
+    private int pubblicatoDaGiudiceHackathonId;
     private String titolo;
     private String descrizione;
     private LocalDateTime dataPubblicazione;
-    private GiudiceHackathon pubblicatoDa;
+    private GiudiceHackathon pubblicatoDaGiudiceHackathon;
 
     // endregion
 
@@ -25,7 +25,7 @@ public class Problema {
     public Problema(String titolo, String descrizione, int pubblicatoDaId) {
         this.titolo = titolo;
         this.descrizione = descrizione;
-        this.pubblicatoDaId = pubblicatoDaId;
+        this.pubblicatoDaGiudiceHackathonId = pubblicatoDaId;
     }
 
     // endregion
@@ -40,12 +40,12 @@ public class Problema {
         this.problemaId = problemaId;
     }
 
-    public int getPubblicatoDaId() {
-        return pubblicatoDaId;
+    public int getPubblicatoDaGiudiceHackathonId() {
+        return pubblicatoDaGiudiceHackathonId;
     }
 
-    public void setPubblicatoDaId(int pubblicatoDaId) {
-        this.pubblicatoDaId = pubblicatoDaId;
+    public void setPubblicatoDaGiudiceHackathonId(int pubblicatoDaGiudiceHackathonId) {
+        this.pubblicatoDaGiudiceHackathonId = pubblicatoDaGiudiceHackathonId;
     }
 
     public String getTitolo() {
@@ -72,12 +72,12 @@ public class Problema {
         this.dataPubblicazione = dataPubblicazione;
     }
 
-    public GiudiceHackathon getPubblicatoDa() {
-        return pubblicatoDa;
+    public GiudiceHackathon getPubblicatoDaGiudiceHackathon() {
+        return pubblicatoDaGiudiceHackathon;
     }
 
-    public void setPubblicatoDa(GiudiceHackathon pubblicatoDa) {
-        this.pubblicatoDa = pubblicatoDa;
+    public void setPubblicatoDaGiudiceHackathon(GiudiceHackathon pubblicatoDaGiudiceHackathon) {
+        this.pubblicatoDaGiudiceHackathon = pubblicatoDaGiudiceHackathon;
     }
 
     // endregion

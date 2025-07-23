@@ -23,7 +23,7 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
     }
 
     @Override
-    public GiudiceHackathonResponse getGiudiceHackathonByUtenteHackathon(int utenteId, int hackathonId) {
+    public GiudiceHackathonResponse getGiudiceHackathonByUtenteGiudiceHackathon(int utenteGiudiceId, int hackathonId) {
         String query = """
                 SELECT giudice_hackathon_id, hackathon_fk_hackathons, giudice_fk_utenti, data_assegnazione
                 FROM giudici_hackathon
@@ -31,7 +31,7 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteId);
+            ps.setInt(1, utenteGiudiceId);
             ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
@@ -47,7 +47,7 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
     }
 
     @Override
-    public ResponseIntResult contaGiudiciAccettati(int hackathonId) {
+    public ResponseIntResult contaGiudiceHackathonByHackathon(int hackathonId) {
         String query = """
                 SELECT COUNT(*) 
                 FROM giudici_hackathon gh
@@ -59,8 +59,7 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                int count = rs.getInt(1);
-                return new ResponseIntResult(count, "Conteggio giudici assegnati completato con successo!");
+                return new ResponseIntResult(rs.getInt(1), "Conteggio giudici assegnati completato con successo!");
             } else {
                 return new ResponseIntResult(-1, "Errore durante il conteggio dei giudici!");
             }

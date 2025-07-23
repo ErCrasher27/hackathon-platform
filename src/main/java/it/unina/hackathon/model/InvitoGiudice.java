@@ -10,13 +10,13 @@ public class InvitoGiudice {
     // region Proprietà
 
     private int invitoId;
-    private int invitanteId;
-    private int invitatoId;
+    private int utenteOrganizzatoreInvitanteId;
+    private int utenteGiudiceInvitatoId;
     private int hackathonId;
     private StatoInvito statoInvito;
     private LocalDateTime dataInvito;
-    private Utente invitante;
-    private Utente invitato;
+    private Utente utenteOrganizzatoreInvitante;
+    private Utente utenteGiudiceInvitato;
 
     // endregion
 
@@ -39,12 +39,12 @@ public class InvitoGiudice {
         this.invitoId = invitoId;
     }
 
-    public void setInvitanteId(int invitanteId) {
-        this.invitanteId = invitanteId;
+    public void setUtenteOrganizzatoreInvitanteId(int utenteOrganizzatoreInvitanteId) {
+        this.utenteOrganizzatoreInvitanteId = utenteOrganizzatoreInvitanteId;
     }
 
-    public void setInvitatoId(int invitatoId) {
-        this.invitatoId = invitatoId;
+    public void setUtenteGiudiceInvitatoId(int utenteGiudiceInvitatoId) {
+        this.utenteGiudiceInvitatoId = utenteGiudiceInvitatoId;
     }
 
     public int getHackathonId() {
@@ -71,16 +71,16 @@ public class InvitoGiudice {
         this.dataInvito = dataInvito;
     }
 
-    public Utente getInvitante() {
-        return invitante;
+    public Utente getUtenteOrganizzatoreInvitante() {
+        return utenteOrganizzatoreInvitante;
     }
 
-    public void setInvitante(Utente invitante) {
-        this.invitante = invitante;
+    public void setUtenteOrganizzatoreInvitante(Utente utenteOrganizzatoreInvitante) {
+        this.utenteOrganizzatoreInvitante = utenteOrganizzatoreInvitante;
     }
 
-    public void setInvitato(Utente invitato) {
-        this.invitato = invitato;
+    public void setUtenteGiudiceInvitato(Utente utenteGiudiceInvitato) {
+        this.utenteGiudiceInvitato = utenteGiudiceInvitato;
     }
 
     // endregion
@@ -92,17 +92,17 @@ public class InvitoGiudice {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         InvitoGiudice that = (InvitoGiudice) o;
-        return invitoId == that.invitoId && invitanteId == that.invitanteId && invitatoId == that.invitatoId;
+        return invitoId == that.invitoId && utenteOrganizzatoreInvitanteId == that.utenteOrganizzatoreInvitanteId && utenteGiudiceInvitatoId == that.utenteGiudiceInvitatoId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(invitoId, invitanteId, invitatoId);
+        return Objects.hash(invitoId, utenteOrganizzatoreInvitanteId, utenteGiudiceInvitatoId);
     }
 
     @Override
     public String toString() {
-        return "InvitoGiudice{" + "invitoId=" + invitoId + ", invitanteId=" + invitanteId + ", invitatoId=" + invitatoId + ", statoInvito=" + statoInvito + ", dataInvito=" + dataInvito + '}';
+        return "InvitoGiudice{" + "invitoId=" + invitoId + ", invitanteId=" + utenteOrganizzatoreInvitanteId + ", invitatoId=" + utenteGiudiceInvitatoId + ", statoInvito=" + statoInvito + ", dataInvito=" + dataInvito + '}';
     }
 
     // endregion

@@ -28,7 +28,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
     @Override
     public ProblemaResponse saveProblema(Problema problema) {
         String query = """
-                INSERT INTO problema (pubblicato_da, titolo, descrizione) 
+                INSERT INTO problemi (giudice_hack_fk_giudici_hackathon, titolo, descrizione) 
                 VALUES (?, ?, ?)
                 """;
 
@@ -57,14 +57,14 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
     @Override
     public ProblemaListResponse getProblemiByHackathon(int hackathonId) {
         String query = """
-                SELECT p.problema_id, p.pubblicato_da, p.titolo, p.descrizione, 
+                SELECT p.problema_id, p.giudice_hack_fk_giudici_hackathon, p.titolo, p.descrizione, 
                        p.data_pubblicazione,
                        u.nome, u.cognome, u.username, u.email, u.utente_id,
                        gh.giudice_hackathon_id, gh.hackathon_id
-                FROM problema p
-                JOIN giudici_hackathon gh ON p.pubblicato_da = gh.giudice_hackathon_id
-                JOIN utenti u ON gh.giudice_id = u.utente_id
-                WHERE gh.hackathon_id = ?
+                FROM problemi p
+                JOIN giudici_hackathon gh ON p.giudice_hack_fk_giudici_hackathon = gh.giudice_hackathon_id
+                JOIN utenti u ON gh.giudice_fk_utenti = u.utente_id
+                WHERE gh.hackathon_fk_hackathons = ?
                 ORDER BY p.data_pubblicazione DESC
                 """;
 
@@ -86,7 +86,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
 
     @Override
     public ResponseResult deleteProblema(int problemaId) {
-        String query = "DELETE FROM problema WHERE problema_id = ?";
+        String query = "DELETE FROM problemi WHERE problema_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, problemaId);
@@ -110,16 +110,16 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
         problema.setTitolo(rs.getString("titolo"));
         problema.setDescrizione(rs.getString("descrizione"));
         problema.setDataPubblicazione(rs.getTimestamp("data_pubblicazione").toLocalDateTime());
-        problema.setPubblicatoDaId(rs.getInt("pubblicato_da"));
+        problema.setPubblicatoDaId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
 
-        // Mappa il giudice che ha pubblicato
-        Utente pubblicatoDaUtente = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
-        pubblicatoDaUtente.setUtenteId(rs.getInt("utente_id"));
+        // Mappa il giudice
+        Utente utenteGiudice = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
+        utenteGiudice.setUtenteId(rs.getInt("utente_id"));
 
         GiudiceHackathon pubblicatoDaGiudiceHackathon = new GiudiceHackathon();
         pubblicatoDaGiudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        pubblicatoDaGiudiceHackathon.setUtenteGiudice(pubblicatoDaUtente);
-        pubblicatoDaGiudiceHackathon.setHackathonId(rs.getInt("hackathon_id"));
+        pubblicatoDaGiudiceHackathon.setUtenteGiudice(utenteGiudice);
+        pubblicatoDaGiudiceHackathon.setHackathonId(rs.getInt("hackathon_fk_hackathons"));
         problema.setPubblicatoDa(pubblicatoDaGiudiceHackathon);
 
         return problema;

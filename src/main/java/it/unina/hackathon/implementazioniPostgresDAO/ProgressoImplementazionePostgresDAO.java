@@ -29,15 +29,14 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     @Override
     public ProgressoResponse saveProgresso(Progresso progresso) {
         String query = """
-                INSERT INTO progressi (caricato_da, documento_path, documento_nome, data_caricamento) 
-                VALUES (?, ?, ?, ?)
+                INSERT INTO progressi (registrazione_fk_registrazioni, documento_path, documento_nome) 
+                VALUES (?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, progresso.getCaricatoDaId());
             ps.setString(2, progresso.getDocumentoPath());
             ps.setString(3, progresso.getDocumentoNome());
-            ps.setTimestamp(4, Timestamp.valueOf(progresso.getDataCaricamento()));
 
             int affectedRows = ps.executeUpdate();
 
@@ -59,14 +58,14 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
     @Override
     public ProgressoListResponse getProgressiByTeam(int teamId) {
         String query = """
-                SELECT p.progresso_id, p.caricato_da, p.documento_path, 
+                SELECT p.progresso_id, p.registrazione_fk_registrazioni, p.documento_path, 
                        p.documento_nome, p.data_caricamento,
                        u.nome, u.cognome, u.username, u.email, u.utente_id,
-                       mt.membro_team_id, mt.team_id, mt.ruolo_team
+                       r.registrazione_id, r.team_fk_teams, r.ruolo_fk_ruoli_team
                 FROM progressi p
-                JOIN membri_team mt ON p.caricato_da = mt.membro_team_id
-                JOIN utenti u ON mt.utente_id = u.utente_id
-                WHERE mt.team_id = ?
+                JOIN registrazioni r ON p.registrazione_fk_registrazioni = r.registrazione_id
+                JOIN utenti u ON r.partecipante_fk_utenti = u.utente_id
+                WHERE r.team_fk_teams = ?
                 ORDER BY p.data_caricamento DESC
                 """;
 
@@ -112,18 +111,18 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
         progresso.setDocumentoPath(rs.getString("documento_path"));
         progresso.setDocumentoNome(rs.getString("documento_nome"));
         progresso.setDataCaricamento(rs.getTimestamp("data_caricamento").toLocalDateTime());
-        progresso.setCaricatoDaId(rs.getInt("caricato_da"));
+        progresso.setCaricatoDaId(rs.getInt("registrazione_fk_registrazioni"));
 
-        // Mappa il membro del team che ha caricato
-        Utente caricatoDaUtente = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE);
-        caricatoDaUtente.setUtenteId(rs.getInt("utente_id"));
+        // Mappa la registrazione
+        Utente caricatoDaUtentePartecipante = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE);
+        caricatoDaUtentePartecipante.setUtenteId(rs.getInt("utente_id"));
 
-        Registrazione caricatoDaMembroTeam = new Registrazione();
-        caricatoDaMembroTeam.setRegistrazioneId(rs.getInt("membro_team_id"));
-        caricatoDaMembroTeam.setTeamId(rs.getInt("team_id"));
-        caricatoDaMembroTeam.setUtente(caricatoDaUtente);
-        caricatoDaMembroTeam.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_team")));
-        progresso.setCaricatoDa(caricatoDaMembroTeam);
+        Registrazione caricatoDaRegistrazione = new Registrazione();
+        caricatoDaRegistrazione.setRegistrazioneId(rs.getInt("registrazione_fk_registrazioni"));
+        caricatoDaRegistrazione.setTeamId(rs.getInt("team_fk_teams"));
+        caricatoDaRegistrazione.setUtente(caricatoDaUtentePartecipante);
+        caricatoDaRegistrazione.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_fk_ruoli_team")));
+        progresso.setCaricatoDa(caricatoDaRegistrazione);
 
         return progresso;
     }

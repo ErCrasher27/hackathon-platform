@@ -387,6 +387,17 @@ public class HackathonController {
     /**
      * Recupera il team di cui fa parte l'utente corrente in un hackathon.
      *
+     * @param utentePartecipanteId l'ID dell'utente partecipante
+     * @param hackathonId          l'ID dell'hackathon
+     * @return risposta contenente il team del partecipante
+     */
+    public TeamResponse getTeamPartecipante(int utentePartecipanteId, int hackathonId) {
+        return teamDAO.getTeamByPartecipanteHackathon(utentePartecipanteId, hackathonId);
+    }
+
+    /**
+     * Recupera il team di cui fa parte l'utente corrente in un hackathon.
+     *
      * @param hackathonId l'ID dell'hackathon
      * @return risposta contenente il team del partecipante
      */
@@ -599,11 +610,16 @@ public class HackathonController {
     /**
      * Annulla una registrazione esistente.
      *
-     * @param registrazioneId l'ID della registrazione da annullare
+     * @param hackathonId l'ID dell'hackathon
      * @return risposta indicante il successo o fallimento dell'operazione
      */
-    public ResponseResult annullaRegistrazione(int registrazioneId) {
-        return registrazioneDAO.rimuoviRegistrazione(registrazioneId);
+    public ResponseResult annullaRegistrazione(int hackathonId) {
+        RegistrazioneResponse registrazioneCorrente = registrazioneDAO.getRegistrazioneByUtentePartecipanteHackathon(getIdUtenteCorrente(), hackathonId);
+        if (registrazioneCorrente.registrazione() != null) {
+            return registrazioneDAO.rimuoviRegistrazione(registrazioneCorrente.registrazione().getRegistrazioneId());
+        } else {
+            return new ResponseResult(false, "Impossibile annullare la registrazione!");
+        }
     }
 
     /**
@@ -626,6 +642,22 @@ public class HackathonController {
     }
 
     /**
+     * Fa abbandonare l'utente indicato dal suo team in un hackathon.
+     *
+     * @param utentePartecipanteId l'ID dell'utente partecipante
+     * @param hackathonId          l'ID dell'hackathon
+     * @return risposta indicante il successo o fallimento dell'operazione
+     */
+    public ResponseResult rimuoviDalTeam(int utentePartecipanteId, int hackathonId) {
+        RegistrazioneResponse registrazioneCorrente = registrazioneDAO.getRegistrazioneByUtentePartecipanteHackathon(utentePartecipanteId, hackathonId);
+        if (registrazioneCorrente.registrazione() != null) {
+            return registrazioneDAO.aggiornaTeamNullConRuoloNull(registrazioneCorrente.registrazione().getRegistrazioneId());
+        } else {
+            return new ResponseResult(false, "Impossibile abbandonare il team!");
+        }
+    }
+
+    /**
      * Fa abbandonare l'utente corrente dal suo team in un hackathon.
      *
      * @param hackathonId l'ID dell'hackathon
@@ -643,12 +675,18 @@ public class HackathonController {
     /**
      * Invia un invito a un utente per unirsi al team dell'utente corrente.
      *
+     * @param hackathonId          l'ID dell'hackathon
      * @param utentePartecipanteId l'ID dell'utente da invitare
      * @param messaggio            messaggio personalizzato dell'invito
      * @return risposta indicante il successo o fallimento dell'invito
      */
-    public ResponseResult invitaUtenteInTeam(int utentePartecipanteId, String messaggio) {
-        return invitoTeamDAO.saveInvitoUtente(getIdUtenteCorrente(), utentePartecipanteId, messaggio);
+    public ResponseResult invitaUtenteInTeam(int hackathonId, int utentePartecipanteId, String messaggio) {
+        RegistrazioneResponse registrazioneCorrente = registrazioneDAO.getRegistrazioneByUtentePartecipanteHackathon(getIdUtenteCorrente(), hackathonId);
+        if (registrazioneCorrente.registrazione() != null) {
+            return invitoTeamDAO.saveInvitoUtente(registrazioneCorrente.registrazione().getRegistrazioneId(), utentePartecipanteId, messaggio);
+        } else {
+            return new ResponseResult(false, "Impossibile invitare l'utente!");
+        }
     }
 
     /**
@@ -710,13 +748,20 @@ public class HackathonController {
     /**
      * Carica un nuovo progresso per il team dell'utente corrente.
      *
-     * @param urlDocumento l'URL del documento di progresso
+     * @param hackathonId   l'ID dell'hackathon
+     * @param urlDocumento  l'URL del documento di progresso
+     * @param documentoNome nome del documento di progresso
      * @return risposta contenente il progresso caricato
      */
-    public ProgressoResponse caricaProgresso(String urlDocumento) {
-        Progresso nuovoProgresso = new Progresso(urlDocumento);
-        nuovoProgresso.setCaricatoDaRegistrazioneId(getIdUtenteCorrente());
-        return progressoDAO.saveProgresso(nuovoProgresso);
+    public ProgressoResponse caricaProgresso(int hackathonId, String urlDocumento, String documentoNome) {
+        Progresso nuovoProgresso = new Progresso(urlDocumento, documentoNome);
+        RegistrazioneResponse registrazioneCorrente = registrazioneDAO.getRegistrazioneByUtentePartecipanteHackathon(getIdUtenteCorrente(), hackathonId);
+        if (registrazioneCorrente.registrazione() != null) {
+            nuovoProgresso.setCaricatoDaRegistrazioneId(registrazioneCorrente.registrazione().getRegistrazioneId());
+            return progressoDAO.saveProgresso(nuovoProgresso);
+        } else {
+            return new ProgressoResponse(null, "Impossibile caricare il progresso!");
+        }
     }
 
     /**

@@ -125,16 +125,9 @@ public class RegistrazioneImplementazionePostgresDAO implements RegistrazioneDAO
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, registrazione.getUtentePartecipanteId());
             ps.setInt(2, registrazione.getHackathonId());
-
-            if (registrazione.getTeamId() != -1) {
-                ps.setInt(3, registrazione.getTeamId());
-                ps.setInt(4, registrazione.getRuolo().getId());
-                ps.setTimestamp(5, Timestamp.valueOf(registrazione.getDataIngressoTeam()));
-            } else {
-                ps.setNull(3, Types.INTEGER);
-                ps.setNull(4, Types.INTEGER);
-                ps.setNull(5, Types.TIMESTAMP);
-            }
+            ps.setNull(3, Types.INTEGER);
+            ps.setNull(4, Types.INTEGER);
+            ps.setNull(5, Types.TIMESTAMP);
 
             int affectedRows = ps.executeUpdate();
 

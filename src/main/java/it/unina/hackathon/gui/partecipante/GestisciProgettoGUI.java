@@ -90,14 +90,6 @@ public class GestisciProgettoGUI implements GUIHandler {
     private JButton rimuoviMembroButton;
     private JButton abbandonaSciogleTeamButton;
 
-    // Richieste ingresso (quando hai team e sei leader)
-    private JPanel richiesteIngressoPanel;
-    private JTable richiesteIngressoTable;
-    private JScrollPane richiesteIngressoScrollPane;
-    private RichiesteIngressoTableModel richiesteIngressoTableModel;
-    private JButton accettaRichiestaButton;
-    private JButton rifiutaRichiestaButton;
-
     // region Tab Progressi
     private JPanel progressiPanel;
     private JPanel progressiListPanel;
@@ -364,12 +356,8 @@ public class GestisciProgettoGUI implements GUIHandler {
         // Members panel
         createMembriPanel();
 
-        // Richieste ingresso panel (visible only for leader)
-        createRichiesteIngressoPanel();
-
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setTopComponent(membriPanel);
-        splitPane.setBottomComponent(richiesteIngressoPanel);
         splitPane.setResizeWeight(0.6);
 
         gestioneTeamPanel.add(splitPane, BorderLayout.CENTER);
@@ -411,36 +399,6 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         membriPanel.add(buttonPanel, BorderLayout.NORTH);
         membriPanel.add(membriScrollPane, BorderLayout.CENTER);
-    }
-
-    private void createRichiesteIngressoPanel() {
-        richiesteIngressoPanel = new JPanel(new BorderLayout());
-        richiesteIngressoPanel.setBorder(new TitledBorder("Richieste di Ingresso"));
-
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-        accettaRichiestaButton = new JButton("Accetta");
-        rifiutaRichiestaButton = new JButton("Rifiuta");
-
-        accettaRichiestaButton.setPreferredSize(new Dimension(100, 30));
-        rifiutaRichiestaButton.setPreferredSize(new Dimension(100, 30));
-
-        accettaRichiestaButton.setEnabled(false);
-        rifiutaRichiestaButton.setEnabled(false);
-
-        buttonPanel.add(accettaRichiestaButton);
-        buttonPanel.add(rifiutaRichiestaButton);
-
-        // Table
-        richiesteIngressoTableModel = new RichiesteIngressoTableModel();
-        richiesteIngressoTable = new JTable(richiesteIngressoTableModel);
-        richiesteIngressoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        richiesteIngressoTable.setRowHeight(25);
-        richiesteIngressoScrollPane = new JScrollPane(richiesteIngressoTable);
-
-        richiesteIngressoPanel.add(buttonPanel, BorderLayout.NORTH);
-        richiesteIngressoPanel.add(richiesteIngressoScrollPane, BorderLayout.CENTER);
     }
 
     private void createProgressiTab() {
@@ -593,18 +551,6 @@ public class GestisciProgettoGUI implements GUIHandler {
                 } else {
                     rimuoviMembroButton.setEnabled(false);
                 }
-            }
-        });
-
-        // Richieste ingresso events (solo per leader)
-        accettaRichiestaButton.addActionListener(_ -> gestisciRichiesta(true));
-        rifiutaRichiestaButton.addActionListener(_ -> gestisciRichiesta(false));
-
-        richiesteIngressoTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                boolean hasSelection = richiesteIngressoTable.getSelectedRow() != -1;
-                accettaRichiestaButton.setEnabled(hasSelection);
-                rifiutaRichiestaButton.setEnabled(hasSelection);
             }
         });
     }
@@ -884,31 +830,6 @@ public class GestisciProgettoGUI implements GUIHandler {
         }
     }
 
-    private void gestisciRichiesta(boolean accetta) {
-        int selectedRow = richiesteIngressoTable.getSelectedRow();
-        if (selectedRow != -1) {
-            InvitoTeam richiesta = richiesteIngresso.get(selectedRow);
-
-            String azione = accetta ? "accettare" : "rifiutare";
-            int confirm = JOptionPane.showConfirmDialog(frame, "Vuoi " + azione + " la richiesta di " + richiesta.getUtentePartecipanteInvitato().getNomeCompleto() + "?", "Conferma", JOptionPane.YES_NO_OPTION);
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                try {
-                    ResponseResult response = controller.rispondiInvitoTeam(richiesta.getInvitoId(), accetta ? StatoInvito.ACCEPTED : StatoInvito.DECLINED);
-
-                    if (response.result()) {
-                        showInfoMessage("Richiesta " + (accetta ? "accettata" : "rifiutata") + " con successo!");
-                        loadMembriData();
-                    } else {
-                        showErrorMessage("Errore: " + response.message());
-                    }
-                } catch (Exception e) {
-                    showErrorMessage("Errore: " + e.getMessage());
-                }
-            }
-        }
-    }
-
     private void invitaMembro() {
         try {
             var response = controller.getPartecipantiDisponibili(hackathonId);
@@ -962,7 +883,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                             messaggioInvito = "Ti invitiamo a unirti al nostro team!";
                         }
 
-                        var inviteResult = controller.invitaUtenteInTeam(partecipanteSelezionato.getUtentePartecipanteId(), messaggioInvito);
+                        var inviteResult = controller.invitaUtenteInTeam(hackathonId, partecipanteSelezionato.getUtentePartecipanteId(), messaggioInvito);
 
                         if (inviteResult.result()) {
                             showInfoMessage("Invito inviato con successo a " + partecipanteSelezionato.getUtentePartecipante().getNome() + " " + partecipanteSelezionato.getUtentePartecipante().getCognome());
@@ -986,7 +907,7 @@ public class GestisciProgettoGUI implements GUIHandler {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    var response = controller.annullaRegistrazioneHackathon(membro.getUtentePartecipanteId());
+                    var response = controller.rimuoviDalTeam(membro.getUtentePartecipanteId(), hackathonId);
                     if (response.result()) {
                         showInfoMessage("Membro rimosso con successo!");
                         loadMembriData();
@@ -1009,7 +930,7 @@ public class GestisciProgettoGUI implements GUIHandler {
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 ResponseResult response;
-                response = controller.abbandonaTeam(teamCorrente.getTeamId());
+                response = controller.abbandonaTeam(teamCorrente.getHackathonId());
 
 
                 if (response.result()) {
@@ -1035,8 +956,9 @@ public class GestisciProgettoGUI implements GUIHandler {
 
         try {
             String url = fileSelezionato.getAbsolutePath();
+            String docNome = fileSelezionato.getName();
 
-            ProgressoResponse response = controller.caricaProgresso(url);
+            ProgressoResponse response = controller.caricaProgresso(hackathonId, url, docNome);
 
             if (response.progresso() != null) {
                 showInfoMessage("Progresso caricato con successo!");

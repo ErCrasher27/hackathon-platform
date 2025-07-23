@@ -22,9 +22,10 @@ public class Progresso {
         this.dataCaricamento = LocalDateTime.now();
     }
 
-    public Progresso(String documentoPath) {
+    public Progresso(String documentoPath, String documentoNome) {
         this();
         this.documentoPath = documentoPath;
+        this.documentoNome = documentoNome;
     }
 
     // endregion

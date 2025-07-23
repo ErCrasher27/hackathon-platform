@@ -423,7 +423,7 @@ public class GestisciHackathonGUI implements GUIHandler {
 
             if (response.utenti() != null) {
                 for (Utente partecipante : response.utenti()) {
-                    TeamResponse team = controller.getTeamPartecipante(hackathonId);
+                    TeamResponse team = controller.getTeamPartecipante(partecipante.getUtenteId(), hackathonId);
                     Object[] row = {partecipante.getNome(), partecipante.getCognome(), partecipante.getUsername(), partecipante.getEmail(), team.team() != null ? team.team().getNome() : "N/A", partecipante.getDataRegistrazione() != null ? partecipante.getDataRegistrazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A"};
                     partecipantiTableModel.addRow(row);
                 }

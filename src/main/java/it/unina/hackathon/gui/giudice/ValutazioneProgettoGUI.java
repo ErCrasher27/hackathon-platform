@@ -646,7 +646,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         try {
             GiudiceHackathonResponse gh = controller.getGiudiceHackathon(hackathonId);
             if (gh != null) {
-                VotoResponse response = controller.assegnaVoto(gh.giudiceHackathon().getGiudiceHackathonId(), teamSelezionato.getTeamId(), valore);
+                VotoResponse response = controller.assegnaVoto(gh.giudiceHackathon().getGiudiceHackathonId(), valore, teamSelezionato.getTeamId());
                 if (response.voto() != null) {
                     showInfoMessage("Voto assegnato con successo!");
                     loadVotoData();

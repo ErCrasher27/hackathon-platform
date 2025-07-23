@@ -40,6 +40,7 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     team.setTeamId(generatedKeys.getInt(1));
+                    team.setDataCreazione(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new TeamResponse(team, "Team creato con successo!");
             } else {
@@ -47,6 +48,9 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            if (e.getMessage().contains("duplicate key") || e.getMessage().contains("uq_nome_team_per_hackathon")) {
+                return new TeamResponse(null, "Nome team già esistente per questo hackathon!");
+            }
             return new TeamResponse(null, "Errore durante la creazione del team: " + e.getMessage());
         }
     }
@@ -79,10 +83,10 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     @Override
     public TeamResponse getTeamByRegistrazione(int registrazioneId) {
         String query = """
-                          SELECT t.team_id, t.nome, t.hackathon_fk_hackathons, t.data_creazione, t.definitivo
+                SELECT t.team_id, t.nome, t.hackathon_fk_hackathons, t.data_creazione, t.definitivo
                 FROM teams t
-                          JOIN registrazioni r ON r.team_fk_teams = t.team_id
-                          WHERE r.registrazione_id
+                JOIN registrazioni r ON r.team_fk_teams = t.team_id
+                WHERE r.registrazione_id = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -90,13 +94,13 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return new TeamResponse(mapResultSetToTeam(rs), "Team trovato con successo tramite membro_team_id!");
+                return new TeamResponse(mapResultSetToTeam(rs), "Team trovato con successo tramite registrazione!");
             } else {
-                return new TeamResponse(null, "Nessun team trovato per il membro specificato.");
+                return new TeamResponse(null, "Nessun team trovato per la registrazione specificata.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new TeamResponse(null, "Errore durante la ricerca del team tramite membro_team_id: " + e.getMessage());
+            return new TeamResponse(null, "Errore durante la ricerca del team tramite registrazione: " + e.getMessage());
         }
     }
 
@@ -129,9 +133,8 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     public ResponseIntResult contaRegistrazioniByTeam(int teamId) {
         String query = """
                 SELECT COUNT(*) AS numero_membri
-                FROM teams t
-                JOIN registrazioni r ON r.team_fk_teams = t.team_id
-                WHERE team_id = ?
+                FROM registrazioni
+                WHERE team_fk_teams = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -152,10 +155,9 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     @Override
     public ResponseIntResult contaTeamByHackathon(int hackathonId) {
         String query = """
-                SELECT COUNT(DISTINCT t.team_id) AS numero_team
-                FROM team t
-                JOIN registrazioni r ON r.team_fk_teams = t.team_id
-                WHERE t.hackathon_fk_hackathons = ?
+                SELECT COUNT(*) AS numero_team
+                FROM teams
+                WHERE hackathon_fk_hackathons = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -163,7 +165,7 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return new ResponseIntResult(rs.getInt("numero_team"), "Numero di team formati calcolato con successo!");
+                return new ResponseIntResult(rs.getInt("numero_team"), "Numero di team calcolato con successo!");
             } else {
                 return new ResponseIntResult(-1, "Hackathon non trovato!");
             }

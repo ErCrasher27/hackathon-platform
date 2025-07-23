@@ -14,7 +14,7 @@ public class Registrazione {
     private int utentePartecipanteId;
     private int hackathonId;
     private LocalDateTime dataRegistrazione;
-    private LocalDateTime dataIngresso;
+    private LocalDateTime dataIngressoTeam;
     private RuoloTeam ruolo;
     private Utente utentePartecipante;
     private Team team;
@@ -24,7 +24,7 @@ public class Registrazione {
     // region Costruttori
 
     public Registrazione() {
-        this.dataIngresso = LocalDateTime.now();
+        this.dataIngressoTeam = LocalDateTime.now();
     }
 
     public Registrazione(int utentePartecipanteId, int hackathonId) {
@@ -61,16 +61,16 @@ public class Registrazione {
         this.utentePartecipanteId = utentePartecipanteId;
     }
 
-    public LocalDateTime getDataIngresso() {
-        return dataIngresso;
+    public LocalDateTime getDataIngressoTeam() {
+        return dataIngressoTeam;
+    }
+
+    public void setDataIngressoTeam(LocalDateTime dataIngresso) {
+        this.dataIngressoTeam = dataIngresso;
     }
 
     public void setDataRegistrazione(LocalDateTime dataRegistrazione) {
         this.dataRegistrazione = dataRegistrazione;
-    }
-
-    public void setDataIngressoTeam(LocalDateTime dataIngresso) {
-        this.dataIngresso = dataIngresso;
     }
 
     public RuoloTeam getRuolo() {

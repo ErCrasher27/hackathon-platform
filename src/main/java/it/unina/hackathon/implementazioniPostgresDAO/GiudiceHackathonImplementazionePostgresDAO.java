@@ -38,7 +38,7 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
             if (rs.next()) {
                 return new GiudiceHackathonResponse(mapToGiudiceHackathon(rs), "Giudice Hackathon caricato con successo!");
             } else {
-                return new GiudiceHackathonResponse(null, "Errore durante il caricamento del giudice!");
+                return new GiudiceHackathonResponse(null, "Giudice non trovato per questo hackathon!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -50,8 +50,8 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
     public ResponseIntResult contaGiudiceHackathonByHackathon(int hackathonId) {
         String query = """
                 SELECT COUNT(*) 
-                FROM giudici_hackathon gh
-                WHERE gh.hackathon_fk_hackathons = ?
+                FROM giudici_hackathon
+                WHERE hackathon_fk_hackathons = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -72,11 +72,9 @@ public class GiudiceHackathonImplementazionePostgresDAO implements GiudiceHackat
     private GiudiceHackathon mapToGiudiceHackathon(ResultSet rs) throws SQLException {
         GiudiceHackathon giudice = new GiudiceHackathon();
         giudice.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        giudice.setUtenteGiudiceId(rs.getInt("giudice_id"));
-        giudice.setHackathonId(rs.getInt("hackathon_id"));
+        giudice.setUtenteGiudiceId(rs.getInt("giudice_fk_utenti"));
+        giudice.setHackathonId(rs.getInt("hackathon_fk_hackathons"));
         giudice.setDataAssegnazione(rs.getTimestamp("data_assegnazione").toLocalDateTime());
         return giudice;
     }
-
-
 }

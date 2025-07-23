@@ -41,6 +41,7 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     commento.setCommentoId(generatedKeys.getInt(1));
+                    commento.setDataCommento(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new CommentoResponse(commento, "Commento salvato con successo!");
             } else {
@@ -60,7 +61,7 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
                        gh.giudice_hackathon_id
                 FROM commenti c
                 JOIN giudici_hackathon gh ON c.giudice_hack_fk_giudici_hackathon = gh.giudice_hackathon_id
-                JOIN utenti u ON gh.giudice_hackathon_id = u.utente_id
+                JOIN utenti u ON gh.giudice_fk_utenti = u.utente_id
                 WHERE c.progresso_fk_progressi = ?
                 ORDER BY c.data_commento DESC
                 """;
@@ -82,11 +83,10 @@ public class CommentoImplementazionePostgresDAO implements CommentoDAO {
     }
 
     private Commento mapResultSetToCommento(ResultSet rs) throws SQLException {
-        Commento commento = new Commento(rs.getInt("progresso_id"), rs.getInt("giudice_hackathon_id"), rs.getString("testo"));
+        Commento commento = new Commento(rs.getInt("progresso_fk_progressi"), rs.getInt("giudice_hack_fk_giudici_hackathon"), rs.getString("testo"));
         commento.setCommentoId(rs.getInt("commento_id"));
         commento.setDataCommento(rs.getTimestamp("data_commento").toLocalDateTime());
 
-        // Mappa il giudice
         Utente utenteGiudice = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
         utenteGiudice.setUtenteId(rs.getInt("utente_id"));
 

@@ -28,7 +28,29 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
 
     @Override
     public UtenteListResponse getUtentiPartecipantiByHackathon(int hackathonId) {
-        return null;
+        String query = """
+                SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
+                       u.data_registrazione, u.ruolo_fk_ruoli_utente
+                FROM utenti u
+                JOIN registrazioni r ON u.utente_id = r.partecipante_fk_utenti
+                WHERE r.hackathon_fk_hackathons = ? AND u.ruolo_fk_ruoli_utente = 3
+                ORDER BY u.cognome, u.nome
+                """;
+
+        List<Utente> partecipanti = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, hackathonId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                partecipanti.add(mapResultSetToUtente(rs));
+            }
+            return new UtenteListResponse(partecipanti, "Partecipanti caricati con successo!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new UtenteListResponse(null, "Errore durante il caricamento dei partecipanti!");
+        }
     }
 
     @Override
@@ -37,9 +59,9 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
                 SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
                        u.data_registrazione, u.ruolo_fk_ruoli_utente
                 FROM utenti u
-                WHERE ru.ruolo_id = 2
+                WHERE u.ruolo_fk_ruoli_utente = 2
                 AND u.utente_id NOT IN (
-                    SELECT DISTINCT ig.invitato_id 
+                    SELECT DISTINCT ig.invitato_fk_utenti 
                     FROM inviti_giudice ig 
                     WHERE ig.hackathon_fk_hackathons = ?
                 )
@@ -65,12 +87,11 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
     @Override
     public UtenteListResponse getUtentiGiudiciInvitatiByHackathon(int hackathonId) {
         String query = """
-                 SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
+                SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
                        u.data_registrazione, u.ruolo_fk_ruoli_utente
                 FROM utenti u
                 JOIN inviti_giudice ig ON u.utente_id = ig.invitato_fk_utenti
-                JOIN stati_invito si ON ig.stato_fk_stati_invito = si.stato_id
-                WHERE ig.hackathon_id = ? AND u.ruolo_fk_ruoli_utente = 2
+                WHERE ig.hackathon_fk_hackathons = ? AND u.ruolo_fk_ruoli_utente = 2
                 ORDER BY ig.data_invito DESC
                 """;
 
@@ -81,8 +102,7 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Utente utente = mapResultSetToUtente(rs);
-                giudici.add(utente);
+                giudici.add(mapResultSetToUtente(rs));
             }
             return new UtenteListResponse(giudici, "Giudici invitati caricati!");
         } catch (SQLException e) {
@@ -127,9 +147,9 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
     public UtenteResponse findByUsername(String username) {
         String query = """
                 SELECT u.utente_id, u.username, u.email, u.password, u.nome, u.cognome, 
-                              u.data_registrazione, u.ruolo_fk_ruoli_utente
-                       FROM utenti u
-                       WHERE u.username = ?
+                       u.data_registrazione, u.ruolo_fk_ruoli_utente
+                FROM utenti u
+                WHERE u.username = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -192,7 +212,7 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
     }
 
     private Utente mapResultSetToUtente(ResultSet rs) throws SQLException {
-        Utente utente = new Utente(rs.getString("username"), rs.getString("email"), rs.getString("password"), rs.getString("nome"), rs.getString("cognome"), TipoUtente.valueOf(rs.getString("ruolo_fk_ruoli_utente")));
+        Utente utente = new Utente(rs.getString("username"), rs.getString("email"), rs.getString("password"), rs.getString("nome"), rs.getString("cognome"), TipoUtente.fromId(rs.getInt("ruolo_fk_ruoli_utente")));
         utente.setUtenteId(rs.getInt("utente_id"));
         utente.setDataRegistrazione(rs.getTimestamp("data_registrazione").toLocalDateTime());
         return utente;

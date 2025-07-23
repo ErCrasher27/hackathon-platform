@@ -43,6 +43,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     problema.setProblemaId(generatedKeys.getInt(1));
+                    problema.setDataPubblicazione(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new ProblemaResponse(problema, "Problema pubblicato con successo!");
             } else {
@@ -60,7 +61,7 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
                 SELECT p.problema_id, p.giudice_hack_fk_giudici_hackathon, p.titolo, p.descrizione, 
                        p.data_pubblicazione,
                        u.nome, u.cognome, u.username, u.email, u.utente_id,
-                       gh.giudice_hackathon_id, gh.hackathon_id
+                       gh.giudice_hackathon_id, gh.hackathon_fk_hackathons
                 FROM problemi p
                 JOIN giudici_hackathon gh ON p.giudice_hack_fk_giudici_hackathon = gh.giudice_hackathon_id
                 JOIN utenti u ON gh.giudice_fk_utenti = u.utente_id
@@ -112,7 +113,6 @@ public class ProblemaImplementazionePostgresDAO implements ProblemaDAO {
         problema.setDataPubblicazione(rs.getTimestamp("data_pubblicazione").toLocalDateTime());
         problema.setPubblicatoDaGiudiceHackathonId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
 
-        // Mappa il giudice
         Utente utenteGiudice = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
         utenteGiudice.setUtenteId(rs.getInt("utente_id"));
 

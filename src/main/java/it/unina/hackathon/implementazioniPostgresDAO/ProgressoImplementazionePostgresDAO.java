@@ -44,6 +44,7 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     progresso.setProgressoId(generatedKeys.getInt(1));
+                    progresso.setDataCaricamento(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new ProgressoResponse(progresso, "Progresso salvato con successo!");
             } else {
@@ -113,15 +114,14 @@ public class ProgressoImplementazionePostgresDAO implements ProgressoDAO {
         progresso.setDataCaricamento(rs.getTimestamp("data_caricamento").toLocalDateTime());
         progresso.setCaricatoDaRegistrazioneId(rs.getInt("registrazione_fk_registrazioni"));
 
-        // Mappa la registrazione
         Utente caricatoDaUtentePartecipante = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.PARTECIPANTE);
         caricatoDaUtentePartecipante.setUtenteId(rs.getInt("utente_id"));
 
         Registrazione caricatoDaRegistrazione = new Registrazione();
-        caricatoDaRegistrazione.setRegistrazioneId(rs.getInt("registrazione_fk_registrazioni"));
+        caricatoDaRegistrazione.setRegistrazioneId(rs.getInt("registrazione_id"));
         caricatoDaRegistrazione.setTeamId(rs.getInt("team_fk_teams"));
         caricatoDaRegistrazione.setUtentePartecipante(caricatoDaUtentePartecipante);
-        caricatoDaRegistrazione.setRuolo(RuoloTeam.valueOf(rs.getString("ruolo_fk_ruoli_team")));
+        caricatoDaRegistrazione.setRuolo(RuoloTeam.fromId(rs.getInt("ruolo_fk_ruoli_team")));
         progresso.setCaricatoDaRegistrazione(caricatoDaRegistrazione);
 
         return progresso;

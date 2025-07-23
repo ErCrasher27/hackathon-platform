@@ -40,6 +40,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     voto.setVotoId(generatedKeys.getInt(1));
+                    voto.setDataVoto(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new VotoResponse(voto, "Voto salvato con successo!");
             } else {
@@ -47,6 +48,9 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            if (e.getMessage().contains("duplicate key") || e.getMessage().contains("uq_voto_per_giudice_team")) {
+                return new VotoResponse(null, "Hai già votato questo team!");
+            }
             return new VotoResponse(null, "Errore durante il salvataggio del voto: " + e.getMessage());
         }
     }
@@ -54,8 +58,9 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoResponse getVotoByGiudiceTeamHackathon(int giudiceHackathonId, int teamId) {
         String query = """
-                SELECT v.voto_id, v.team_fk_teams, v.giudice_hack_fk_giudici_hackathon, v.valore, v.data_voto,
-                WHERE v.giudice_hackathon_id = ? AND v.team_fk_teams = ?
+                SELECT v.voto_id, v.team_fk_teams, v.giudice_hack_fk_giudici_hackathon, v.valore, v.data_voto
+                FROM voti v
+                WHERE v.giudice_hack_fk_giudici_hackathon = ? AND v.team_fk_teams = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -75,7 +80,6 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         }
     }
 
-    // TODO usa vista
     public VotoListResponse getClassificaByHackathon(int hackathonId) {
         String query = """
                 SELECT 
@@ -84,8 +88,8 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
                     AVG(v.valore) as media_voti,
                     COUNT(v.voto_id) as numero_voti
                 FROM voti v
-                JOIN team t ON v.team_fk_teams = t.team_fk_teams
-                WHERE t.hackathon_id = ?
+                JOIN teams t ON v.team_fk_teams = t.team_id
+                WHERE t.hackathon_fk_hackathons = ?
                 GROUP BY v.team_fk_teams, t.nome
                 ORDER BY media_voti DESC, numero_voti DESC, t.nome ASC
                 """;
@@ -100,15 +104,11 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
             while (rs.next()) {
                 Voto votoClassifica = new Voto();
 
-                // Dati base
                 votoClassifica.setTeamId(rs.getInt("team_fk_teams"));
-
-                // Dati specifici della classifica
                 votoClassifica.setPosizione(posizione++);
                 votoClassifica.setMediaVoti(rs.getDouble("media_voti"));
                 votoClassifica.setNumeroVoti(rs.getInt("numero_voti"));
 
-                // Team
                 Team team = new Team();
                 team.setTeamId(rs.getInt("team_fk_teams"));
                 team.setNome(rs.getString("team_nome"));
@@ -136,8 +136,6 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         voto.setGiudiceHackathonId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
         voto.setValore(rs.getInt("valore"));
         voto.setDataVoto(rs.getTimestamp("data_voto").toLocalDateTime());
-
         return voto;
     }
-
 }

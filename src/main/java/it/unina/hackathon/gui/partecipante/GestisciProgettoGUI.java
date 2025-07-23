@@ -1262,7 +1262,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                         membro.getUtentePartecipante() != null ? membro.getUtentePartecipante().getNomeCompleto() : "N/A";
                 case 1 -> membro.getUtentePartecipante() != null ? membro.getUtentePartecipante().getUsername() : "N/A";
                 case 2 -> membro.getRuolo() != null ? membro.getRuolo().getDisplayName() : "N/A";
-                case 3 -> membro.getDataIngresso().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                case 3 -> membro.getDataIngressoTeam().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 default -> "";
             };
         }

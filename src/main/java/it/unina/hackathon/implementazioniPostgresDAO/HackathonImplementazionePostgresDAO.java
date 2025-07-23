@@ -26,7 +26,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     @Override
     public HackathonResponse saveHackathon(Hackathon hackathon) {
         String query = """
-                INSERT INTO hackathon (titolo, descrizione, sede, data_inizio, data_fine, 
+                INSERT INTO hackathons (titolo, descrizione, sede, data_inizio, data_fine, 
                                      data_chiusura_reg, max_iscritti, max_membri_team, 
                                      organizzatore_fk_utenti, stato_fk_stati_hackathon) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -50,6 +50,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     hackathon.setHackathonId(generatedKeys.getInt(1));
+                    hackathon.setDataCreazione(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new HackathonResponse(hackathon, "Hackathon creato con successo!");
             } else {
@@ -89,12 +90,11 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     public HackathonListResponse getHackathonsByHackathonStatus(HackathonStatus hs) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
-                                  h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
-                                  h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
-                           FROM hackathons h 
-                           JOIN stati_hackathon sh ON h.status_id = sh.stato_id 
-                           WHERE sh.stato_id  = ?
-                           ORDER BY h.data_creazione DESC
+                       h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
+                       h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
+                FROM hackathons h 
+                WHERE h.stato_fk_stati_hackathon = ?
+                ORDER BY h.data_creazione DESC
                 """;
 
         List<Hackathon> hackathonList = new ArrayList<>();
@@ -119,10 +119,10 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     public HackathonListResponse getHackathonsByOrganizzatore(int utentePartecipanteId) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
-                                  h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
-                                  h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
+                       h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
+                       h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
                 FROM hackathons h 
-                WHERE h.organizzatore_id = ?
+                WHERE h.organizzatore_fk_utenti = ?
                 ORDER BY h.data_creazione DESC
                 """;
 
@@ -147,10 +147,10 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     @Override
     public HackathonListResponse getHackathonsByPartecipante(int utentePartecipanteId) {
         String query = """
-                     SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
-                                  h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
-                                  h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
-                                  FROM hackathons h
+                SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
+                       h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
+                       h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
+                FROM hackathons h
                 JOIN registrazioni r ON h.hackathon_id = r.hackathon_fk_hackathons
                 WHERE r.partecipante_fk_utenti = ?
                 ORDER BY r.data_registrazione DESC
@@ -178,12 +178,12 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
     public HackathonListResponse getHackathonByGiudice(int utenteGiudiceId) {
         String query = """
                 SELECT h.hackathon_id, h.titolo, h.descrizione, h.sede, h.data_inizio, h.data_fine, 
-                                   h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
-                                   h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
-                 FROM hackathons h
-                 JOIN giudici_hackathon gh ON h.hackathon_id = gh.hackathon_fk_hackathons
-                 WHERE gh.giudice_fk_utenti = ?
-                 ORDER BY h.data_inizio DESC
+                       h.data_chiusura_reg, h.max_iscritti, h.max_membri_team, 
+                       h.organizzatore_fk_utenti, h.data_creazione, h.stato_fk_stati_hackathon 
+                FROM hackathons h
+                JOIN giudici_hackathon gh ON h.hackathon_id = gh.hackathon_fk_hackathons
+                WHERE gh.giudice_fk_utenti = ?
+                ORDER BY h.data_inizio DESC
                 """;
 
         List<Hackathon> hackathons = new ArrayList<>();
@@ -205,7 +205,7 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
 
     public ResponseResult cambiaStatoHackathon(int hackathonId, HackathonStatus nuovoStato) {
         String query = """
-                UPDATE hackathon 
+                UPDATE hackathons 
                 SET stato_fk_stati_hackathon = ?
                 WHERE hackathon_id = ?
                 """;
@@ -231,7 +231,8 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
         Hackathon hackathon = new Hackathon(rs.getString("titolo"), rs.getString("descrizione"), rs.getString("sede"), rs.getTimestamp("data_inizio").toLocalDateTime(), rs.getTimestamp("data_fine").toLocalDateTime(), rs.getInt("max_iscritti"), rs.getInt("max_membri_team"));
         hackathon.setHackathonId(rs.getInt("hackathon_id"));
         hackathon.setDataChiusuraRegistrazioni(rs.getTimestamp("data_chiusura_reg").toLocalDateTime());
-        hackathon.setStatus(HackathonStatus.valueOf(rs.getString("stato_fk_stati_hackathon")));
+        hackathon.setUtenteOrganizzatoreId(rs.getInt("organizzatore_fk_utenti"));
+        hackathon.setStatus(HackathonStatus.fromId(rs.getInt("stato_fk_stati_hackathon")));
         hackathon.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
         return hackathon;
     }

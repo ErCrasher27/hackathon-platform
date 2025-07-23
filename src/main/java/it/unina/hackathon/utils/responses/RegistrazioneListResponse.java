@@ -4,5 +4,5 @@ import it.unina.hackathon.model.Registrazione;
 
 import java.util.List;
 
-public record RegistrazioneListResponse(List<Registrazione> membri, String message) {
+public record RegistrazioneListResponse(List<Registrazione> registrazioni, String message) {
 }

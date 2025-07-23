@@ -1,11 +1,8 @@
 package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.VotoDAO;
-import it.unina.hackathon.model.GiudiceHackathon;
 import it.unina.hackathon.model.Team;
-import it.unina.hackathon.model.Utente;
 import it.unina.hackathon.model.Voto;
-import it.unina.hackathon.model.enums.TipoUtente;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.VotoListResponse;
 import it.unina.hackathon.utils.responses.VotoResponse;
@@ -28,15 +25,14 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoResponse saveVoto(Voto voto) {
         String query = """
-                INSERT INTO voti (team_id, giudice_hackathon_id, valore, data_voto) 
-                VALUES (?, ?, ?, ?)
+                INSERT INTO voti (team_fk_teams, giudice_hack_fk_giudici_hackathon, valore) 
+                VALUES (?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, voto.getTeamId());
-            ps.setInt(2, voto.getGiudiceId());
+            ps.setInt(2, voto.getGiudiceHacakthonId());
             ps.setInt(3, voto.getValore());
-            ps.setTimestamp(4, Timestamp.valueOf(voto.getDataVoto()));
 
             int affectedRows = ps.executeUpdate();
 
@@ -58,15 +54,8 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     @Override
     public VotoResponse getVotoByGiudiceTeamHackathon(int giudiceHackathonId, int teamId) {
         String query = """
-                SELECT v.voto_id, v.team_id, v.giudice_hackathon_id, v.valore, v.data_voto,
-                       u.nome, u.cognome, u.username, u.email, u.utente_id,
-                       t.nome as team_nome,
-                       gh.giudice_hackathon_id
-                FROM voti v
-                JOIN giudici_hackathon gh ON v.giudice_hackathon_id = gh.giudice_hackathon_id
-                JOIN utenti u ON gh.giudice_id = u.utente_id
-                JOIN team t ON v.team_id = t.team_id
-                WHERE v.giudice_hackathon_id = ? AND v.team_id = ?
+                SELECT v.voto_id, v.team_fk_teams, v.giudice_hack_fk_giudici_hackathon, v.valore, v.data_voto,
+                WHERE v.giudice_hackathon_id = ? AND v.team_fk_teams = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -86,17 +75,18 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         }
     }
 
+    // TODO usa vista
     public VotoListResponse getClassificaByHackathon(int hackathonId) {
         String query = """
                 SELECT 
-                    v.team_id,
+                    v.team_fk_teams,
                     t.nome as team_nome,
                     AVG(v.valore) as media_voti,
                     COUNT(v.voto_id) as numero_voti
                 FROM voti v
-                JOIN team t ON v.team_id = t.team_id
+                JOIN team t ON v.team_fk_teams = t.team_fk_teams
                 WHERE t.hackathon_id = ?
-                GROUP BY v.team_id, t.nome
+                GROUP BY v.team_fk_teams, t.nome
                 ORDER BY media_voti DESC, numero_voti DESC, t.nome ASC
                 """;
 
@@ -111,7 +101,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
                 Voto votoClassifica = new Voto();
 
                 // Dati base
-                votoClassifica.setTeamId(rs.getInt("team_id"));
+                votoClassifica.setTeamId(rs.getInt("team_fk_teams"));
 
                 // Dati specifici della classifica
                 votoClassifica.setPosizione(posizione++);
@@ -120,7 +110,7 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
 
                 // Team
                 Team team = new Team();
-                team.setTeamId(rs.getInt("team_id"));
+                team.setTeamId(rs.getInt("team_fk_teams"));
                 team.setNome(rs.getString("team_nome"));
                 votoClassifica.setTeam(team);
 
@@ -142,19 +132,10 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
     private Voto mapResultSetToVoto(ResultSet rs) throws SQLException {
         Voto voto = new Voto();
         voto.setVotoId(rs.getInt("voto_id"));
-        voto.setTeamId(rs.getInt("team_id"));
-        voto.setGiudiceId(rs.getInt("giudice_hackathon_id"));
+        voto.setTeamId(rs.getInt("team_fk_teams"));
+        voto.setGiudiceHacakthonId(rs.getInt("giudice_hack_fk_giudici_hackathon"));
         voto.setValore(rs.getInt("valore"));
         voto.setDataVoto(rs.getTimestamp("data_voto").toLocalDateTime());
-
-        // Mappa il giudice
-        Utente giudiceUtente = new Utente(rs.getString("username"), rs.getString("email"), "", rs.getString("nome"), rs.getString("cognome"), TipoUtente.GIUDICE);
-        giudiceUtente.setUtenteId(rs.getInt("utente_id"));
-
-        GiudiceHackathon giudiceHackathon = new GiudiceHackathon();
-        giudiceHackathon.setGiudiceHackathonId(rs.getInt("giudice_hackathon_id"));
-        giudiceHackathon.setUtenteGiudice(giudiceUtente);
-        voto.setGiudice(giudiceHackathon);
 
         return voto;
     }

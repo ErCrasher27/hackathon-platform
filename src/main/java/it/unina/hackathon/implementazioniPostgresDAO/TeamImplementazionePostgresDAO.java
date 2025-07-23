@@ -2,12 +2,10 @@ package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.TeamDAO;
 import it.unina.hackathon.model.Team;
-import it.unina.hackathon.model.enums.RuoloTeam;
 import it.unina.hackathon.utils.ConnessioneDatabase;
 import it.unina.hackathon.utils.responses.TeamListResponse;
 import it.unina.hackathon.utils.responses.TeamResponse;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
-import it.unina.hackathon.utils.responses.base.ResponseResult;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -27,15 +25,14 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     @Override
     public TeamResponse saveTeam(Team team) {
         String query = """
-                INSERT INTO team (nome, hackathon_id, data_creazione, definitivo) 
-                VALUES (?, ?, ?, ?)
+                INSERT INTO teams (nome, hackathon_fk_hackathons, definitivo) 
+                VALUES (?, ?, ?)
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, team.getNome());
             ps.setInt(2, team.getHackathonId());
-            ps.setTimestamp(3, Timestamp.valueOf(team.getDataCreazione()));
-            ps.setBoolean(4, team.isDefinitivo());
+            ps.setBoolean(3, team.isDefinitivo());
 
             int affectedRows = ps.executeUpdate();
 
@@ -55,29 +52,21 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     }
 
     @Override
-    public TeamResponse getTeamByPartecipanteHackathon(int utenteId, int hackathonId) {
+    public TeamResponse getTeamByPartecipanteHackathon(int utentePartecipanteId, int hackathonId) {
         String query = """
-                SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo,
-                       mt.ruolo_team
-                FROM membri_team mt
-                JOIN team t ON mt.team_id = t.team_id
-                WHERE mt.utente_id = ? AND t.hackathon_id = ?
+                SELECT t.team_id, t.nome, t.hackathon_fk_hackathons, t.data_creazione, t.definitivo
+                FROM teams t
+                JOIN registrazioni r ON r.team_fk_teams = t.team_id
+                WHERE r.partecipante_fk_utenti = ? AND t.hackathon_fk_hackathons = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, utenteId);
+            ps.setInt(1, utentePartecipanteId);
             ps.setInt(2, hackathonId);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                Team team = new Team();
-                team.setTeamId(rs.getInt("team_id"));
-                team.setNome(rs.getString("nome"));
-                team.setHackathonId(rs.getInt("hackathon_id"));
-                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
-                team.setDefinitivo(rs.getBoolean("definitivo"));
-
-                return new TeamResponse(team, "Team del partecipante trovato con successo!");
+                return new TeamResponse(mapResultSetToTeam(rs), "Team del partecipante trovato con successo!");
             } else {
                 return new TeamResponse(null, "Il partecipante non fa parte di alcun team per questo hackathon!");
             }
@@ -88,27 +77,20 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     }
 
     @Override
-    public TeamResponse getTeamByMembroTeam(int membroTeamId) {
+    public TeamResponse getTeamByRegistrazione(int registrazioneId) {
         String query = """
-                SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo
-                FROM membri_team mt
-                JOIN team t ON mt.team_id = t.team_id
-                WHERE mt.membro_team_id = ?
+                          SELECT t.team_id, t.nome, t.hackathon_fk_hackathons, t.data_creazione, t.definitivo
+                FROM teams t
+                          JOIN registrazioni r ON r.team_fk_teams = t.team_id
+                          WHERE r.registrazione_id
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, membroTeamId);
+            ps.setInt(1, registrazioneId);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                Team team = new Team();
-                team.setTeamId(rs.getInt("team_id"));
-                team.setNome(rs.getString("nome"));
-                team.setHackathonId(rs.getInt("hackathon_id"));
-                team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
-                team.setDefinitivo(rs.getBoolean("definitivo"));
-
-                return new TeamResponse(team, "Team trovato con successo tramite membro_team_id!");
+                return new TeamResponse(mapResultSetToTeam(rs), "Team trovato con successo tramite membro_team_id!");
             } else {
                 return new TeamResponse(null, "Nessun team trovato per il membro specificato.");
             }
@@ -121,13 +103,9 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     @Override
     public TeamListResponse getTeamByHackathon(int hackathonId) {
         String query = """
-                SELECT t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo
-                FROM team t
-                JOIN hackathon h ON t.hackathon_id = h.hackathon_id
-                LEFT JOIN membri_team mt ON t.team_id = mt.team_id
-                LEFT JOIN utenti u ON mt.utente_id = u.utente_id
-                WHERE t.hackathon_id = ?
-                GROUP BY t.team_id, t.nome, t.hackathon_id, t.data_creazione, t.definitivo
+                SELECT t.team_id, t.nome, t.hackathon_fk_hackathons, t.data_creazione, t.definitivo
+                FROM teams t
+                WHERE t.hackathon_fk_hackathons = ?
                 ORDER BY t.data_creazione DESC
                 """;
 
@@ -151,7 +129,8 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
     public ResponseIntResult contaNumeroMembri(int teamId) {
         String query = """
                 SELECT COUNT(*) AS numero_membri
-                FROM membri_team
+                FROM teams t
+                JOIN registrazioni r ON r.team_fk_teams = t.team_id
                 WHERE team_id = ?
                 """;
 
@@ -160,8 +139,7 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                int count = rs.getInt("numero_membri");
-                return new ResponseIntResult(count, "Numero di membri calcolato con successo!");
+                return new ResponseIntResult(rs.getInt("numero_membri"), "Numero di membri calcolato con successo!");
             } else {
                 return new ResponseIntResult(-1, "Team non trovato!");
             }
@@ -176,8 +154,8 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
         String query = """
                 SELECT COUNT(DISTINCT t.team_id) AS numero_team
                 FROM team t
-                JOIN membri_team mt ON t.team_id = mt.team_id
-                WHERE t.hackathon_id = ?
+                JOIN registrazioni r ON r.team_fk_teams = t.team_id
+                WHERE t.hackathon_fk_hackathons = ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -185,8 +163,7 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                int count = rs.getInt("numero_team");
-                return new ResponseIntResult(count, "Numero di team formati calcolato con successo!");
+                return new ResponseIntResult(rs.getInt("numero_team"), "Numero di team formati calcolato con successo!");
             } else {
                 return new ResponseIntResult(-1, "Hackathon non trovato!");
             }
@@ -196,60 +173,13 @@ public class TeamImplementazionePostgresDAO implements TeamDAO {
         }
     }
 
-    @Override
-    public ResponseResult aggiungiMembro(int teamId, int utenteId, RuoloTeam ruoloTeam) {
-        String query = """
-                INSERT INTO membri_team (team_id, utente_id, data_ingresso, ruolo_team) 
-                VALUES (?, ?, CURRENT_TIMESTAMP, ?)
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, teamId);
-            ps.setInt(2, utenteId);
-            ps.setString(3, ruoloTeam.getDisplayName().toUpperCase());
-
-            int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                return new ResponseResult(true, "Membro aggiunto al team con successo!");
-            } else {
-                return new ResponseResult(false, "Errore durante l'aggiunta del membro!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ResponseResult(false, "Errore durante l'aggiunta del membro: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public ResponseResult rimuoviMembro(int teamId, int utenteId) {
-        String query = "DELETE FROM membri_team WHERE team_id = ? AND utente_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, teamId);
-            ps.setInt(2, utenteId);
-
-            int affectedRows = ps.executeUpdate();
-
-            if (affectedRows > 0) {
-                return new ResponseResult(true, "Membro rimosso dal team con successo!");
-            } else {
-                return new ResponseResult(false, "Membro non trovato nel team!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return new ResponseResult(false, "Errore durante la rimozione del membro!");
-        }
-    }
-
     private Team mapResultSetToTeam(ResultSet rs) throws SQLException {
         Team team = new Team();
         team.setTeamId(rs.getInt("team_id"));
         team.setNome(rs.getString("nome"));
-        team.setHackathonId(rs.getInt("hackathon_id"));
+        team.setHackathonId(rs.getInt("hackathon_fk_hackathons"));
         team.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
         team.setDefinitivo(rs.getBoolean("definitivo"));
-
         return team;
     }
 }

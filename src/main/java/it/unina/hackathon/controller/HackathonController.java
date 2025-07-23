@@ -387,7 +387,7 @@ public class HackathonController {
      * @return team del membro team
      */
     public TeamResponse getTeamByMembroTeam(int membroTeamId) {
-        return teamDAO.getTeamByMembroTeam(membroTeamId);
+        return teamDAO.getTeamByRegistrazione(membroTeamId);
     }
 
     // endregion

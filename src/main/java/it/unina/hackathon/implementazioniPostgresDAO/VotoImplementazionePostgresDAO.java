@@ -1,10 +1,10 @@
 package it.unina.hackathon.implementazioniPostgresDAO;
 
 import it.unina.hackathon.dao.VotoDAO;
-import it.unina.hackathon.model.Team;
+import it.unina.hackathon.model.ClassificaTeam;
 import it.unina.hackathon.model.Voto;
 import it.unina.hackathon.utils.ConnessioneDatabase;
-import it.unina.hackathon.utils.responses.VotoListResponse;
+import it.unina.hackathon.utils.responses.ClassificaListResponse;
 import it.unina.hackathon.utils.responses.VotoResponse;
 
 import java.sql.*;
@@ -80,21 +80,21 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
         }
     }
 
-    public VotoListResponse getClassificaByHackathon(int hackathonId) {
+    public ClassificaListResponse getClassificaByHackathon(int hackathonId) {
         String query = """
                 SELECT 
-                    v.team_fk_teams,
-                    t.nome as team_nome,
-                    AVG(v.valore) as media_voti,
-                    COUNT(v.voto_id) as numero_voti
-                FROM voti v
-                JOIN teams t ON v.team_fk_teams = t.team_id
-                WHERE t.hackathon_fk_hackathons = ?
-                GROUP BY v.team_fk_teams, t.nome
-                ORDER BY media_voti DESC, numero_voti DESC, t.nome ASC
+                    team_id,
+                    team,
+                    hackathon_id,
+                    media_voti,
+                    num_voti,
+                    num_membri
+                FROM v_classifica_hackathons 
+                WHERE hackathon_id = ?
+                ORDER BY media_voti DESC NULLS LAST, num_voti DESC, team ASC
                 """;
 
-        List<Voto> classifica = new ArrayList<>();
+        List<ClassificaTeam> classifica = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, hackathonId);
@@ -102,30 +102,31 @@ public class VotoImplementazionePostgresDAO implements VotoDAO {
 
             int posizione = 1;
             while (rs.next()) {
-                Voto votoClassifica = new Voto();
+                ClassificaTeam team = new ClassificaTeam();
 
-                votoClassifica.setTeamId(rs.getInt("team_fk_teams"));
-                votoClassifica.setPosizione(posizione++);
-                votoClassifica.setMediaVoti(rs.getDouble("media_voti"));
-                votoClassifica.setNumeroVoti(rs.getInt("numero_voti"));
+                team.setTeamId(rs.getInt("team_id"));
+                team.setNomeTeam(rs.getString("team"));
+                team.setHackathonId(rs.getInt("hackathon_id"));
+                team.setPosizione(posizione++);
 
-                Team team = new Team();
-                team.setTeamId(rs.getInt("team_fk_teams"));
-                team.setNome(rs.getString("team_nome"));
-                votoClassifica.setTeam(team);
+                Double mediaVoti = rs.getDouble("media_voti");
+                team.setMediaVoti(mediaVoti);
 
-                classifica.add(votoClassifica);
+                team.setNumeroVoti(rs.getInt("num_voti"));
+                team.setNumeroMembri(rs.getInt("num_membri"));
+
+                classifica.add(team);
             }
 
             if (classifica.isEmpty()) {
-                return new VotoListResponse(null, "Nessun voto trovato per questo hackathon!");
+                return new ClassificaListResponse(null, "Nessun team trovato per questo hackathon!");
             }
 
-            return new VotoListResponse(classifica, "Classifica caricata con successo!");
+            return new ClassificaListResponse(classifica, "Classifica caricata con successo!");
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return new VotoListResponse(null, "Errore durante il caricamento della classifica: " + e.getMessage());
+            return new ClassificaListResponse(null, "Errore durante il caricamento della classifica: " + e.getMessage());
         }
     }
 

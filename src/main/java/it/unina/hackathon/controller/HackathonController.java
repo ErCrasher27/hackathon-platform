@@ -574,7 +574,7 @@ public class HackathonController {
      * @param hackathonId l'ID dell'hackathon
      * @return risposta contenente la classifica ordinata
      */
-    public VotoListResponse getClassificaHackathon(int hackathonId) {
+    public ClassificaListResponse getClassificaHackathon(int hackathonId) {
         return votoDAO.getClassificaByHackathon(hackathonId);
     }
 

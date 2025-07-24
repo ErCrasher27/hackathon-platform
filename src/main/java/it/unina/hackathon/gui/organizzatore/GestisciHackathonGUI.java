@@ -2,10 +2,10 @@ package it.unina.hackathon.gui.organizzatore;
 
 import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
+import it.unina.hackathon.model.ClassificaTeam;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Team;
 import it.unina.hackathon.model.Utente;
-import it.unina.hackathon.model.Voto;
 import it.unina.hackathon.utils.responses.*;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
@@ -354,16 +354,15 @@ public class GestisciHackathonGUI implements GUIHandler {
         try {
             classificaTableModel.setRowCount(0);
 
-            // Utilizziamo il GiudiceController per accedere alla classifica
-            VotoListResponse response = controller.getClassificaHackathon(hackathonId);
+            ClassificaListResponse response = controller.getClassificaHackathon(hackathonId);
 
-            if (response.voti() != null && !response.voti().isEmpty()) {
-                for (Voto votoClassifica : response.voti()) {
+            if (response.classifica() != null && !response.classifica().isEmpty()) {
+                for (ClassificaTeam classificaTeam : response.classifica()) {
                     // Ora possiamo accedere direttamente ai campi
-                    Integer posizione = votoClassifica.getPosizione();
-                    String nomeTeam = votoClassifica.getTeam() != null ? votoClassifica.getTeam().getNome() : "N/A";
-                    String mediaVoti = votoClassifica.getMediaVoti() != null ? String.format("%.2f", votoClassifica.getMediaVoti()) : "N/A";
-                    String numeroVoti = votoClassifica.getNumeroVoti() != null ? votoClassifica.getNumeroVoti().toString() : "0";
+                    Integer posizione = classificaTeam.getPosizione();
+                    String nomeTeam = classificaTeam.getNomeTeam() != null ? classificaTeam.getNomeTeam() : "N/A";
+                    String mediaVoti = classificaTeam.getMediaVoti() != null ? String.format("%.2f", classificaTeam.getMediaVoti()) : "N/A";
+                    String numeroVoti = classificaTeam.getNumeroVoti() != null ? classificaTeam.getNumeroVoti().toString() : "0";
 
                     Object[] row = {posizione, nomeTeam, mediaVoti, numeroVoti};
                     classificaTableModel.addRow(row);

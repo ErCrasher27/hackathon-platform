@@ -15,12 +15,6 @@ public class Voto {
     private GiudiceHackathon giudiceHackathon;
     private Team team;
 
-    // Campi per la classifica
-    // TODO MOVE OUT OF HERE
-    private Integer posizione;
-    private Double mediaVoti;
-    private Integer numeroVoti;
-
     // endregion
 
     // region Costruttori
@@ -90,32 +84,6 @@ public class Voto {
 
     public void setTeam(Team team) {
         this.team = team;
-    }
-
-    // Per la classifica
-
-    public Integer getPosizione() {
-        return posizione;
-    }
-
-    public void setPosizione(Integer posizione) {
-        this.posizione = posizione;
-    }
-
-    public Double getMediaVoti() {
-        return mediaVoti;
-    }
-
-    public void setMediaVoti(Double mediaVoti) {
-        this.mediaVoti = mediaVoti;
-    }
-
-    public Integer getNumeroVoti() {
-        return numeroVoti;
-    }
-
-    public void setNumeroVoti(Integer numeroVoti) {
-        this.numeroVoti = numeroVoti;
     }
 
     // endregion

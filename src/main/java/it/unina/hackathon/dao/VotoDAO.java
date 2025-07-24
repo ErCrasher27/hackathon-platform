@@ -1,7 +1,7 @@
 package it.unina.hackathon.dao;
 
 import it.unina.hackathon.model.Voto;
-import it.unina.hackathon.utils.responses.VotoListResponse;
+import it.unina.hackathon.utils.responses.ClassificaListResponse;
 import it.unina.hackathon.utils.responses.VotoResponse;
 
 public interface VotoDAO {
@@ -27,8 +27,8 @@ public interface VotoDAO {
      * Recupera la classifica completa di un hackathon basata sui voti ricevuti.
      *
      * @param hackathonId l'ID dell'hackathon
-     * @return risposta contenente la lista dei voti ordinata per classifica
+     * @return risposta contenente la classifica ordinata per posizione
      */
-    VotoListResponse getClassificaByHackathon(int hackathonId);
+    ClassificaListResponse getClassificaByHackathon(int hackathonId);
 
 }

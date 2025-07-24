@@ -700,21 +700,6 @@ public class HackathonController {
     }
 
     /**
-     * Annulla la registrazione dell'utente corrente da un hackathon.
-     *
-     * @param hackathonId l'ID dell'hackathon
-     * @return risposta indicante il successo o fallimento dell'operazione
-     */
-    public ResponseResult annullaRegistrazioneHackathon(int hackathonId) {
-        RegistrazioneResponse registrazioneCorrente = registrazioneDAO.getRegistrazioneByUtentePartecipanteHackathon(getIdUtenteCorrente(), hackathonId);
-        if (registrazioneCorrente.registrazione() != null) {
-            return registrazioneDAO.rimuoviRegistrazione(registrazioneCorrente.registrazione().getRegistrazioneId());
-        } else {
-            return new ResponseResult(false, "Impossibile annullare la registrazione!");
-        }
-    }
-
-    /**
      * Verifica se l'utente corrente è il leader di un team specifico.
      *
      * @param teamId l'ID del team da verificare

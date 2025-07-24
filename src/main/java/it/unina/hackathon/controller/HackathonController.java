@@ -385,7 +385,7 @@ public class HackathonController {
     }
 
     /**
-     * Recupera il team di cui fa parte l'utente corrente in un hackathon.
+     * Recupera il team di cui fa parte l'utente partecipante in un hackathon.
      *
      * @param utentePartecipanteId l'ID dell'utente partecipante
      * @param hackathonId          l'ID dell'hackathon
@@ -642,7 +642,7 @@ public class HackathonController {
     }
 
     /**
-     * Fa abbandonare l'utente indicato dal suo team in un hackathon.
+     * Rimuove l'utente indicato dal suo team in un hackathon.
      *
      * @param utentePartecipanteId l'ID dell'utente partecipante
      * @param hackathonId          l'ID dell'hackathon
@@ -653,7 +653,7 @@ public class HackathonController {
         if (registrazioneCorrente.registrazione() != null) {
             return registrazioneDAO.aggiornaTeamNullConRuoloNull(registrazioneCorrente.registrazione().getRegistrazioneId());
         } else {
-            return new ResponseResult(false, "Impossibile abbandonare il team!");
+            return new ResponseResult(false, "Impossibile rimuovere dal team!");
         }
     }
 

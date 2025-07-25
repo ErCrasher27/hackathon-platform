@@ -468,9 +468,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             return;
         }
 
-        String basePath = System.getProperty("user.dir");
-        String fullPath = basePath + documentoPath;
-        File file = new File(fullPath);
+        File file = new File(documentoPath);
 
         if (!file.exists()) {
             JOptionPane.showMessageDialog(frame, "Il documento non è stato trovato.\n\nFile: " + documentoPath, "File non trovato", JOptionPane.ERROR_MESSAGE);
@@ -623,7 +621,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     //region Private Classes
     private class TeamTableModel extends AbstractTableModel {
-        private final String[] columnNames = {"Nome Team", "Membri", "Progressi"};
+        private final String[] columnNames = {"Nome Team", "Membri"};
 
         @Override
         public int getRowCount() {
@@ -646,8 +644,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             ResponseIntResult contaNumeroMembri = controller.contaNumeroMembri(team.getTeamId());
             return switch (columnIndex) {
                 case 0 -> team.getNome();
-                case 1 -> ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " registrazioni";
-                case 2 -> "";
+                case 1 -> ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A");
                 default -> "";
             };
         }

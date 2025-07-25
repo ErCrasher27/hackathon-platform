@@ -1,7 +1,7 @@
 # Hackathon Platform
 
 Una piattaforma **Java Swing** per la gestione completa di eventi hackathon, sviluppata come progetto universitario per
-i corso di *Object Orientation* e *Base di Dati*.
+i corsi di *Object Orientation* e *Base di Dati*.
 
 ---
 

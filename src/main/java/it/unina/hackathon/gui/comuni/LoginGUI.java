@@ -11,17 +11,15 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class LoginGUI implements GUIHandler {
 
-    // Controllers
+    //region Fields
     private final HackathonController controller;
 
-    // Components
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
     private JPanel formPanel;
     private JPanel actionPanel;
 
-    // Form Components
     private JLabel welcomeLabel;
     private JLabel usernameLabel;
     private JLabel passwordLabel;
@@ -29,39 +27,77 @@ public class LoginGUI implements GUIHandler {
     private JPasswordField passwordField;
     private JButton loginButton;
     private JButton registerButton;
+    //endregion
 
+    //region Constructor
     public LoginGUI() {
         this.controller = HackathonController.getInstance();
-
         initializeComponents();
         setupFrame();
         setupEventListeners();
         loadData();
     }
+    //endregion
 
+    //region Public Methods
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new LoginGUI().showFrame());
     }
 
     @Override
+    public JFrame getFrame() {
+        return frame;
+    }
+
+    @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
+        setupHeaderPanel();
+        setupFormPanel();
+        setupActionPanel();
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.add(actionPanel, BorderLayout.SOUTH);
+    }
+
+    @Override
+    public void setupFrame() {
+        frame = new JFrame("Hackathon Platform - Login");
+        frame.setContentPane(mainPanel);
+        applyStyleFrame(frame);
+        frame.getRootPane().setDefaultButton(loginButton);
+    }
+
+    @Override
+    public void setupEventListeners() {
+        loginButton.addActionListener(_ -> effettuaLogin());
+        registerButton.addActionListener(_ -> controller.vaiAllaRegistrazione(frame));
+        passwordField.addActionListener(_ -> effettuaLogin());
+    }
+
+    @Override
+    public void loadData() {
+        SwingUtilities.invokeLater(() -> usernameField.requestFocusInWindow());
+    }
+    //endregion
+
+    //region Private Methods
+    private void setupHeaderPanel() {
         headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         welcomeLabel = new JLabel("Benvenuto nella piattaforma");
         applyStyleTitleLbl(welcomeLabel);
         headerPanel.add(welcomeLabel);
+    }
 
-        // Form panel
+    private void setupFormPanel() {
         formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Username row
         gbc.gridx = 0;
         gbc.gridy = 0;
         usernameLabel = new JLabel("Username:");
@@ -73,7 +109,6 @@ public class LoginGUI implements GUIHandler {
         usernameField = new JTextField(20);
         formPanel.add(usernameField, gbc);
 
-        // Password row
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.NONE;
@@ -86,60 +121,25 @@ public class LoginGUI implements GUIHandler {
         gbc.weightx = 1.0;
         passwordField = new JPasswordField(20);
         formPanel.add(passwordField, gbc);
+    }
 
-        // Action panel
+    private void setupActionPanel() {
         actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        registerButton = new JButton("Nuovo utente? Registrati!");
-        loginButton = new JButton("Login");
 
-        // Style buttons
-        loginButton.setPreferredSize(new Dimension(120, 35));
+        registerButton = new JButton("Nuovo utente? Registrati!");
         registerButton.setPreferredSize(new Dimension(200, 35));
+
+        loginButton = new JButton("Login");
+        loginButton.setPreferredSize(new Dimension(120, 35));
 
         actionPanel.add(registerButton);
         actionPanel.add(loginButton);
-
-        // Assemble main panel
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-        mainPanel.add(actionPanel, BorderLayout.SOUTH);
-    }
-
-    @Override
-    public void setupFrame() {
-        frame = new JFrame("Hackathon Platform - Login");
-        frame.setContentPane(mainPanel);
-        applyStyleFrame(frame);
-
-        // Set default button
-        frame.getRootPane().setDefaultButton(loginButton);
-    }
-
-    @Override
-    public void setupEventListeners() {
-        loginButton.addActionListener(_ -> effettuaLogin());
-        registerButton.addActionListener(_ -> controller.vaiAllaRegistrazione(frame));
-
-        // Enter key support for password field
-        passwordField.addActionListener(_ -> effettuaLogin());
-    }
-
-    @Override
-    public void loadData() {
-        // Set focus on username field
-        SwingUtilities.invokeLater(() -> usernameField.requestFocusInWindow());
-    }
-
-    @Override
-    public JFrame getFrame() {
-        return frame;
     }
 
     private void effettuaLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
 
-        // Basic validation
         if (username.isEmpty()) {
             showError(frame, "Username è obbligatorio!");
             usernameField.requestFocusInWindow();
@@ -152,7 +152,6 @@ public class LoginGUI implements GUIHandler {
             return;
         }
 
-        // Attempt login
         UtenteResponse response = controller.effettuaLogin(username, password);
 
         if (response.utente() != null) {
@@ -160,9 +159,9 @@ public class LoginGUI implements GUIHandler {
             showSuccess(frame, response.message());
         } else {
             showError(frame, response.message());
-            // Clear password field and focus on it
             passwordField.setText("");
             passwordField.requestFocusInWindow();
         }
     }
+    //endregion
 }

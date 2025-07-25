@@ -19,42 +19,38 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class GestisciHackathonGUI implements GUIHandler {
 
-    // Controllers
+    //region Fields
     private final HackathonController controller;
     private final int hackathonId;
 
-    // Components
     private JFrame frame;
     private JPanel mainPanel;
     private JTabbedPane tabbedPane;
     private JPanel actionPanel;
 
-    // Current hackathon data
     private Hackathon hackathonCorrente;
 
-    // Tab Statistiche components
     private JPanel statistichePanel;
     private JLabel iscrittiLabel;
     private JLabel teamLabel;
     private JLabel giudiciLabel;
 
-    // Tab Giudici components
     private JPanel giudiciPanel;
     private JTable giudiciTable;
     private DefaultTableModel giudiciTableModel;
 
-    // Tab Partecipanti components
     private JPanel partecipantiPanel;
     private JTable partecipantiTable;
     private DefaultTableModel partecipantiTableModel;
     private JTable teamTable;
     private DefaultTableModel teamTableModel;
 
-    // Action buttons
     private JButton backButton;
     private JTable classificaTable;
     private DefaultTableModel classificaTableModel;
+    //endregion
 
+    //region Constructor
     public GestisciHackathonGUI(int hackathonId) {
         this.hackathonId = hackathonId;
         this.controller = HackathonController.getInstance();
@@ -64,36 +60,34 @@ public class GestisciHackathonGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
+    //endregion
+
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Tabbed pane
         tabbedPane = new JTabbedPane();
 
-        // Create all tabs
         createStatisticheTab();
         createGiudiciTab();
         createPartecipantiTab();
 
-        // Add tabs to tabbed pane
         tabbedPane.addTab("Statistiche", statistichePanel);
         tabbedPane.addTab("Gestione Giudici", giudiciPanel);
         tabbedPane.addTab("Partecipanti & Team", partecipantiPanel);
 
-        // Action panel
         actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         backButton = new JButton("← Indietro");
-
-        // Style buttons
         backButton.setPreferredSize(new Dimension(120, 35));
-
         actionPanel.add(backButton);
 
-        // Assemble main panel
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
         mainPanel.add(actionPanel, BorderLayout.SOUTH);
     }
@@ -113,7 +107,6 @@ public class GestisciHackathonGUI implements GUIHandler {
     @Override
     public void loadData() {
         try {
-            // Load hackathon details
             HackathonResponse response = controller.getDettagliHackathon(hackathonId);
 
             if (response.hackathon() != null) {
@@ -125,10 +118,7 @@ public class GestisciHackathonGUI implements GUIHandler {
                 return;
             }
 
-            // Load statistics
             aggiornaStatistiche();
-
-            // Load other tabs data
             caricaGiudiciInvitati();
             caricaPartecipanti();
             caricaTeam();
@@ -138,23 +128,36 @@ public class GestisciHackathonGUI implements GUIHandler {
             showError(frame, "Errore imprevisto: " + e.getMessage());
         }
     }
+    //endregion
 
-    @Override
-    public JFrame getFrame() {
-        return frame;
-    }
-
+    //region Private Methods
     private void createStatisticheTab() {
         statistichePanel = new JPanel(new BorderLayout());
 
-        // Top panel con statistiche esistenti
+        JPanel statsTopPanel = createStatsPanel();
+        JPanel classificaPanel = createClassificaPanel();
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton aggiornaStatsButton = new JButton("Aggiorna Statistiche");
+        buttonPanel.add(aggiornaStatsButton);
+
+        statistichePanel.add(statsTopPanel, BorderLayout.NORTH);
+        statistichePanel.add(classificaPanel, BorderLayout.CENTER);
+        statistichePanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        aggiornaStatsButton.addActionListener(_ -> {
+            aggiornaStatistiche();
+            caricaClassifica();
+        });
+    }
+
+    private JPanel createStatsPanel() {
         JPanel statsTopPanel = new JPanel(new GridBagLayout());
         statsTopPanel.setBorder(BorderFactory.createTitledBorder("Statistiche Generali"));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        // Iscritti
         JLabel iscrittiTitleLabel = new JLabel("Partecipanti iscritti:");
         applyStyleTitleLbl(iscrittiTitleLabel);
         iscrittiLabel = new JLabel("Caricamento...");
@@ -166,7 +169,6 @@ public class GestisciHackathonGUI implements GUIHandler {
         gbc.gridx = 1;
         statsTopPanel.add(iscrittiLabel, gbc);
 
-        // Team
         JLabel teamTitleLabel = new JLabel("Team formati:");
         applyStyleTitleLbl(teamTitleLabel);
         teamLabel = new JLabel("Caricamento...");
@@ -177,7 +179,6 @@ public class GestisciHackathonGUI implements GUIHandler {
         gbc.gridx = 1;
         statsTopPanel.add(teamLabel, gbc);
 
-        // Giudici
         JLabel giudiciTitleLabel = new JLabel("Giudici accettati:");
         applyStyleTitleLbl(giudiciTitleLabel);
         giudiciLabel = new JLabel("Caricamento...");
@@ -188,35 +189,16 @@ public class GestisciHackathonGUI implements GUIHandler {
         gbc.gridx = 1;
         statsTopPanel.add(giudiciLabel, gbc);
 
-        // Sezione classifica
-        JPanel classificaPanel = createClassificaPanel();
-
-        // Button panel per aggiornare
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton aggiornaStatsButton = new JButton("Aggiorna Statistiche");
-        buttonPanel.add(aggiornaStatsButton);
-
-        // Layout principale
-        statistichePanel.add(statsTopPanel, BorderLayout.NORTH);
-        statistichePanel.add(classificaPanel, BorderLayout.CENTER);
-        statistichePanel.add(buttonPanel, BorderLayout.SOUTH);
-
-        // Event listener
-        aggiornaStatsButton.addActionListener(_ -> {
-            aggiornaStatistiche();
-            caricaClassifica();
-        });
+        return statsTopPanel;
     }
 
     private void createGiudiciTab() {
         giudiciPanel = new JPanel(new BorderLayout());
 
-        // Top panel with buttons
         JPanel giudiciTopPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        // Styling dei pulsanti
         JButton invitaButton = new JButton("+ Invita Giudice");
-        invitaButton.setBackground(new Color(46, 125, 50)); // Verde
+        invitaButton.setBackground(new Color(46, 125, 50));
         invitaButton.setForeground(Color.WHITE);
         invitaButton.setPreferredSize(new Dimension(140, 35));
 
@@ -244,7 +226,6 @@ public class GestisciHackathonGUI implements GUIHandler {
         giudiciPanel.add(giudiciTopPanel, BorderLayout.NORTH);
         giudiciPanel.add(giudiciScrollPane, BorderLayout.CENTER);
 
-        // Event listeners
         invitaButton.addActionListener(_ -> apriDialogInvitaGiudice());
         aggiornaGiudiciButton.addActionListener(_ -> {
             caricaGiudiciInvitati();
@@ -255,10 +236,30 @@ public class GestisciHackathonGUI implements GUIHandler {
     private void createPartecipantiTab() {
         partecipantiPanel = new JPanel(new BorderLayout());
 
-        // Split pane for partecipanti and team
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
-        // Partecipanti table (top)
+        JScrollPane partecipantiScrollPane = createPartecipantiTable();
+        JScrollPane teamScrollPane = createTeamTable();
+
+        splitPane.setTopComponent(partecipantiScrollPane);
+        splitPane.setBottomComponent(teamScrollPane);
+        splitPane.setResizeWeight(0.6);
+
+        JPanel partecipantiButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton aggiornaPartecipantiButton = new JButton("Aggiorna Dati");
+        partecipantiButtonPanel.add(aggiornaPartecipantiButton);
+
+        partecipantiPanel.add(partecipantiButtonPanel, BorderLayout.NORTH);
+        partecipantiPanel.add(splitPane, BorderLayout.CENTER);
+
+        aggiornaPartecipantiButton.addActionListener(_ -> {
+            caricaPartecipanti();
+            caricaTeam();
+            caricaClassifica();
+        });
+    }
+
+    private JScrollPane createPartecipantiTable() {
         String[] partecipantiColumns = {"Nome", "Cognome", "Username", "Email", "Team", "Data Registrazione"};
         partecipantiTableModel = new DefaultTableModel(partecipantiColumns, 0) {
             @Override
@@ -270,11 +271,15 @@ public class GestisciHackathonGUI implements GUIHandler {
         partecipantiTable = new JTable(partecipantiTableModel);
         partecipantiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         partecipantiTable.setRowHeight(30);
+
         JScrollPane partecipantiScrollPane = new JScrollPane(partecipantiTable);
         partecipantiScrollPane.setBorder(BorderFactory.createTitledBorder("Partecipanti Registrati"));
         partecipantiScrollPane.setPreferredSize(new Dimension(0, 300));
 
-        // Team table (bottom)
+        return partecipantiScrollPane;
+    }
+
+    private JScrollPane createTeamTable() {
         String[] teamColumns = {"Nome Team", "Stato", "Data Creazione"};
         teamTableModel = new DefaultTableModel(teamColumns, 0) {
             @Override
@@ -286,36 +291,18 @@ public class GestisciHackathonGUI implements GUIHandler {
         teamTable = new JTable(teamTableModel);
         teamTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         teamTable.setRowHeight(30);
+
         JScrollPane teamScrollPane = new JScrollPane(teamTable);
         teamScrollPane.setBorder(BorderFactory.createTitledBorder("Team Formati"));
         teamScrollPane.setPreferredSize(new Dimension(0, 200));
 
-        splitPane.setTopComponent(partecipantiScrollPane);
-        splitPane.setBottomComponent(teamScrollPane);
-        splitPane.setResizeWeight(0.6);
-
-        // Button panel
-        JPanel partecipantiButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton aggiornaPartecipantiButton = new JButton("Aggiorna Dati");
-        partecipantiButtonPanel.add(aggiornaPartecipantiButton);
-
-        partecipantiPanel.add(partecipantiButtonPanel, BorderLayout.NORTH);
-        partecipantiPanel.add(splitPane, BorderLayout.CENTER);
-
-        // Event listeners
-        aggiornaPartecipantiButton.addActionListener(_ -> {
-            caricaPartecipanti();
-            caricaTeam();
-            caricaClassifica();
-        });
+        return teamScrollPane;
     }
 
-    // Metodo per creare il panel della classifica
     private JPanel createClassificaPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Classifica"));
 
-        // Tabella classifica
         String[] classificaColumns = {"Posizione", "Team", "Media Voti", "Numero Voti"};
         classificaTableModel = new DefaultTableModel(classificaColumns, 0) {
             @Override
@@ -328,16 +315,14 @@ public class GestisciHackathonGUI implements GUIHandler {
         classificaTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         classificaTable.setRowHeight(30);
 
-        // Imposta larghezza colonne
-        classificaTable.getColumnModel().getColumn(0).setPreferredWidth(80);  // Posizione
-        classificaTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Team
-        classificaTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Media
-        classificaTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Numero Voti
+        classificaTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+        classificaTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        classificaTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        classificaTable.getColumnModel().getColumn(3).setPreferredWidth(100);
 
         JScrollPane scrollPane = new JScrollPane(classificaTable);
         scrollPane.setPreferredSize(new Dimension(0, 250));
 
-        // Info panel
         JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JLabel infoLabel = new JLabel("La classifica mostra solo i team definitivi che hanno ricevuto almeno un voto");
         infoLabel.setFont(infoLabel.getFont().deriveFont(Font.ITALIC, 11f));
@@ -349,7 +334,6 @@ public class GestisciHackathonGUI implements GUIHandler {
         return panel;
     }
 
-    // Metodo per caricare la classifica
     private void caricaClassifica() {
         try {
             classificaTableModel.setRowCount(0);
@@ -358,7 +342,6 @@ public class GestisciHackathonGUI implements GUIHandler {
 
             if (response.classifica() != null && !response.classifica().isEmpty()) {
                 for (ClassificaTeam classificaTeam : response.classifica()) {
-                    // Ora possiamo accedere direttamente ai campi
                     Integer posizione = classificaTeam.getPosizione();
                     String nomeTeam = classificaTeam.getNomeTeam() != null ? classificaTeam.getNomeTeam() : "N/A";
                     String mediaVoti = classificaTeam.getMediaVoti() != null ? String.format("%.2f", classificaTeam.getMediaVoti()) : "N/A";
@@ -370,7 +353,6 @@ public class GestisciHackathonGUI implements GUIHandler {
             }
         } catch (Exception e) {
             showError(frame, "Errore nel caricamento classifica: " + e.getMessage());
-            // Aggiungi riga di errore
             Object[] row = {"--", "Errore nel caricamento", "--", "--"};
             classificaTableModel.addRow(row);
         }
@@ -488,5 +470,5 @@ public class GestisciHackathonGUI implements GUIHandler {
             showError(frame, "Errore nell'invito giudice: " + e.getMessage());
         }
     }
-
+    //endregion
 }

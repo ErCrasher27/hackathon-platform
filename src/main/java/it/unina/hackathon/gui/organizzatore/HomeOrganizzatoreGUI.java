@@ -22,36 +22,32 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class HomeOrganizzatoreGUI implements GUIHandler {
 
-    // Controllers
+    //region Fields
     private final HackathonController controller;
 
-    // Components
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
     private JPanel contentPanel;
     private JPanel buttonPanel;
 
-    // Header components
     private JLabel welcomeLabel;
     private JButton logoutButton;
 
-    // Content components
     private JTable hackathonTable;
     private JScrollPane tableScrollPane;
     private HackathonTableModel tableModel;
 
-    // Action buttons
     private JButton nuovoHackathonButton;
     private JButton dettagliButton;
     private JButton aggiornaButton;
 
-    // Data
     private List<Hackathon> hackathonList;
+    //endregion
 
+    //region Constructor
     public HomeOrganizzatoreGUI() {
         this.controller = HackathonController.getInstance();
-
         this.hackathonList = new ArrayList<>();
 
         initializeComponents();
@@ -59,57 +55,27 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
+    //endregion
+
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
-        headerPanel = new JPanel(new BorderLayout());
-        welcomeLabel = new JLabel("Ciao " + controller.getUtenteCorrente().getNome() + "!");
-        applyStyleTitleLbl(welcomeLabel);
+        createHeaderPanel();
+        createButtonPanel();
+        createTablePanel();
 
-        logoutButton = new JButton("Logout");
-        logoutButton.setPreferredSize(new Dimension(80, 30));
-
-        headerPanel.add(welcomeLabel, BorderLayout.WEST);
-        headerPanel.add(logoutButton, BorderLayout.EAST);
-
-        // Button panel (top of content)
-        buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-
-        aggiornaButton = new JButton("Aggiorna");
-        dettagliButton = new JButton("Dettagli");
-        nuovoHackathonButton = new JButton("+ Nuovo Hackathon");
-
-        // Style buttons
-        aggiornaButton.setPreferredSize(new Dimension(100, 35));
-        dettagliButton.setPreferredSize(new Dimension(150, 35));
-        nuovoHackathonButton.setPreferredSize(new Dimension(170, 35));
-
-        // Initially disable details button
-        dettagliButton.setEnabled(false);
-
-        buttonPanel.add(aggiornaButton);
-        buttonPanel.add(dettagliButton);
-        buttonPanel.add(nuovoHackathonButton);
-
-        // Table setup
-        tableModel = new HackathonTableModel();
-        hackathonTable = new JTable(tableModel);
-        setupTable();
-
-        tableScrollPane = new JScrollPane(hackathonTable);
-        tableScrollPane.setBorder(BorderFactory.createTitledBorder("I Tuoi Hackathon"));
-
-        // Content panel
         contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(buttonPanel, BorderLayout.NORTH);
         contentPanel.add(tableScrollPane, BorderLayout.CENTER);
 
-        // Assemble main panel
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
@@ -124,20 +90,17 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
 
     @Override
     public void setupEventListeners() {
-        // Logout button
         logoutButton.addActionListener(_ -> {
             controller.effettuaLogout();
             controller.vaiAlLogin(frame);
         });
 
-        // Table selection listener
         hackathonTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 dettagliButton.setEnabled(hackathonTable.getSelectedRow() != -1);
             }
         });
 
-        // Double click on table
         hackathonTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -147,7 +110,6 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
             }
         });
 
-        // Action buttons
         nuovoHackathonButton.addActionListener(_ -> controller.vaiACreareHackathon(frame));
         dettagliButton.addActionListener(_ -> apriDettagliHackathon());
         aggiornaButton.addActionListener(_ -> loadData());
@@ -156,7 +118,6 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
     @Override
     public void loadData() {
         try {
-            // Show loading state
             hackathonTable.setEnabled(false);
             aggiornaButton.setText("Caricamento...");
             aggiornaButton.setEnabled(false);
@@ -166,8 +127,6 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
             if (response.hackathons() != null) {
                 hackathonList = response.hackathons();
                 tableModel.setHackathonList(hackathonList);
-
-                // Update window title with count
                 frame.setTitle("Hackathon Platform - Home Organizzatore (" + hackathonList.size() + " hackathon)");
             } else {
                 showError(frame, "Errore nel caricamento degli hackathon: " + response.message());
@@ -179,45 +138,77 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
             hackathonList.clear();
             tableModel.setHackathonList(hackathonList);
         } finally {
-            // Restore normal state
             hackathonTable.setEnabled(true);
             aggiornaButton.setText("Aggiorna");
             aggiornaButton.setEnabled(true);
         }
     }
+    //endregion
 
-    @Override
-    public JFrame getFrame() {
-        return frame;
+    //region Private Methods
+    private void createHeaderPanel() {
+        headerPanel = new JPanel(new BorderLayout());
+
+        welcomeLabel = new JLabel("Ciao " + controller.getUtenteCorrente().getNome() + "!");
+        applyStyleTitleLbl(welcomeLabel);
+
+        logoutButton = new JButton("Logout");
+        logoutButton.setPreferredSize(new Dimension(80, 30));
+
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+    }
+
+    private void createButtonPanel() {
+        buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+
+        aggiornaButton = new JButton("Aggiorna");
+        dettagliButton = new JButton("Dettagli");
+        nuovoHackathonButton = new JButton("+ Nuovo Hackathon");
+
+        aggiornaButton.setPreferredSize(new Dimension(100, 35));
+        dettagliButton.setPreferredSize(new Dimension(150, 35));
+        nuovoHackathonButton.setPreferredSize(new Dimension(170, 35));
+
+        dettagliButton.setEnabled(false);
+
+        buttonPanel.add(aggiornaButton);
+        buttonPanel.add(dettagliButton);
+        buttonPanel.add(nuovoHackathonButton);
+    }
+
+    private void createTablePanel() {
+        tableModel = new HackathonTableModel();
+        hackathonTable = new JTable(tableModel);
+        setupTable();
+
+        tableScrollPane = new JScrollPane(hackathonTable);
+        tableScrollPane.setBorder(BorderFactory.createTitledBorder("I Tuoi Hackathon"));
     }
 
     private void setupTable() {
-        // Table appearance
         hackathonTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         hackathonTable.setRowHeight(35);
         hackathonTable.getTableHeader().setReorderingAllowed(false);
 
-        // Column widths
-        hackathonTable.getColumnModel().getColumn(0).setPreferredWidth(50);   // ID
-        hackathonTable.getColumnModel().getColumn(1).setPreferredWidth(200);  // Titolo
-        hackathonTable.getColumnModel().getColumn(2).setPreferredWidth(250);  // Descrizione
-        hackathonTable.getColumnModel().getColumn(3).setPreferredWidth(150);  // Sede
-        hackathonTable.getColumnModel().getColumn(4).setPreferredWidth(130);  // Data Inizio
-        hackathonTable.getColumnModel().getColumn(5).setPreferredWidth(130);  // Data Fine
-        hackathonTable.getColumnModel().getColumn(6).setPreferredWidth(100);  // Max Iscritti
-        hackathonTable.getColumnModel().getColumn(7).setPreferredWidth(100);  // Max Team
-        hackathonTable.getColumnModel().getColumn(8).setPreferredWidth(150);  // Status
+        hackathonTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        hackathonTable.getColumnModel().getColumn(1).setPreferredWidth(200);
+        hackathonTable.getColumnModel().getColumn(2).setPreferredWidth(250);
+        hackathonTable.getColumnModel().getColumn(3).setPreferredWidth(150);
+        hackathonTable.getColumnModel().getColumn(4).setPreferredWidth(130);
+        hackathonTable.getColumnModel().getColumn(5).setPreferredWidth(130);
+        hackathonTable.getColumnModel().getColumn(6).setPreferredWidth(100);
+        hackathonTable.getColumnModel().getColumn(7).setPreferredWidth(100);
+        hackathonTable.getColumnModel().getColumn(8).setPreferredWidth(150);
 
-        // Status column with custom renderer and editor
         hackathonTable.getColumnModel().getColumn(8).setCellRenderer(new StatusComboBoxRenderer());
         hackathonTable.getColumnModel().getColumn(8).setCellEditor(new StatusComboBoxEditor());
 
-        // Center align numeric columns
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        hackathonTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // ID
-        hackathonTable.getColumnModel().getColumn(6).setCellRenderer(centerRenderer); // Max Iscritti
-        hackathonTable.getColumnModel().getColumn(7).setCellRenderer(centerRenderer); // Max Team
+        hackathonTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        hackathonTable.getColumnModel().getColumn(6).setCellRenderer(centerRenderer);
+        hackathonTable.getColumnModel().getColumn(7).setCellRenderer(centerRenderer);
     }
 
     private void apriDettagliHackathon() {
@@ -237,18 +228,19 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
 
             if (result.result()) {
                 showSuccess(frame, "Stato hackathon aggiornato con successo!");
-                loadData(); // Reload data to reflect changes
+                loadData();
             } else {
                 showError(frame, "Errore nell'aggiornamento dello stato: " + result.message());
-                loadData(); // Reload to revert changes in table
+                loadData();
             }
         } catch (Exception e) {
             showError(frame, "Errore nell'aggiornamento dello stato: " + e.getMessage());
-            loadData(); // Reload to revert changes in table
+            loadData();
         }
     }
+    //endregion
 
-    // Status ComboBox Renderer
+    //region Private Classes
     private static class StatusComboBoxRenderer extends JComboBox<HackathonStatus> implements TableCellRenderer {
         public StatusComboBoxRenderer() {
             super(HackathonStatus.values());
@@ -273,7 +265,6 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         }
     }
 
-    // Status ComboBox Editor
     private static class StatusComboBoxEditor extends DefaultCellEditor {
         public StatusComboBoxEditor() {
             super(new JComboBox<>(HackathonStatus.values()));
@@ -291,7 +282,6 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         }
     }
 
-    // Custom Table Model
     private class HackathonTableModel extends AbstractTableModel {
         private final String[] columnNames = {"ID", "Titolo", "Descrizione", "Sede", "Data Inizio", "Data Fine", "Max Iscritti", "Max Team", "Status"};
         private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -319,13 +309,13 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
 
         @Override
         public Class<?> getColumnClass(int column) {
-            if (column == 8) return HackathonStatus.class; // Status column
+            if (column == 8) return HackathonStatus.class;
             return String.class;
         }
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column == 8; // Only Status column is editable
+            return column == 8;
         }
 
         @Override
@@ -353,10 +343,10 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
                 Hackathon hackathon = hackathons.get(row);
 
                 if (hackathon.getStatus() != nuovoStato) {
-                    // Update in background to avoid blocking UI
                     SwingUtilities.invokeLater(() -> cambiaStatoHackathon(hackathon.getHackathonId(), nuovoStato));
                 }
             }
         }
     }
+    //endregion
 }

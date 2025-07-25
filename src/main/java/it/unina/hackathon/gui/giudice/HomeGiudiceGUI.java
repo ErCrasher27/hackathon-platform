@@ -23,30 +23,20 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class HomeGiudiceGUI implements GUIHandler {
 
-    // region Controllers
-
+    //region Fields
     private final HackathonController controller;
-
-    // endregion
-
-    // region Components
     private final List<InvitoGiudice> inviti;
     private final List<Hackathon> hackathonAssegnati;
+
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
-
-    // endregion
-
-    // region Header Components
     private JPanel contentPanel;
     private JTabbedPane tabbedPane;
 
-    // endregion
-
-    // region Tab Inviti Ricevuti
     private JLabel welcomeLabel;
     private JButton logoutButton;
+
     private JPanel invitiPanel;
     private JPanel invitiButtonPanel;
     private JTable invitiTable;
@@ -54,11 +44,8 @@ public class HomeGiudiceGUI implements GUIHandler {
     private InvitiTableModel invitiTableModel;
     private JButton accettaInvitoButton;
     private JButton rifiutaInvitoButton;
-
-    // endregion
-
-    // region Tab Hackathon Assegnati
     private JButton aggiornaInvitiButton;
+
     private JPanel hackathonAssegnatiPanel;
     private JPanel hackathonAssegnatiButtonPanel;
     private JTable hackathonAssegnatiTable;
@@ -66,19 +53,12 @@ public class HomeGiudiceGUI implements GUIHandler {
     private HackathonAssegnatiTableModel hackathonAssegnatiTableModel;
     private JButton valutaProgettoButton;
     private JButton pubblicaProblemaButton;
-
-    // endregion
-
-    // region Tab Statistiche
     private JButton aggiornaHackathonButton;
+    //endregion
 
-    // endregion
-
-    // region Costruttore
-
+    //region Constructor
     public HomeGiudiceGUI() {
         this.controller = HackathonController.getInstance();
-
         this.inviti = new ArrayList<>();
         this.hackathonAssegnati = new ArrayList<>();
 
@@ -87,32 +67,28 @@ public class HomeGiudiceGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
+    //endregion
 
-    // endregion
-
-    // region GUIHandler Implementation
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
         createHeaderPanel();
 
-        // Tabbed pane
         tabbedPane = new JTabbedPane();
-
-        // Create tabs
         createInvitiTab();
         createHackathonAssegnatiTab();
 
-        // Content panel
         contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(tabbedPane, BorderLayout.CENTER);
 
-        // Assemble main panel
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
@@ -127,16 +103,12 @@ public class HomeGiudiceGUI implements GUIHandler {
 
     @Override
     public void setupEventListeners() {
-        // Header
         logoutButton.addActionListener(_ -> {
             controller.effettuaLogout();
             controller.vaiAlLogin(frame);
         });
 
-        // Tab Inviti
         setupInvitiEvents();
-
-        // Tab Hackathon Assegnati
         setupHackathonAssegnatiEvents();
     }
 
@@ -145,16 +117,9 @@ public class HomeGiudiceGUI implements GUIHandler {
         loadInviti();
         loadHackathonAssegnati();
     }
+    //endregion
 
-    @Override
-    public JFrame getFrame() {
-        return frame;
-    }
-
-    // endregion
-
-    // region Header Creation
-
+    //region Private Methods
     private void createHeaderPanel() {
         headerPanel = new JPanel(new BorderLayout());
 
@@ -168,26 +133,19 @@ public class HomeGiudiceGUI implements GUIHandler {
         headerPanel.add(logoutButton, BorderLayout.EAST);
     }
 
-    // endregion
-
-    // region Tab Creation
-
     private void createInvitiTab() {
         invitiPanel = new JPanel(new BorderLayout());
 
-        // Button panel
         invitiButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         aggiornaInvitiButton = new JButton("Aggiorna");
         accettaInvitoButton = new JButton("Accetta");
         rifiutaInvitoButton = new JButton("Rifiuta");
 
-        // Style buttons
         aggiornaInvitiButton.setPreferredSize(new Dimension(100, 35));
         accettaInvitoButton.setPreferredSize(new Dimension(100, 35));
         rifiutaInvitoButton.setPreferredSize(new Dimension(100, 35));
 
-        // Initially disable action buttons
         accettaInvitoButton.setEnabled(false);
         rifiutaInvitoButton.setEnabled(false);
 
@@ -195,7 +153,6 @@ public class HomeGiudiceGUI implements GUIHandler {
         invitiButtonPanel.add(accettaInvitoButton);
         invitiButtonPanel.add(rifiutaInvitoButton);
 
-        // Table
         invitiTableModel = new InvitiTableModel();
         invitiTable = new JTable(invitiTableModel);
         setupInvitiTable();
@@ -212,19 +169,16 @@ public class HomeGiudiceGUI implements GUIHandler {
     private void createHackathonAssegnatiTab() {
         hackathonAssegnatiPanel = new JPanel(new BorderLayout());
 
-        // Button panel
         hackathonAssegnatiButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         aggiornaHackathonButton = new JButton("Aggiorna");
         valutaProgettoButton = new JButton("Valuta Progetti");
         pubblicaProblemaButton = new JButton("Pubblica Problema");
 
-        // Style buttons
         aggiornaHackathonButton.setPreferredSize(new Dimension(100, 35));
         valutaProgettoButton.setPreferredSize(new Dimension(130, 35));
         pubblicaProblemaButton.setPreferredSize(new Dimension(150, 35));
 
-        // Initially disable action buttons
         valutaProgettoButton.setEnabled(false);
         pubblicaProblemaButton.setEnabled(false);
 
@@ -232,7 +186,6 @@ public class HomeGiudiceGUI implements GUIHandler {
         hackathonAssegnatiButtonPanel.add(valutaProgettoButton);
         hackathonAssegnatiButtonPanel.add(pubblicaProblemaButton);
 
-        // Table
         hackathonAssegnatiTableModel = new HackathonAssegnatiTableModel();
         hackathonAssegnatiTable = new JTable(hackathonAssegnatiTableModel);
         setupHackathonAssegnatiTable();
@@ -245,10 +198,6 @@ public class HomeGiudiceGUI implements GUIHandler {
 
         tabbedPane.addTab("Hackathon Assegnati", hackathonAssegnatiPanel);
     }
-
-    // endregion
-
-    // region Table Setup
 
     private void setupInvitiTable() {
         invitiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -270,7 +219,6 @@ public class HomeGiudiceGUI implements GUIHandler {
             }
         });
 
-        // Double click to view details
         invitiTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -280,7 +228,6 @@ public class HomeGiudiceGUI implements GUIHandler {
             }
         });
 
-        // Custom renderer for status
         invitiTable.getColumnModel().getColumn(4).setCellRenderer(new StatoInvitoRenderer());
     }
 
@@ -295,7 +242,6 @@ public class HomeGiudiceGUI implements GUIHandler {
             }
         });
 
-        // Double click to evaluate
         hackathonAssegnatiTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -305,10 +251,6 @@ public class HomeGiudiceGUI implements GUIHandler {
             }
         });
     }
-
-    // endregion
-
-    // region Event Listeners
 
     private void setupInvitiEvents() {
         aggiornaInvitiButton.addActionListener(_ -> loadInviti());
@@ -322,10 +264,6 @@ public class HomeGiudiceGUI implements GUIHandler {
         pubblicaProblemaButton.addActionListener(_ -> pubblicaProblema());
     }
 
-    // endregion
-
-    // region Data Loading
-
     private void loadInviti() {
         try {
             invitiTable.setEnabled(false);
@@ -338,10 +276,10 @@ public class HomeGiudiceGUI implements GUIHandler {
                 inviti.addAll(response.invitiGiudice());
                 invitiTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento degli inviti: " + response.message());
+                showError(frame, "Errore nel caricamento degli inviti: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore durante il caricamento: " + e.getMessage());
+            showError(frame, "Errore durante il caricamento: " + e.getMessage());
         } finally {
             invitiTable.setEnabled(true);
             aggiornaInvitiButton.setText("Aggiorna");
@@ -361,10 +299,10 @@ public class HomeGiudiceGUI implements GUIHandler {
                 hackathonAssegnati.addAll(response.hackathons());
                 hackathonAssegnatiTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento hackathon assegnati: " + response.message());
+                showError(frame, "Errore nel caricamento hackathon assegnati: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore durante il caricamento: " + e.getMessage());
+            showError(frame, "Errore durante il caricamento: " + e.getMessage());
         } finally {
             hackathonAssegnatiTable.setEnabled(true);
             aggiornaHackathonButton.setText("Aggiorna");
@@ -372,17 +310,13 @@ public class HomeGiudiceGUI implements GUIHandler {
         }
     }
 
-    // endregion
-
-    // region Action Methods
-
     private void accettaInvito() {
         int selectedRow = invitiTable.getSelectedRow();
         if (selectedRow != -1) {
             InvitoGiudice invito = inviti.get(selectedRow);
 
             if (invito.getStatoInvito() != StatoInvito.PENDING) {
-                showErrorMessage("Puoi accettare solo inviti in stato 'In Attesa'");
+                showError(frame, "Puoi accettare solo inviti in stato 'In Attesa'");
                 return;
             }
 
@@ -392,14 +326,14 @@ public class HomeGiudiceGUI implements GUIHandler {
                 try {
                     var response = controller.accettaInvitoGiudice(invito.getInvitoId());
                     if (response.result()) {
-                        showInfoMessage("Invito accettato con successo!");
+                        showSuccess(frame, "Invito accettato con successo!");
                         loadInviti();
                         loadHackathonAssegnati();
                     } else {
-                        showErrorMessage("Errore nell'accettazione: " + response.message());
+                        showError(frame, "Errore nell'accettazione: " + response.message());
                     }
                 } catch (Exception e) {
-                    showErrorMessage("Errore nell'accettazione: " + e.getMessage());
+                    showError(frame, "Errore nell'accettazione: " + e.getMessage());
                 }
             }
         }
@@ -411,7 +345,7 @@ public class HomeGiudiceGUI implements GUIHandler {
             InvitoGiudice invito = inviti.get(selectedRow);
 
             if (invito.getStatoInvito() != StatoInvito.PENDING) {
-                showErrorMessage("Puoi rifiutare solo inviti in stato 'In Attesa'");
+                showError(frame, "Puoi rifiutare solo inviti in stato 'In Attesa'");
                 return;
             }
 
@@ -421,13 +355,13 @@ public class HomeGiudiceGUI implements GUIHandler {
                 try {
                     var response = controller.rifiutaInvitoGiudice(invito.getInvitoId());
                     if (response.result()) {
-                        showInfoMessage("Invito rifiutato.");
+                        showSuccess(frame, "Invito rifiutato.");
                         loadInviti();
                     } else {
-                        showErrorMessage("Errore nel rifiuto: " + response.message());
+                        showError(frame, "Errore nel rifiuto: " + response.message());
                     }
                 } catch (Exception e) {
-                    showErrorMessage("Errore nel rifiuto: " + e.getMessage());
+                    showError(frame, "Errore nel rifiuto: " + e.getMessage());
                 }
             }
         }
@@ -448,23 +382,9 @@ public class HomeGiudiceGUI implements GUIHandler {
             controller.vaiAGestireProblemi(frame, hackathon.getHackathonId());
         }
     }
+    //endregion
 
-    // endregion
-
-    // region Utility Methods
-
-    private void showErrorMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Errore", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void showInfoMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Informazione", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    // endregion
-
-    // region Table Models
-
+    //region Private Classes
     private class InvitiTableModel extends AbstractTableModel {
         private final String[] columnNames = {"Hackathon", "Organizzatore", "Data Invito", "Sede", "Stato"};
 
@@ -531,10 +451,6 @@ public class HomeGiudiceGUI implements GUIHandler {
         }
     }
 
-    // endregion
-
-    // region Custom Renderers
-
     private class StatoInvitoRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -551,6 +467,5 @@ public class HomeGiudiceGUI implements GUIHandler {
             return c;
         }
     }
-
-    // endregion
+    //endregion
 }

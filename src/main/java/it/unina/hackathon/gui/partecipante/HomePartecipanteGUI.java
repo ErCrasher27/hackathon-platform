@@ -19,58 +19,39 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class HomePartecipanteGUI implements GUIHandler {
 
-    // region Controllers
-
+    //region Fields
     private final HackathonController controller;
-
-    // endregion
-
-    // region Components
     private final List<Hackathon> hackathonDisponibili;
     private final List<Hackathon> mieiHackathon;
+
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
-
-    // endregion
-
-    // region Header Components
     private JPanel contentPanel;
     private JTabbedPane tabbedPane;
 
-    // endregion
-
-    // region Tab Hackathon Disponibili
     private JLabel welcomeLabel;
     private JButton logoutButton;
+
     private JPanel hackathonDisponibiliPanel;
     private JPanel hackathonButtonPanel;
     private JTable hackathonDisponibiliTable;
     private JScrollPane hackathonDisponibiliScrollPane;
     private HackathonDisponibiliTableModel hackathonDisponibiliTableModel;
     private JButton registratiButton;
-
-    // endregion
-
-    // region Tab Miei Hackathon
     private JButton aggiornaHackathonButton;
+
     private JPanel mieiHackathonPanel;
     private JPanel mieiHackathonButtonPanel;
     private JTable mieiHackathonTable;
     private JScrollPane mieiHackathonScrollPane;
     private MieiHackathonTableModel mieiHackathonTableModel;
     private JButton gestisciProgettoButton;
-
-    // endregion
-
-    // region Tab Team
     private JButton annullaRegistrazioneButton;
     private JButton aggiornaMieiHackathonButton;
+    //endregion
 
-    // endregion
-
-    // region Costruttore
-
+    //region Constructor
     public HomePartecipanteGUI() {
         this.controller = HackathonController.getInstance();
         this.hackathonDisponibili = new ArrayList<>();
@@ -81,32 +62,28 @@ public class HomePartecipanteGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
+    //endregion
 
-    // endregion
-
-    // region GUIHandler Implementation
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
         createHeaderPanel();
 
-        // Tabbed pane
         tabbedPane = new JTabbedPane();
-
-        // Create tabs
         createHackathonDisponibiliTab();
         createMieiHackathonTab();
 
-        // Content panel
         contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(tabbedPane, BorderLayout.CENTER);
 
-        // Assemble main panel
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
@@ -121,16 +98,12 @@ public class HomePartecipanteGUI implements GUIHandler {
 
     @Override
     public void setupEventListeners() {
-        // Header
         logoutButton.addActionListener(_ -> {
             controller.effettuaLogout();
             controller.vaiAlLogin(frame);
         });
 
-        // Tab Hackathon Disponibili
         setupHackathonDisponibiliEvents();
-
-        // Tab Miei Hackathon
         setupMieiHackathonEvents();
     }
 
@@ -139,16 +112,9 @@ public class HomePartecipanteGUI implements GUIHandler {
         loadHackathonDisponibili();
         loadMieiHackathon();
     }
+    //endregion
 
-    @Override
-    public JFrame getFrame() {
-        return frame;
-    }
-
-    // endregion
-
-    // region Header Creation
-
+    //region Private Methods
     private void createHeaderPanel() {
         headerPanel = new JPanel(new BorderLayout());
 
@@ -162,30 +128,22 @@ public class HomePartecipanteGUI implements GUIHandler {
         headerPanel.add(logoutButton, BorderLayout.EAST);
     }
 
-    // endregion
-
-    // region Tab Creation
-
     private void createHackathonDisponibiliTab() {
         hackathonDisponibiliPanel = new JPanel(new BorderLayout());
 
-        // Button panel
         hackathonButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         aggiornaHackathonButton = new JButton("Aggiorna");
         registratiButton = new JButton("Registrati");
 
-        // Style buttons
         aggiornaHackathonButton.setPreferredSize(new Dimension(100, 35));
         registratiButton.setPreferredSize(new Dimension(100, 35));
 
-        // Initially disable action buttons
         registratiButton.setEnabled(false);
 
         hackathonButtonPanel.add(aggiornaHackathonButton);
         hackathonButtonPanel.add(registratiButton);
 
-        // Table
         hackathonDisponibiliTableModel = new HackathonDisponibiliTableModel();
         hackathonDisponibiliTable = new JTable(hackathonDisponibiliTableModel);
         setupHackathonDisponibiliTable();
@@ -202,19 +160,16 @@ public class HomePartecipanteGUI implements GUIHandler {
     private void createMieiHackathonTab() {
         mieiHackathonPanel = new JPanel(new BorderLayout());
 
-        // Button panel
         mieiHackathonButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
         aggiornaMieiHackathonButton = new JButton("Aggiorna");
         gestisciProgettoButton = new JButton("Gestisci Progetto");
         annullaRegistrazioneButton = new JButton("Annulla Registrazione");
 
-        // Style buttons
         aggiornaMieiHackathonButton.setPreferredSize(new Dimension(100, 35));
         gestisciProgettoButton.setPreferredSize(new Dimension(150, 35));
         annullaRegistrazioneButton.setPreferredSize(new Dimension(170, 35));
 
-        // Initially disable action buttons
         gestisciProgettoButton.setEnabled(false);
         annullaRegistrazioneButton.setEnabled(false);
 
@@ -222,7 +177,6 @@ public class HomePartecipanteGUI implements GUIHandler {
         mieiHackathonButtonPanel.add(gestisciProgettoButton);
         mieiHackathonButtonPanel.add(annullaRegistrazioneButton);
 
-        // Table
         mieiHackathonTableModel = new MieiHackathonTableModel();
         mieiHackathonTable = new JTable(mieiHackathonTableModel);
         setupMieiHackathonTable();
@@ -236,10 +190,6 @@ public class HomePartecipanteGUI implements GUIHandler {
         tabbedPane.addTab("I Miei Hackathon", mieiHackathonPanel);
     }
 
-    // endregion
-
-    // region Table Setup
-
     private void setupHackathonDisponibiliTable() {
         hackathonDisponibiliTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         hackathonDisponibiliTable.setRowHeight(25);
@@ -250,7 +200,6 @@ public class HomePartecipanteGUI implements GUIHandler {
             }
         });
 
-        // Double click to view details
         hackathonDisponibiliTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -272,7 +221,6 @@ public class HomePartecipanteGUI implements GUIHandler {
             }
         });
 
-        // Double click to manage project
         mieiHackathonTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -282,10 +230,6 @@ public class HomePartecipanteGUI implements GUIHandler {
             }
         });
     }
-
-    // endregion
-
-    // region Event Listeners
 
     private void setupHackathonDisponibiliEvents() {
         aggiornaHackathonButton.addActionListener(_ -> loadHackathonDisponibili());
@@ -297,10 +241,6 @@ public class HomePartecipanteGUI implements GUIHandler {
         gestisciProgettoButton.addActionListener(_ -> gestisciProgetto());
         annullaRegistrazioneButton.addActionListener(_ -> annullaRegistrazione());
     }
-
-    // endregion
-
-    // region Data Loading
 
     private void loadHackathonDisponibili() {
         try {
@@ -314,10 +254,10 @@ public class HomePartecipanteGUI implements GUIHandler {
                 hackathonDisponibili.addAll(response.hackathons());
                 hackathonDisponibiliTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento degli hackathon disponibili: " + response.message());
+                showError(frame, "Errore nel caricamento degli hackathon disponibili: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore durante il caricamento: " + e.getMessage());
+            showError(frame, "Errore durante il caricamento: " + e.getMessage());
         } finally {
             hackathonDisponibiliTable.setEnabled(true);
             aggiornaHackathonButton.setText("Aggiorna");
@@ -337,20 +277,16 @@ public class HomePartecipanteGUI implements GUIHandler {
                 mieiHackathon.addAll(response.hackathons());
                 mieiHackathonTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento dei tuoi hackathon: " + response.message());
+                showError(frame, "Errore nel caricamento dei tuoi hackathon: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore durante il caricamento: " + e.getMessage());
+            showError(frame, "Errore durante il caricamento: " + e.getMessage());
         } finally {
             mieiHackathonTable.setEnabled(true);
             aggiornaMieiHackathonButton.setText("Aggiorna");
             aggiornaMieiHackathonButton.setEnabled(true);
         }
     }
-
-    // endregion
-
-    // region Action Methods
 
     private void registratiAdHackathon() {
         int selectedRow = hackathonDisponibiliTable.getSelectedRow();
@@ -363,14 +299,14 @@ public class HomePartecipanteGUI implements GUIHandler {
                 try {
                     var response = controller.registratiAdHackathon(hackathon.getHackathonId());
                     if (response.registrazione() != null) {
-                        showInfoMessage("Registrazione completata con successo!");
+                        showSuccess(frame, "Registrazione completata con successo!");
                         loadHackathonDisponibili();
                         loadMieiHackathon();
                     } else {
-                        showErrorMessage("Errore durante la registrazione: " + response.message());
+                        showError(frame, "Errore durante la registrazione: " + response.message());
                     }
                 } catch (Exception e) {
-                    showErrorMessage("Errore durante la registrazione: " + e.getMessage());
+                    showError(frame, "Errore durante la registrazione: " + e.getMessage());
                 }
             }
         }
@@ -395,35 +331,21 @@ public class HomePartecipanteGUI implements GUIHandler {
                 try {
                     var response = controller.annullaRegistrazione(hackathon.getHackathonId());
                     if (response.result()) {
-                        showInfoMessage("Registrazione annullata con successo!");
+                        showSuccess(frame, "Registrazione annullata con successo!");
                         loadHackathonDisponibili();
                         loadMieiHackathon();
                     } else {
-                        showErrorMessage("Errore durante l'annullamento: " + response.message());
+                        showError(frame, "Errore durante l'annullamento: " + response.message());
                     }
                 } catch (Exception e) {
-                    showErrorMessage("Errore durante l'annullamento: " + e.getMessage());
+                    showError(frame, "Errore durante l'annullamento: " + e.getMessage());
                 }
             }
         }
     }
+    //endregion
 
-    // endregion
-
-    // region Utility Methods
-
-    private void showErrorMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Errore", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void showInfoMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Informazione", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    // endregion
-
-    // region Table Models
-
+    //region Private Classes
     private class HackathonDisponibiliTableModel extends AbstractTableModel {
         private final String[] columnNames = {"Titolo", "Sede", "Data Inizio", "Data Fine", "Iscritti", "Stato"};
 
@@ -489,6 +411,5 @@ public class HomePartecipanteGUI implements GUIHandler {
             };
         }
     }
-
-    // endregion
+    //endregion
 }

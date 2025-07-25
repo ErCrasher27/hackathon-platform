@@ -17,20 +17,17 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class CreaHackathonGUI implements GUIHandler {
 
-    // Controllers
+    //region Fields
     private final HackathonController controller;
 
-    // Components
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
     private JPanel formPanel;
     private JPanel actionPanel;
 
-    // Header components
     private JLabel titleLabel;
 
-    // Form components
     private JLabel titoloLabel;
     private JTextField titoloField;
     private JLabel descrizioneLabel;
@@ -39,7 +36,6 @@ public class CreaHackathonGUI implements GUIHandler {
     private JLabel sedeLabel;
     private JTextField sedeField;
 
-    // Date/Time components
     private JLabel dataInizioLabel;
     private JFormattedTextField dataInizioField;
     private JFormattedTextField oraInizioField;
@@ -47,16 +43,16 @@ public class CreaHackathonGUI implements GUIHandler {
     private JFormattedTextField dataFineField;
     private JFormattedTextField oraFineField;
 
-    // Numeric components
     private JLabel maxIscrittiLabel;
     private JSpinner maxIscrittiSpinner;
     private JLabel maxTeamSizeLabel;
     private JSpinner maxTeamSizeSpinner;
 
-    // Action buttons
     private JButton annullaButton;
     private JButton creaButton;
+    //endregion
 
+    //region Constructor
     public CreaHackathonGUI() {
         this.controller = HackathonController.getInstance();
 
@@ -65,20 +61,63 @@ public class CreaHackathonGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
+    //endregion
+
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
+        createHeaderPanel();
+        createFormPanel();
+        createActionPanel();
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.add(actionPanel, BorderLayout.SOUTH);
+    }
+
+    @Override
+    public void setupFrame() {
+        frame = new JFrame("Hackathon Platform - Crea Hackathon");
+        frame.setContentPane(mainPanel);
+        applyStyleFrame(frame);
+        frame.getRootPane().setDefaultButton(creaButton);
+    }
+
+    @Override
+    public void setupEventListeners() {
+        creaButton.addActionListener(_ -> creaHackathon());
+        annullaButton.addActionListener(_ -> controller.vaiAllaHome(frame));
+    }
+
+    @Override
+    public void loadData() {
+        SwingUtilities.invokeLater(() -> {
+            titoloField.requestFocusInWindow();
+            dataInizioField.setValue("01/07/2025");
+            oraInizioField.setValue("09:00");
+            dataFineField.setValue("02/07/2025");
+            oraFineField.setValue("18:00");
+        });
+    }
+    //endregion
+
+    //region Private Methods
+    private void createHeaderPanel() {
         headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         titleLabel = new JLabel("Crea il TUO Hackathon!");
         applyStyleTitleLbl(titleLabel);
         headerPanel.add(titleLabel);
+    }
 
-        // Form panel with GridBagLayout for precise control
+    private void createFormPanel() {
         formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -86,22 +125,34 @@ public class CreaHackathonGUI implements GUIHandler {
 
         int row = 0;
 
-        // Titolo
+        addFormField(gbc, row++, "Titolo:", titoloLabel = new JLabel("Titolo:"), titoloField = new JTextField(30), 1, 2);
+
+        addDescrizioneField(gbc, row++);
+
+        addFormField(gbc, row++, "Sede:", sedeLabel = new JLabel("Sede:"), sedeField = new JTextField(30), 1, 2);
+
+        addDateTimeField(gbc, row++, "Data Inizio:", true);
+        addDateTimeField(gbc, row++, "Data Fine:", false);
+
+        addNumericFields(gbc, row);
+    }
+
+    private void addFormField(GridBagConstraints gbc, int row, String labelText, JLabel label, JComponent field, int gridwidth, int colSpan) {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.gridwidth = 1;
-        titoloLabel = new JLabel("Titolo:");
-        formPanel.add(titoloLabel, gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        formPanel.add(label, gbc);
 
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
+        gbc.gridx = gridwidth;
+        gbc.gridwidth = colSpan;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
-        titoloField = new JTextField(30);
-        formPanel.add(titoloField, gbc);
+        formPanel.add(field, gbc);
+    }
 
-        // Descrizione
-        row++;
+    private void addDescrizioneField(GridBagConstraints gbc, int row) {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.gridwidth = 1;
@@ -123,78 +174,51 @@ public class CreaHackathonGUI implements GUIHandler {
         descrizioneScrollPane = new JScrollPane(descrizioneArea);
         formPanel.add(descrizioneScrollPane, gbc);
 
-        // Sede
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
         gbc.weighty = 0;
         gbc.anchor = GridBagConstraints.WEST;
-        sedeLabel = new JLabel("Sede:");
-        formPanel.add(sedeLabel, gbc);
+    }
 
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        sedeField = new JTextField(30);
-        formPanel.add(sedeField, gbc);
-
-        // Data/Ora Inizio
-        row++;
+    private void addDateTimeField(GridBagConstraints gbc, int row, String labelText, boolean isInizio) {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.gridwidth = 1;
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
-        dataInizioLabel = new JLabel("Data Inizio:");
-        formPanel.add(dataInizioLabel, gbc);
 
-        // Panel for date and time fields
-        JPanel dataInizioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        dataInizioField = new JFormattedTextField();
-        oraInizioField = new JFormattedTextField();
-        setupDateTimeFields(dataInizioField, oraInizioField);
+        JLabel label = new JLabel(labelText);
+        if (isInizio) {
+            dataInizioLabel = label;
+        } else {
+            dataFineLabel = label;
+        }
+        formPanel.add(label, gbc);
 
-        dataInizioPanel.add(dataInizioField);
-        dataInizioPanel.add(new JLabel("ore"));
-        dataInizioPanel.add(oraInizioField);
+        JPanel dateTimePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JFormattedTextField dateField = new JFormattedTextField();
+        JFormattedTextField timeField = new JFormattedTextField();
 
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        formPanel.add(dataInizioPanel, gbc);
+        if (isInizio) {
+            dataInizioField = dateField;
+            oraInizioField = timeField;
+        } else {
+            dataFineField = dateField;
+            oraFineField = timeField;
+        }
 
-        // Data/Ora Fine
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        dataFineLabel = new JLabel("Data Fine:");
-        formPanel.add(dataFineLabel, gbc);
+        setupDateTimeFields(dateField, timeField);
 
-        JPanel dataFinePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        dataFineField = new JFormattedTextField();
-        oraFineField = new JFormattedTextField();
-        setupDateTimeFields(dataFineField, oraFineField);
-
-        dataFinePanel.add(dataFineField);
-        dataFinePanel.add(new JLabel("ore"));
-        dataFinePanel.add(oraFineField);
+        dateTimePanel.add(dateField);
+        dateTimePanel.add(new JLabel("ore"));
+        dateTimePanel.add(timeField);
 
         gbc.gridx = 1;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
-        formPanel.add(dataFinePanel, gbc);
+        formPanel.add(dateTimePanel, gbc);
+    }
 
-        // Max Iscritti and Max Team Size in same row
-        row++;
+    private void addNumericFields(GridBagConstraints gbc, int row) {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.gridwidth = 1;
@@ -222,70 +246,29 @@ public class CreaHackathonGUI implements GUIHandler {
         maxTeamSizeSpinner = new JSpinner(new SpinnerNumberModel(4, 1, 10, 1));
         maxTeamSizeSpinner.setPreferredSize(new Dimension(100, 25));
         formPanel.add(maxTeamSizeSpinner, gbc);
+    }
 
-        // Action panel
+    private void createActionPanel() {
         actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        annullaButton = new JButton("Annulla");
-        creaButton = new JButton("Crea Hackathon");
 
-        // Style buttons
+        annullaButton = new JButton("Annulla");
         annullaButton.setPreferredSize(new Dimension(120, 35));
+
+        creaButton = new JButton("Crea Hackathon");
         creaButton.setPreferredSize(new Dimension(150, 35));
 
         actionPanel.add(annullaButton);
         actionPanel.add(creaButton);
-
-        // Assemble main panel
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-        mainPanel.add(actionPanel, BorderLayout.SOUTH);
-    }
-
-    @Override
-    public void setupFrame() {
-        frame = new JFrame("Hackathon Platform - Crea Hackathon");
-        frame.setContentPane(mainPanel);
-        applyStyleFrame(frame);
-
-        // Set default button
-        frame.getRootPane().setDefaultButton(creaButton);
-    }
-
-    @Override
-    public void setupEventListeners() {
-        creaButton.addActionListener(_ -> creaHackathon());
-        annullaButton.addActionListener(_ -> controller.vaiAllaHome(frame));
-    }
-
-    @Override
-    public void loadData() {
-        // Set focus on title field and populate with example values
-        SwingUtilities.invokeLater(() -> {
-            titoloField.requestFocusInWindow();
-
-            // Set default example values
-            dataInizioField.setValue("01/07/2025");
-            oraInizioField.setValue("09:00");
-            dataFineField.setValue("02/07/2025");
-            oraFineField.setValue("18:00");
-        });
-    }
-
-    @Override
-    public JFrame getFrame() {
-        return frame;
     }
 
     private void setupDateTimeFields(JFormattedTextField dateField, JFormattedTextField timeField) {
         try {
-            // Date formatter
             MaskFormatter dateFormatter = new MaskFormatter("##/##/####");
             dateFormatter.setPlaceholderCharacter('_');
             dateField.setFormatterFactory(new DefaultFormatterFactory(dateFormatter));
             dateField.setColumns(10);
             dateField.setToolTipText("Formato: dd/MM/yyyy (es: 15/06/2025)");
 
-            // Time formatter
             MaskFormatter timeFormatter = new MaskFormatter("##:##");
             timeFormatter.setPlaceholderCharacter('_');
             timeField.setFormatterFactory(new DefaultFormatterFactory(timeFormatter));
@@ -299,61 +282,27 @@ public class CreaHackathonGUI implements GUIHandler {
 
     private void creaHackathon() {
         try {
-            // Get and validate form data
             String titolo = titoloField.getText().trim();
             String descrizione = descrizioneArea.getText().trim();
             String sede = sedeField.getText().trim();
 
-            // Basic frontend validation
-            if (titolo.isEmpty()) {
-                showError(frame, "Titolo è obbligatorio!");
-                titoloField.requestFocusInWindow();
+            if (!validateForm(titolo, sede)) {
                 return;
             }
 
-            if (sede.isEmpty()) {
-                showError(frame, "Sede è obbligatoria!");
-                sedeField.requestFocusInWindow();
-                return;
-            }
-
-            if (dataInizioField.getText().contains("_") || oraInizioField.getText().contains("_")) {
-                showError(frame, "Data e ora di inizio sono obbligatorie!");
-                dataInizioField.requestFocusInWindow();
-                return;
-            }
-
-            if (dataFineField.getText().contains("_") || oraFineField.getText().contains("_")) {
-                showError(frame, "Data e ora di fine sono obbligatorie!");
-                dataFineField.requestFocusInWindow();
-                return;
-            }
-
-            // Parse dates
             LocalDateTime dataInizio = parseDateTime(dataInizioField.getText(), oraInizioField.getText());
             LocalDateTime dataFine = parseDateTime(dataFineField.getText(), oraFineField.getText());
 
-            // Validate date logic
-            if (dataInizio.isAfter(dataFine)) {
-                showError(frame, "La data di inizio deve essere precedente alla data di fine!");
-                dataInizioField.requestFocusInWindow();
-                return;
-            }
-
-            if (dataInizio.isBefore(LocalDateTime.now().plusDays(1))) {
-                showError(frame, "L'hackathon deve essere programmato almeno 1 giorno nel futuro!");
-                dataInizioField.requestFocusInWindow();
+            if (!validateDates(dataInizio, dataFine)) {
                 return;
             }
 
             int maxIscritti = (Integer) maxIscrittiSpinner.getValue();
             int maxTeamSize = (Integer) maxTeamSizeSpinner.getValue();
 
-            // Show loading state
             creaButton.setEnabled(false);
             creaButton.setText("Creazione in corso...");
 
-            // Call controller
             HackathonResponse response = controller.creaHackathon(titolo, descrizione, sede, dataInizio, dataFine, maxIscritti, maxTeamSize);
 
             if (response.hackathon() != null) {
@@ -368,10 +317,53 @@ public class CreaHackathonGUI implements GUIHandler {
         } catch (Exception e) {
             showError(frame, "Errore imprevisto: " + e.getMessage());
         } finally {
-            // Restore button state
             creaButton.setEnabled(true);
             creaButton.setText("Crea Hackathon");
         }
+    }
+
+    private boolean validateForm(String titolo, String sede) {
+        if (titolo.isEmpty()) {
+            showError(frame, "Titolo è obbligatorio!");
+            titoloField.requestFocusInWindow();
+            return false;
+        }
+
+        if (sede.isEmpty()) {
+            showError(frame, "Sede è obbligatoria!");
+            sedeField.requestFocusInWindow();
+            return false;
+        }
+
+        if (dataInizioField.getText().contains("_") || oraInizioField.getText().contains("_")) {
+            showError(frame, "Data e ora di inizio sono obbligatorie!");
+            dataInizioField.requestFocusInWindow();
+            return false;
+        }
+
+        if (dataFineField.getText().contains("_") || oraFineField.getText().contains("_")) {
+            showError(frame, "Data e ora di fine sono obbligatorie!");
+            dataFineField.requestFocusInWindow();
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validateDates(LocalDateTime dataInizio, LocalDateTime dataFine) {
+        if (dataInizio.isAfter(dataFine)) {
+            showError(frame, "La data di inizio deve essere precedente alla data di fine!");
+            dataInizioField.requestFocusInWindow();
+            return false;
+        }
+
+        if (dataInizio.isBefore(LocalDateTime.now().plusDays(1))) {
+            showError(frame, "L'hackathon deve essere programmato almeno 1 giorno nel futuro!");
+            dataInizioField.requestFocusInWindow();
+            return false;
+        }
+
+        return true;
     }
 
     private LocalDateTime parseDateTime(String dateStr, String timeStr) {
@@ -382,4 +374,5 @@ public class CreaHackathonGUI implements GUIHandler {
             throw new DateTimeParseException("Formato data/ora non valido", dateStr + " " + timeStr, 0);
         }
     }
+    //endregion
 }

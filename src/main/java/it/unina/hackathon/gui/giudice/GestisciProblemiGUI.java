@@ -4,7 +4,6 @@ import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.Hackathon;
 import it.unina.hackathon.model.Problema;
-import it.unina.hackathon.utils.UtilsUi;
 import it.unina.hackathon.utils.responses.GiudiceHackathonResponse;
 import it.unina.hackathon.utils.responses.HackathonResponse;
 import it.unina.hackathon.utils.responses.ProblemaListResponse;
@@ -22,46 +21,32 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class GestisciProblemiGUI implements GUIHandler {
 
-    // region Controllers e Parametri
-
+    //region Fields
     private final HackathonController controller;
     private final int hackathonId;
-
-    // endregion
-
-    // region Components
     private final List<Problema> problemiList;
+
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
     private JPanel contentPanel;
-
-    // endregion
-
-    // region Header Components
     private JSplitPane mainSplitPane;
+
     private JLabel titleLabel;
     private JLabel hackathonInfoLabel;
-
-    // endregion
-
-    // region Left Panel - Lista Problemi
     private JButton backButton;
+
     private JPanel problemiPanel;
     private JTable problemiTable;
     private JScrollPane problemiScrollPane;
     private ProblemiTableModel problemiTableModel;
     private JButton nuovoProblemaButton;
     private JButton eliminaProblemaButton;
-
-    // endregion
-
-    // region Right Panel - Dettagli/Modifica
     private JButton aggiornaProblemiButton;
+
     private JPanel dettagliPanel;
     private JPanel formPanel;
     private JPanel actionPanel;
-    // Form components
     private JLabel titoloLabel;
     private JTextField titoloField;
     private JLabel descrizioneLabel;
@@ -71,19 +56,14 @@ public class GestisciProblemiGUI implements GUIHandler {
     private JLabel dataPubblicazioneValueLabel;
     private JLabel pubblicatoDaLabel;
     private JLabel pubblicatoDaValueLabel;
-
-    // endregion
-
-    // region Data
     private JButton pubblicaButton;
+
     private Hackathon hackathonCorrente;
     private Problema problemaSelezionato;
     private boolean isModificaMode;
+    //endregion
 
-    // endregion
-
-    // region Costruttore
-
+    //region Constructor
     public GestisciProblemiGUI(int hackathonId) {
         this.hackathonId = hackathonId;
         this.controller = HackathonController.getInstance();
@@ -95,24 +75,22 @@ public class GestisciProblemiGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
+    //endregion
 
-    // endregion
-
-    // region GUIHandler Implementation
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
         createHeaderPanel();
-
-        // Content panel with split pane
         createContentPanel();
 
-        // Assemble main panel
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
@@ -128,22 +106,17 @@ public class GestisciProblemiGUI implements GUIHandler {
 
     @Override
     public void setupEventListeners() {
-        // Header
         backButton.addActionListener(_ -> controller.vaiAllaHome(frame));
 
-        // Problemi table
         problemiTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 onProblemaSelectionChanged();
             }
         });
 
-        // Buttons
         aggiornaProblemiButton.addActionListener(_ -> loadProblemiData());
         nuovoProblemaButton.addActionListener(_ -> nuovoProblema());
         eliminaProblemaButton.addActionListener(_ -> eliminaProblema());
-
-        // Form buttons
         pubblicaButton.addActionListener(_ -> pubblicaProblema());
     }
 
@@ -152,20 +125,12 @@ public class GestisciProblemiGUI implements GUIHandler {
         loadHackathonInfo();
         loadProblemiData();
     }
+    //endregion
 
-    @Override
-    public JFrame getFrame() {
-        return frame;
-    }
-
-    // endregion
-
-    // region Component Creation
-
+    //region Private Methods
     private void createHeaderPanel() {
         headerPanel = new JPanel(new BorderLayout());
 
-        // Title and info
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         titleLabel = new JLabel("Gestione Problemi");
         applyStyleTitleLbl(titleLabel);
@@ -175,7 +140,6 @@ public class GestisciProblemiGUI implements GUIHandler {
         titlePanel.add(Box.createHorizontalStrut(20));
         titlePanel.add(hackathonInfoLabel);
 
-        // Back button
         backButton = new JButton("← Torna alla Home");
         backButton.setPreferredSize(new Dimension(150, 35));
 
@@ -186,13 +150,9 @@ public class GestisciProblemiGUI implements GUIHandler {
     private void createContentPanel() {
         contentPanel = new JPanel(new BorderLayout());
 
-        // Create left panel (problemi list)
         createProblemiPanel();
-
-        // Create right panel (dettagli/form)
         createDettagliPanel();
 
-        // Setup split pane
         mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, problemiPanel, dettagliPanel);
         mainSplitPane.setResizeWeight(0.4);
         mainSplitPane.setDividerLocation(500);
@@ -204,26 +164,22 @@ public class GestisciProblemiGUI implements GUIHandler {
         problemiPanel = new JPanel(new BorderLayout());
         problemiPanel.setBorder(new TitledBorder("Problemi Pubblicati"));
 
-        // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         aggiornaProblemiButton = new JButton("Aggiorna");
         nuovoProblemaButton = new JButton("Nuovo Problema");
         eliminaProblemaButton = new JButton("Elimina");
 
-        // Style buttons
         aggiornaProblemiButton.setPreferredSize(new Dimension(100, 30));
         nuovoProblemaButton.setPreferredSize(new Dimension(130, 30));
         eliminaProblemaButton.setPreferredSize(new Dimension(100, 30));
 
-        // Initially disable action buttons
         eliminaProblemaButton.setEnabled(false);
 
         buttonPanel.add(aggiornaProblemiButton);
         buttonPanel.add(nuovoProblemaButton);
         buttonPanel.add(eliminaProblemaButton);
 
-        // Table
         problemiTableModel = new ProblemiTableModel();
         problemiTable = new JTable(problemiTableModel);
         problemiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -238,16 +194,12 @@ public class GestisciProblemiGUI implements GUIHandler {
         dettagliPanel = new JPanel(new BorderLayout());
         dettagliPanel.setBorder(new TitledBorder("Dettagli Problema"));
 
-        // Form panel
         createFormPanel();
-
-        // Action panel
         createActionPanel();
 
         dettagliPanel.add(formPanel, BorderLayout.CENTER);
         dettagliPanel.add(actionPanel, BorderLayout.SOUTH);
 
-        // Initially show empty state
         setFormEnabled(false);
     }
 
@@ -257,7 +209,6 @@ public class GestisciProblemiGUI implements GUIHandler {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Titolo
         gbc.gridx = 0;
         gbc.gridy = 0;
         titoloLabel = new JLabel("Titolo:");
@@ -269,7 +220,6 @@ public class GestisciProblemiGUI implements GUIHandler {
         titoloField = new JTextField(30);
         formPanel.add(titoloField, gbc);
 
-        // Descrizione
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.NONE;
@@ -287,7 +237,6 @@ public class GestisciProblemiGUI implements GUIHandler {
         descrizioneScrollPane = new JScrollPane(descrizioneArea);
         formPanel.add(descrizioneScrollPane, gbc);
 
-        // Info pubblicazione (read-only)
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.NONE;
@@ -298,7 +247,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
         gbc.gridx = 1;
         dataPubblicazioneValueLabel = new JLabel("-");
-        UtilsUi.applyStyleTitleLbl(dataPubblicazioneValueLabel);
+        applyStyleTitleLbl(dataPubblicazioneValueLabel);
         formPanel.add(dataPubblicazioneValueLabel, gbc);
 
         gbc.gridx = 0;
@@ -308,7 +257,7 @@ public class GestisciProblemiGUI implements GUIHandler {
 
         gbc.gridx = 1;
         pubblicatoDaValueLabel = new JLabel("-");
-        UtilsUi.applyStyleTitleLbl(pubblicatoDaValueLabel);
+        applyStyleTitleLbl(pubblicatoDaValueLabel);
         formPanel.add(pubblicatoDaValueLabel, gbc);
     }
 
@@ -316,16 +265,10 @@ public class GestisciProblemiGUI implements GUIHandler {
         actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         pubblicaButton = new JButton("Pubblica");
-
-        // Style buttons
         pubblicaButton.setPreferredSize(new Dimension(100, 35));
 
         actionPanel.add(pubblicaButton);
     }
-
-    // endregion
-
-    // region Data Loading
 
     private void loadHackathonInfo() {
         try {
@@ -352,19 +295,15 @@ public class GestisciProblemiGUI implements GUIHandler {
                 problemiList.addAll(response.problemi());
                 problemiTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento problemi: " + response.message());
+                showError(frame, "Errore nel caricamento problemi: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nel caricamento problemi: " + e.getMessage());
+            showError(frame, "Errore nel caricamento problemi: " + e.getMessage());
         } finally {
             problemiTable.setEnabled(true);
             aggiornaProblemiButton.setEnabled(true);
         }
     }
-
-    // endregion
-
-    // region Event Handlers
 
     private void onProblemaSelectionChanged() {
         int selectedRow = problemiTable.getSelectedRow();
@@ -378,10 +317,6 @@ public class GestisciProblemiGUI implements GUIHandler {
             clearForm();
         }
     }
-
-    // endregion
-
-    // region Action Methods
 
     private void nuovoProblema() {
         problemaSelezionato = null;
@@ -401,15 +336,15 @@ public class GestisciProblemiGUI implements GUIHandler {
             try {
                 var response = controller.eliminaProblema(problemaSelezionato.getProblemaId());
                 if (response.result()) {
-                    showInfoMessage("Problema eliminato con successo!");
+                    showSuccess(frame, "Problema eliminato con successo!");
                     loadProblemiData();
                     clearForm();
                     setFormEnabled(false);
                 } else {
-                    showErrorMessage("Errore nell'eliminazione: " + response.message());
+                    showError(frame, "Errore nell'eliminazione: " + response.message());
                 }
             } catch (Exception e) {
-                showErrorMessage("Errore nell'eliminazione: " + e.getMessage());
+                showError(frame, "Errore nell'eliminazione: " + e.getMessage());
             }
         }
     }
@@ -426,20 +361,18 @@ public class GestisciProblemiGUI implements GUIHandler {
                 ProblemaResponse response = controller.pubblicaProblema(gh.giudiceHackathon().getGiudiceHackathonId(), titolo, descrizione);
 
                 if (response.problema() != null) {
-                    showInfoMessage("Problema pubblicato con successo!");
+                    showSuccess(frame, "Problema pubblicato con successo!");
                     loadProblemiData();
+                    clearForm();
+                    setFormEnabled(false);
                 } else {
-                    showErrorMessage("Errore nella pubblicazione: " + response.message());
+                    showError(frame, "Errore nella pubblicazione: " + response.message());
                 }
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nella pubblicazione: " + e.getMessage());
+            showError(frame, "Errore nella pubblicazione: " + e.getMessage());
         }
     }
-
-    // endregion
-
-    // region Form Management
 
     private void displayProblemaDetails() {
         if (problemaSelezionato == null) return;
@@ -464,7 +397,6 @@ public class GestisciProblemiGUI implements GUIHandler {
     private void setFormEnabled(boolean enabled) {
         titoloField.setEnabled(enabled);
         descrizioneArea.setEnabled(enabled);
-
         pubblicaButton.setEnabled(enabled);
     }
 
@@ -483,48 +415,34 @@ public class GestisciProblemiGUI implements GUIHandler {
         String descrizione = descrizioneArea.getText().trim();
 
         if (titolo.isEmpty()) {
-            showErrorMessage("Il titolo è obbligatorio");
+            showError(frame, "Il titolo è obbligatorio");
             titoloField.requestFocus();
             return false;
         }
 
         if (titolo.length() > 200) {
-            showErrorMessage("Il titolo non può superare i 200 caratteri");
+            showError(frame, "Il titolo non può superare i 200 caratteri");
             titoloField.requestFocus();
             return false;
         }
 
         if (descrizione.isEmpty()) {
-            showErrorMessage("La descrizione è obbligatoria");
+            showError(frame, "La descrizione è obbligatoria");
             descrizioneArea.requestFocus();
             return false;
         }
 
         if (descrizione.length() > 2000) {
-            showErrorMessage("La descrizione non può superare i 2000 caratteri");
+            showError(frame, "La descrizione non può superare i 2000 caratteri");
             descrizioneArea.requestFocus();
             return false;
         }
 
         return true;
     }
+    //endregion
 
-    // endregion
-
-    // region Utility Methods
-
-    private void showErrorMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Errore", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void showInfoMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Informazione", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    // endregion
-
-    // region Table Model
-
+    //region Private Classes
     private class ProblemiTableModel extends AbstractTableModel {
         private final String[] columnNames = {"Titolo", "Data Pubblicazione", "Autore"};
 
@@ -547,7 +465,6 @@ public class GestisciProblemiGUI implements GUIHandler {
         public Object getValueAt(int rowIndex, int columnIndex) {
             Problema problema = problemiList.get(rowIndex);
             return switch (columnIndex) {
-
                 case 0 -> problema.getTitolo();
                 case 1 -> problema.getDataPubblicazione().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 case 2 ->
@@ -556,6 +473,5 @@ public class GestisciProblemiGUI implements GUIHandler {
             };
         }
     }
-
-    // endregion
+    //endregion
 }

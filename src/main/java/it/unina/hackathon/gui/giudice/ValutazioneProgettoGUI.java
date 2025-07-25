@@ -3,7 +3,6 @@ package it.unina.hackathon.gui.giudice;
 import it.unina.hackathon.controller.HackathonController;
 import it.unina.hackathon.gui.GUIHandler;
 import it.unina.hackathon.model.*;
-import it.unina.hackathon.utils.UtilsUi;
 import it.unina.hackathon.utils.responses.*;
 import it.unina.hackathon.utils.responses.base.ResponseIntResult;
 
@@ -25,82 +24,61 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class ValutazioneProgettoGUI implements GUIHandler {
 
-    // region Controllers e Parametri
-
+    //region Fields
     private final HackathonController controller;
     private final int hackathonId;
-
-    // endregion
-
-    // region Components
     private final List<Team> teamList;
     private final List<Progresso> progressiList;
     private final List<Commento> commentiList;
+
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
-
-    // endregion
-
-    // region Header Components
     private JPanel contentPanel;
     private JSplitPane mainSplitPane;
     private JSplitPane rightSplitPane;
 
-    // endregion
-
-    // region Left Panel - Team List
     private JLabel titleLabel;
     private JLabel hackathonInfoLabel;
     private JButton backButton;
+
     private JPanel teamPanel;
     private JTable teamTable;
-
-    // endregion
-
-    // region Right Top Panel - Progressi
     private JScrollPane teamScrollPane;
     private TeamTableModel teamTableModel;
     private JButton aggiornaTeamButton;
+
     private JPanel progressiPanel;
     private JTable progressiTable;
     private JScrollPane progressiScrollPane;
-
-    // endregion
-
-    // region Right Bottom Panel - Valutazione
     private ProgressiTableModel progressiTableModel;
     private JButton visualizzaDocumentoButton;
     private JButton aggiornaProgressiButton;
+
     private JPanel valutazionePanel;
     private JTabbedPane valutazioneTabbedPane;
-    // Tab Commenti
+
     private JPanel commentiPanel;
     private JTextArea commentiArea;
     private JScrollPane commentiScrollPane;
     private JTextArea nuovoCommentoArea;
     private JScrollPane nuovoCommentoScrollPane;
     private JButton aggiungiCommentoButton;
-    // Tab Voto
+
     private JPanel votoPanel;
     private JLabel votoLabel;
     private JSlider votoSlider;
     private JLabel votoValueLabel;
-
-    // endregion
-
-    // region Data
     private JButton assegnaVotoButton;
     private JLabel votoCorrenteLabel;
+
     private Hackathon hackathonCorrente;
     private Team teamSelezionato;
     private Progresso progressoSelezionato;
     private Voto votoCorrente;
+    //endregion
 
-    // endregion
-
-    // region Costruttore
-
+    //region Constructor
     public ValutazioneProgettoGUI(int hackathonId) {
         this.hackathonId = hackathonId;
         this.controller = HackathonController.getInstance();
@@ -113,24 +91,22 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         setupEventListeners();
         loadData();
     }
+    //endregion
 
-    // endregion
-
-    // region GUIHandler Implementation
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
         createHeaderPanel();
-
-        // Content panel with split panes
         createContentPanel();
 
-        // Assemble main panel
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
     }
@@ -146,24 +122,20 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     @Override
     public void setupEventListeners() {
-        // Header
         backButton.addActionListener(_ -> controller.vaiAllaHome(frame));
 
-        // Team selection
         teamTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 onTeamSelectionChanged();
             }
         });
 
-        // Progressi selection
         progressiTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 onProgressoSelectionChanged();
             }
         });
 
-        // Double click on progressi to view document
         progressiTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -173,19 +145,17 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             }
         });
 
-        // Buttons
         aggiornaTeamButton.addActionListener(_ -> loadTeamData());
         aggiornaProgressiButton.addActionListener(_ -> loadProgressiData());
         visualizzaDocumentoButton.addActionListener(_ -> visualizzaDocumento());
 
-        // Commenti
         aggiungiCommentoButton.addActionListener(_ -> aggiungiCommento());
 
-        // Voto
         votoSlider.addChangeListener(_ -> {
             votoValueLabel.setText(votoSlider.getValue() + "/10");
             updateVotoDescription();
         });
+
         assegnaVotoButton.addActionListener(_ -> assegnaVoto());
     }
 
@@ -194,20 +164,12 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         loadHackathonInfo();
         loadTeamData();
     }
+    //endregion
 
-    @Override
-    public JFrame getFrame() {
-        return frame;
-    }
-
-    // endregion
-
-    // region Component Creation
-
+    //region Private Methods
     private void createHeaderPanel() {
         headerPanel = new JPanel(new BorderLayout());
 
-        // Title and info
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         titleLabel = new JLabel("Valutazione Progetto");
         applyStyleTitleLbl(titleLabel);
@@ -217,7 +179,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         titlePanel.add(Box.createHorizontalStrut(20));
         titlePanel.add(hackathonInfoLabel);
 
-        // Back button
         backButton = new JButton("← Torna alla Home");
         backButton.setPreferredSize(new Dimension(150, 35));
 
@@ -228,16 +189,10 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     private void createContentPanel() {
         contentPanel = new JPanel(new BorderLayout());
 
-        // Create team panel (left)
         createTeamPanel();
-
-        // Create progressi panel (right top)
         createProgressiPanel();
-
-        // Create valutazione panel (right bottom)
         createValutazionePanel();
 
-        // Setup split panes
         rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, progressiPanel, valutazionePanel);
         rightSplitPane.setResizeWeight(0.5);
         rightSplitPane.setDividerLocation(300);
@@ -253,13 +208,11 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         teamPanel = new JPanel(new BorderLayout());
         teamPanel.setBorder(new TitledBorder("Team"));
 
-        // Button panel
         JPanel teamButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         aggiornaTeamButton = new JButton("Aggiorna");
         aggiornaTeamButton.setPreferredSize(new Dimension(100, 30));
         teamButtonPanel.add(aggiornaTeamButton);
 
-        // Table
         teamTableModel = new TeamTableModel();
         teamTable = new JTable(teamTableModel);
         teamTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -274,7 +227,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         progressiPanel = new JPanel(new BorderLayout());
         progressiPanel.setBorder(new TitledBorder("Progressi Team"));
 
-        // Button panel
         JPanel progressiButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         aggiornaProgressiButton = new JButton("Aggiorna");
         visualizzaDocumentoButton = new JButton("Visualizza Documento");
@@ -286,7 +238,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         progressiButtonPanel.add(aggiornaProgressiButton);
         progressiButtonPanel.add(visualizzaDocumentoButton);
 
-        // Table
         progressiTableModel = new ProgressiTableModel();
         progressiTable = new JTable(progressiTableModel);
         progressiTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -303,10 +254,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
         valutazioneTabbedPane = new JTabbedPane();
 
-        // Tab Commenti
         createCommentiTab();
-
-        // Tab Voto
         createVotoTab();
 
         valutazionePanel.add(valutazioneTabbedPane, BorderLayout.CENTER);
@@ -315,7 +263,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     private void createCommentiTab() {
         commentiPanel = new JPanel(new BorderLayout());
 
-        // Commenti esistenti
         JPanel commentiEsistentiPanel = new JPanel(new BorderLayout());
         commentiEsistentiPanel.setBorder(new TitledBorder("Commenti Esistenti"));
 
@@ -327,7 +274,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
         commentiEsistentiPanel.add(commentiScrollPane, BorderLayout.CENTER);
 
-        // Nuovo commento
         JPanel nuovoCommentoPanel = new JPanel(new BorderLayout());
         nuovoCommentoPanel.setBorder(new TitledBorder("Nuovo Commento"));
 
@@ -336,12 +282,9 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         nuovoCommentoArea.setWrapStyleWord(true);
         nuovoCommentoScrollPane = new JScrollPane(nuovoCommentoArea);
 
-        // Buttons
         JPanel commentoButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         aggiungiCommentoButton = new JButton("Aggiungi Commento");
-
         aggiungiCommentoButton.setPreferredSize(new Dimension(150, 30));
-
         commentoButtonPanel.add(aggiungiCommentoButton);
 
         nuovoCommentoPanel.add(nuovoCommentoScrollPane, BorderLayout.CENTER);
@@ -356,21 +299,18 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     private void createVotoTab() {
         votoPanel = new JPanel(new BorderLayout());
 
-        // Voto corrente
         JPanel votoCorrentePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         votoCorrentePanel.setBorder(new TitledBorder("Voto Corrente"));
         votoCorrenteLabel = new JLabel("Nessun voto assegnato");
-        UtilsUi.applyStyleTitleLbl(votoCorrenteLabel);
+        applyStyleTitleLbl(votoCorrenteLabel);
         votoCorrentePanel.add(votoCorrenteLabel);
 
-        // Slider panel
         JPanel sliderPanel = new JPanel(new GridBagLayout());
         sliderPanel.setBorder(new TitledBorder("Assegna Voto"));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        // Voto slider
         gbc.gridx = 0;
         gbc.gridy = 0;
         votoLabel = new JLabel("Voto:");
@@ -390,15 +330,12 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         gbc.fill = GridBagConstraints.NONE;
         gbc.weightx = 0;
         votoValueLabel = new JLabel("6/10");
-        UtilsUi.applyStyleTitleLbl(votoValueLabel);
+        applyStyleTitleLbl(votoValueLabel);
         sliderPanel.add(votoValueLabel, gbc);
 
-        // Buttons
         JPanel votoButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         assegnaVotoButton = new JButton("Assegna Voto");
-
         assegnaVotoButton.setPreferredSize(new Dimension(120, 30));
-
         votoButtonPanel.add(assegnaVotoButton);
 
         votoPanel.add(votoCorrentePanel, BorderLayout.NORTH);
@@ -407,10 +344,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
         valutazioneTabbedPane.addTab("Voto", votoPanel);
     }
-
-    // endregion
-
-    // region Data Loading
 
     private void loadHackathonInfo() {
         try {
@@ -437,10 +370,10 @@ public class ValutazioneProgettoGUI implements GUIHandler {
                 teamList.addAll(response.teams());
                 teamTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento team: " + response.message());
+                showError(frame, "Errore nel caricamento team: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nel caricamento team: " + e.getMessage());
+            showError(frame, "Errore nel caricamento team: " + e.getMessage());
         } finally {
             teamTable.setEnabled(true);
             aggiornaTeamButton.setEnabled(true);
@@ -460,10 +393,10 @@ public class ValutazioneProgettoGUI implements GUIHandler {
                 progressiList.addAll(response.progressi());
                 progressiTableModel.fireTableDataChanged();
             } else {
-                showErrorMessage("Errore nel caricamento progressi: " + response.message());
+                showError(frame, "Errore nel caricamento progressi: " + response.message());
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nel caricamento progressi: " + e.getMessage());
+            showError(frame, "Errore nel caricamento progressi: " + e.getMessage());
         } finally {
             progressiTable.setEnabled(true);
             aggiornaProgressiButton.setEnabled(true);
@@ -481,7 +414,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
                 displayCommenti();
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nel caricamento commenti: " + e.getMessage());
+            showError(frame, "Errore nel caricamento commenti: " + e.getMessage());
         }
     }
 
@@ -497,10 +430,6 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             updateVotoDisplay();
         }
     }
-
-    // endregion
-
-    // region Event Handlers
 
     private void onTeamSelectionChanged() {
         int selectedRow = teamTable.getSelectedRow();
@@ -529,49 +458,38 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         }
     }
 
-    // endregion
-
-    // region Action Methods
-
     private void visualizzaDocumento() {
         if (progressoSelezionato == null) return;
 
         String documentoPath = progressoSelezionato.getDocumentoPath();
 
-        // Verifica se c'è un documento
         if (documentoPath == null || documentoPath.trim().isEmpty()) {
             JOptionPane.showMessageDialog(frame, "Nessun documento associato a questo progresso.", "Documento non disponibile", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Costruisci il path completo
         String basePath = System.getProperty("user.dir");
         String fullPath = basePath + documentoPath;
         File file = new File(fullPath);
 
-        // Verifica se il file esiste
         if (!file.exists()) {
-            JOptionPane.showMessageDialog(frame, "Il documento non è stato trovato.\n\n" + "File: " + documentoPath, "File non trovato", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Il documento non è stato trovato.\n\nFile: " + documentoPath, "File non trovato", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Leggi e mostra il contenuto del file .txt
         try {
             String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
             mostraContenutoDocumento(content, file.getName());
-
         } catch (IOException e) {
             JOptionPane.showMessageDialog(frame, "Errore nella lettura del documento:\n" + e.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void mostraContenutoDocumento(String content, String fileName) {
-        // Crea dialog per visualizzare il contenuto
         JDialog dialog = new JDialog(frame, "Esame Documento - " + fileName, true);
         dialog.setSize(700, 500);
         dialog.setLocationRelativeTo(frame);
 
-        // Area di testo per il contenuto
         JTextArea textArea = new JTextArea(content);
         textArea.setEditable(false);
         textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
@@ -582,18 +500,15 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        // Panel info in alto
         JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         infoPanel.setBorder(BorderFactory.createEtchedBorder());
         infoPanel.add(new JLabel("File: " + fileName));
 
-        // Button chiudi
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton chiudiButton = new JButton("Chiudi");
         chiudiButton.addActionListener(_ -> dialog.dispose());
         buttonPanel.add(chiudiButton);
 
-        // Layout
         dialog.add(infoPanel, BorderLayout.NORTH);
         dialog.add(scrollPane, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
@@ -603,13 +518,13 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
     private void aggiungiCommento() {
         if (progressoSelezionato == null) {
-            showErrorMessage("Seleziona un progresso per aggiungere un commento");
+            showError(frame, "Seleziona un progresso per aggiungere un commento");
             return;
         }
 
         String testo = nuovoCommentoArea.getText().trim();
         if (testo.isEmpty()) {
-            showErrorMessage("Inserisci il testo del commento");
+            showError(frame, "Inserisci il testo del commento");
             return;
         }
 
@@ -618,26 +533,26 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             if (gh != null) {
                 CommentoResponse response = controller.scriviCommento(progressoSelezionato.getProgressoId(), gh.giudiceHackathon().getGiudiceHackathonId(), testo);
                 if (response.commento() != null) {
-                    showInfoMessage("Commento aggiunto con successo!");
+                    showSuccess(frame, "Commento aggiunto con successo!");
                     nuovoCommentoArea.setText("");
                     loadCommentiData();
                 } else {
-                    showErrorMessage("Errore nell'aggiunta del commento: " + response.message());
+                    showError(frame, "Errore nell'aggiunta del commento: " + response.message());
                 }
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nell'aggiunta del commento: " + e.getMessage());
+            showError(frame, "Errore nell'aggiunta del commento: " + e.getMessage());
         }
     }
 
     private void assegnaVoto() {
         if (teamSelezionato == null) {
-            showErrorMessage("Seleziona un team per assegnare il voto");
+            showError(frame, "Seleziona un team per assegnare il voto");
             return;
         }
 
         if (votoCorrente != null) {
-            showErrorMessage("Hai già votato questo team. Usa 'Modifica Voto' per cambiare il voto.");
+            showError(frame, "Hai già votato questo team. Usa 'Modifica Voto' per cambiare il voto.");
             return;
         }
 
@@ -648,20 +563,16 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             if (gh != null) {
                 VotoResponse response = controller.assegnaVoto(gh.giudiceHackathon().getGiudiceHackathonId(), valore, teamSelezionato.getTeamId());
                 if (response.voto() != null) {
-                    showInfoMessage("Voto assegnato con successo!");
+                    showSuccess(frame, "Voto assegnato con successo!");
                     loadVotoData();
                 } else {
-                    showErrorMessage("Errore nell'assegnazione del voto: " + response.message());
+                    showError(frame, "Errore nell'assegnazione del voto: " + response.message());
                 }
             }
         } catch (Exception e) {
-            showErrorMessage("Errore nell'assegnazione del voto: " + e.getMessage());
+            showError(frame, "Errore nell'assegnazione del voto: " + e.getMessage());
         }
     }
-
-    // endregion
-
-    // region Display Methods
 
     private void displayCommenti() {
         StringBuilder sb = new StringBuilder();
@@ -708,23 +619,9 @@ public class ValutazioneProgettoGUI implements GUIHandler {
 
         votoValueLabel.setText(valore + "/10 - " + descrizione);
     }
+    //endregion
 
-    // endregion
-
-    // region Utility Methods
-
-    private void showErrorMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Errore", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void showInfoMessage(String message) {
-        JOptionPane.showMessageDialog(frame, message, "Informazione", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    // endregion
-
-    // region Table Models
-
+    //region Private Classes
     private class TeamTableModel extends AbstractTableModel {
         private final String[] columnNames = {"Nome Team", "Membri", "Progressi"};
 
@@ -750,6 +647,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             return switch (columnIndex) {
                 case 0 -> team.getNome();
                 case 1 -> ((contaNumeroMembri != null) ? contaNumeroMembri.result() : "N/A") + " registrazioni";
+                case 2 -> "";
                 default -> "";
             };
         }
@@ -785,6 +683,5 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             };
         }
     }
-
-    // endregion
+    //endregion
 }

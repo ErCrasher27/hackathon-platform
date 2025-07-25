@@ -12,17 +12,15 @@ import static it.unina.hackathon.utils.UtilsUi.*;
 
 public class RegistrazioneGUI implements GUIHandler {
 
-    // Controllers
+    //region Fields
     private final HackathonController controller;
 
-    // Components
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel headerPanel;
     private JPanel formPanel;
     private JPanel actionPanel;
 
-    // Form Components
     private JLabel registerLabel;
     private JLabel nomeLabel;
     private JLabel cognomeLabel;
@@ -38,7 +36,6 @@ public class RegistrazioneGUI implements GUIHandler {
     private JPasswordField passwordField;
     private JPasswordField confermaPasswordField;
 
-    // Radio buttons for user type
     private JRadioButton organizzatoreRadio;
     private JRadioButton giudiceRadio;
     private JRadioButton partecipanteRadio;
@@ -46,167 +43,33 @@ public class RegistrazioneGUI implements GUIHandler {
 
     private JButton registerButton;
     private JButton loginButton;
+    //endregion
 
+    //region Constructor
     public RegistrazioneGUI() {
         this.controller = HackathonController.getInstance();
-
         initializeComponents();
         setupFrame();
         setupEventListeners();
         loadData();
     }
+    //endregion
+
+    //region Public Methods
+    @Override
+    public JFrame getFrame() {
+        return frame;
+    }
 
     @Override
     public void initializeComponents() {
-        // Main panel
         mainPanel = new JPanel(new BorderLayout());
         applyStdMargin(mainPanel);
 
-        // Header panel
-        headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        registerLabel = new JLabel("Registrati!");
-        applyStyleTitleLbl(registerLabel);
-        headerPanel.add(registerLabel);
+        setupHeaderPanel();
+        setupFormPanel();
+        setupActionPanel();
 
-        // Form panel with GridBagLayout for better control
-        formPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 10, 8, 10);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        int row = 0;
-
-        // Nome
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        nomeLabel = new JLabel("Nome:");
-        formPanel.add(nomeLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        nomeField = new JTextField(20);
-        formPanel.add(nomeField, gbc);
-
-        // Cognome
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        cognomeLabel = new JLabel("Cognome:");
-        formPanel.add(cognomeLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        cognomeField = new JTextField(20);
-        formPanel.add(cognomeField, gbc);
-
-        // Email
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        emailLabel = new JLabel("Email:");
-        formPanel.add(emailLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        emailField = new JTextField(20);
-        formPanel.add(emailField, gbc);
-
-        // Username
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        usernameLabel = new JLabel("Username:");
-        formPanel.add(usernameLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        usernameField = new JTextField(20);
-        formPanel.add(usernameField, gbc);
-
-        // Password
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        passwordLabel = new JLabel("Password:");
-        formPanel.add(passwordLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        passwordField = new JPasswordField(20);
-        formPanel.add(passwordField, gbc);
-
-        // Conferma Password
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        confermaPasswordLabel = new JLabel("Conferma Password:");
-        formPanel.add(confermaPasswordLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        confermaPasswordField = new JPasswordField(20);
-        formPanel.add(confermaPasswordField, gbc);
-
-        // Tipo Utente Radio Buttons
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        JPanel tipoUtentePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        tipoUtentePanel.setBorder(BorderFactory.createTitledBorder("Tipo Utente"));
-
-        organizzatoreRadio = new JRadioButton(TipoUtente.ORGANIZZATORE.getDisplayName() + " - Posso creare e gestire hackathon");
-        giudiceRadio = new JRadioButton(TipoUtente.GIUDICE.getDisplayName() + " - Posso valutare i team negli hackathon");
-        partecipanteRadio = new JRadioButton(TipoUtente.PARTECIPANTE.getDisplayName() + " - Posso partecipare agli hackathon");
-
-        // Set default selection
-        partecipanteRadio.setSelected(true);
-
-        tipoUtenteGroup = new ButtonGroup();
-        tipoUtenteGroup.add(organizzatoreRadio);
-        tipoUtenteGroup.add(giudiceRadio);
-        tipoUtenteGroup.add(partecipanteRadio);
-
-        // Layout radio buttons vertically
-        JPanel radioPanel = new JPanel(new GridLayout(3, 1, 5, 5));
-        radioPanel.add(organizzatoreRadio);
-        radioPanel.add(giudiceRadio);
-        radioPanel.add(partecipanteRadio);
-
-        tipoUtentePanel.add(radioPanel);
-        formPanel.add(tipoUtentePanel, gbc);
-
-        // Action panel
-        actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        loginButton = new JButton("Sei già registrato? Login!");
-        registerButton = new JButton("Registrati");
-
-        // Style buttons
-        registerButton.setPreferredSize(new Dimension(120, 35));
-        loginButton.setPreferredSize(new Dimension(200, 35));
-
-        actionPanel.add(loginButton);
-        actionPanel.add(registerButton);
-
-        // Assemble main panel
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(formPanel, BorderLayout.CENTER);
         mainPanel.add(actionPanel, BorderLayout.SOUTH);
@@ -217,8 +80,6 @@ public class RegistrazioneGUI implements GUIHandler {
         frame = new JFrame("Hackathon Platform - Registrazione");
         frame.setContentPane(mainPanel);
         applyStyleFrame(frame);
-
-        // Set default button
         frame.getRootPane().setDefaultButton(registerButton);
     }
 
@@ -226,20 +87,111 @@ public class RegistrazioneGUI implements GUIHandler {
     public void setupEventListeners() {
         registerButton.addActionListener(_ -> effettuaRegistrazione());
         loginButton.addActionListener(_ -> controller.vaiAlLogin(frame));
-
-        // Enter key support for last password field
         confermaPasswordField.addActionListener(_ -> effettuaRegistrazione());
     }
 
     @Override
     public void loadData() {
-        // Set focus on nome field
         SwingUtilities.invokeLater(() -> nomeField.requestFocusInWindow());
     }
+    //endregion
 
-    @Override
-    public JFrame getFrame() {
-        return frame;
+    //region Private Methods
+    private void setupHeaderPanel() {
+        headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        registerLabel = new JLabel("Registrati!");
+        applyStyleTitleLbl(registerLabel);
+        headerPanel.add(registerLabel);
+    }
+
+    private void setupFormPanel() {
+        formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = createDefaultConstraints();
+
+        nomeLabel = new JLabel("Nome:");
+        cognomeLabel = new JLabel("Cognome:");
+        emailLabel = new JLabel("Email:");
+        usernameLabel = new JLabel("Username:");
+        passwordLabel = new JLabel("Password:");
+        confermaPasswordLabel = new JLabel("Conferma Password:");
+
+        nomeField = new JTextField(20);
+        cognomeField = new JTextField(20);
+        emailField = new JTextField(20);
+        usernameField = new JTextField(20);
+        passwordField = new JPasswordField(20);
+        confermaPasswordField = new JPasswordField(20);
+
+        addFormField(gbc, 0, nomeLabel, nomeField);
+        addFormField(gbc, 1, cognomeLabel, cognomeField);
+        addFormField(gbc, 2, emailLabel, emailField);
+        addFormField(gbc, 3, usernameLabel, usernameField);
+        addFormField(gbc, 4, passwordLabel, passwordField);
+        addFormField(gbc, 5, confermaPasswordLabel, confermaPasswordField);
+
+        addTipoUtentePanel(gbc, 6);
+    }
+
+    private GridBagConstraints createDefaultConstraints() {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+        return gbc;
+    }
+
+    private void addFormField(GridBagConstraints gbc, int row, JLabel label, JComponent field) {
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+        formPanel.add(label, gbc);
+
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        formPanel.add(field, gbc);
+    }
+
+    private void addTipoUtentePanel(GridBagConstraints gbc, int row) {
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JPanel tipoUtentePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        tipoUtentePanel.setBorder(BorderFactory.createTitledBorder("Tipo Utente"));
+
+        JPanel radioPanel = new JPanel(new GridLayout(3, 1, 5, 5));
+
+        organizzatoreRadio = new JRadioButton(TipoUtente.ORGANIZZATORE.getDisplayName() + " - Posso creare e gestire hackathon");
+        giudiceRadio = new JRadioButton(TipoUtente.GIUDICE.getDisplayName() + " - Posso valutare i team negli hackathon");
+        partecipanteRadio = new JRadioButton(TipoUtente.PARTECIPANTE.getDisplayName() + " - Posso partecipare agli hackathon");
+        partecipanteRadio.setSelected(true);
+
+        tipoUtenteGroup = new ButtonGroup();
+        tipoUtenteGroup.add(organizzatoreRadio);
+        tipoUtenteGroup.add(giudiceRadio);
+        tipoUtenteGroup.add(partecipanteRadio);
+
+        radioPanel.add(organizzatoreRadio);
+        radioPanel.add(giudiceRadio);
+        radioPanel.add(partecipanteRadio);
+
+        tipoUtentePanel.add(radioPanel);
+        formPanel.add(tipoUtentePanel, gbc);
+    }
+
+    private void setupActionPanel() {
+        actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
+        loginButton = new JButton("Sei già registrato? Login!");
+        loginButton.setPreferredSize(new Dimension(200, 35));
+
+        registerButton = new JButton("Registrati");
+        registerButton.setPreferredSize(new Dimension(120, 35));
+
+        actionPanel.add(loginButton);
+        actionPanel.add(registerButton);
     }
 
     private void effettuaRegistrazione() {
@@ -251,51 +203,10 @@ public class RegistrazioneGUI implements GUIHandler {
         String confermaPassword = new String(confermaPasswordField.getPassword());
         TipoUtente tipoUtente = getTipoUtenteSelezionato();
 
-        // Basic frontend validation
-        if (nome.isEmpty()) {
-            showError(frame, "Nome è obbligatorio!");
-            nomeField.requestFocusInWindow();
+        if (!validateRegistrationForm(nome, cognome, email, username, password, confermaPassword, tipoUtente)) {
             return;
         }
 
-        if (cognome.isEmpty()) {
-            showError(frame, "Cognome è obbligatorio!");
-            cognomeField.requestFocusInWindow();
-            return;
-        }
-
-        if (email.isEmpty()) {
-            showError(frame, "Email è obbligatoria!");
-            emailField.requestFocusInWindow();
-            return;
-        }
-
-        if (username.isEmpty()) {
-            showError(frame, "Username è obbligatorio!");
-            usernameField.requestFocusInWindow();
-            return;
-        }
-
-        if (password.isEmpty()) {
-            showError(frame, "Password è obbligatoria!");
-            passwordField.requestFocusInWindow();
-            return;
-        }
-
-        if (!password.equals(confermaPassword)) {
-            showError(frame, "Password e conferma password devono coincidere!");
-            confermaPasswordField.setText("");
-            passwordField.setText("");
-            passwordField.requestFocusInWindow();
-            return;
-        }
-
-        if (tipoUtente == null) {
-            showError(frame, "Seleziona un tipo utente!");
-            return;
-        }
-
-        // Attempt registration
         UtenteResponse response = controller.effettuaRegistrazione(nome, cognome, email, username, password, confermaPassword, tipoUtente);
 
         if (response.utente() != null) {
@@ -303,12 +214,57 @@ public class RegistrazioneGUI implements GUIHandler {
             controller.vaiAlLogin(frame);
         } else {
             showError(frame, response.message());
-
-            // Clear sensitive fields on error
             passwordField.setText("");
             confermaPasswordField.setText("");
             passwordField.requestFocusInWindow();
         }
+    }
+
+    private boolean validateRegistrationForm(String nome, String cognome, String email, String username, String password, String confermaPassword, TipoUtente tipoUtente) {
+        if (nome.isEmpty()) {
+            showError(frame, "Nome è obbligatorio!");
+            nomeField.requestFocusInWindow();
+            return false;
+        }
+
+        if (cognome.isEmpty()) {
+            showError(frame, "Cognome è obbligatorio!");
+            cognomeField.requestFocusInWindow();
+            return false;
+        }
+
+        if (email.isEmpty()) {
+            showError(frame, "Email è obbligatoria!");
+            emailField.requestFocusInWindow();
+            return false;
+        }
+
+        if (username.isEmpty()) {
+            showError(frame, "Username è obbligatorio!");
+            usernameField.requestFocusInWindow();
+            return false;
+        }
+
+        if (password.isEmpty()) {
+            showError(frame, "Password è obbligatoria!");
+            passwordField.requestFocusInWindow();
+            return false;
+        }
+
+        if (!password.equals(confermaPassword)) {
+            showError(frame, "Password e conferma password devono coincidere!");
+            confermaPasswordField.setText("");
+            passwordField.setText("");
+            passwordField.requestFocusInWindow();
+            return false;
+        }
+
+        if (tipoUtente == null) {
+            showError(frame, "Seleziona un tipo utente!");
+            return false;
+        }
+
+        return true;
     }
 
     private TipoUtente getTipoUtenteSelezionato() {
@@ -317,4 +273,5 @@ public class RegistrazioneGUI implements GUIHandler {
         if (partecipanteRadio.isSelected()) return TipoUtente.PARTECIPANTE;
         return null;
     }
+    //endregion
 }

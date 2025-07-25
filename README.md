@@ -77,11 +77,15 @@ src/main/java/it/unina/hackathon/
 
 ```bash
 # Crea il database
-createdb -U postgres hackathon_platform
+psql -U postgres -c "CREATE DATABASE hackathon_platform;"
+```
 
+```bash
 # Importa lo schema
 psql -U postgres -d hackathon_platform -f docs/database/hackathon_db.sql
+```
 
+```bash
 # (Opzionale) Carica dati di test
 psql -U postgres -d hackathon_platform -f docs/database/hackathon_test_data.sql
 ```
@@ -94,15 +98,6 @@ Modifica le credenziali in `src/main/java/it/unina/hackathon/utils/ConnessioneDa
 private final String nome = "tuo_username";
 private final String password = "tua_password";
 ```
-
-### ▶️ Build e Run
-
-```bash
-mvn clean compile
-mvn exec:java -Dexec.mainClass="it.unina.hackathon.gui.comuni.LoginGUI"
-```
-
----
 
 ## 📊 Database
 

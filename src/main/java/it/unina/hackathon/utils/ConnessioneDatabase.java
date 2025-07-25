@@ -18,7 +18,7 @@ public class ConnessioneDatabase {
     /**
      * Password per la connessione al database
      */
-    private final String password = "Soloio91.";
+    private final String password = "";
 
     /**
      * URL di connessione al database PostgreSQL

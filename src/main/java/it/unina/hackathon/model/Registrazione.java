@@ -13,7 +13,6 @@ public class Registrazione {
     private int teamId;
     private int utentePartecipanteId;
     private int hackathonId;
-    private LocalDateTime dataRegistrazione;
     private LocalDateTime dataIngressoTeam;
     private RuoloTeam ruolo;
     private Utente utentePartecipante;
@@ -67,10 +66,6 @@ public class Registrazione {
 
     public void setDataIngressoTeam(LocalDateTime dataIngresso) {
         this.dataIngressoTeam = dataIngresso;
-    }
-
-    public void setDataRegistrazione(LocalDateTime dataRegistrazione) {
-        this.dataRegistrazione = dataRegistrazione;
     }
 
     public RuoloTeam getRuolo() {

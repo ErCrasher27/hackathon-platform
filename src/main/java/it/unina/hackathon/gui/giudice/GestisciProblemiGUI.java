@@ -99,8 +99,8 @@ public class GestisciProblemiGUI implements GUIHandler {
     public void setupFrame() {
         frame = new JFrame("Hackathon Platform - Gestisci Problemi");
         frame.setContentPane(mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         applyStyleFrame(frame);
     }
 
@@ -279,7 +279,7 @@ public class GestisciProblemiGUI implements GUIHandler {
             } else {
                 hackathonInfoLabel.setText("Errore nel caricamento hackathon");
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             hackathonInfoLabel.setText("Errore nel caricamento hackathon");
         }
     }

@@ -140,8 +140,8 @@ public class GestisciProgettoGUI implements GUIHandler {
     public void setupFrame() {
         frame = new JFrame("Hackathon Platform - Gestisci Progetto");
         frame.setContentPane(mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         applyStyleFrame(frame);
     }
 
@@ -547,7 +547,7 @@ public class GestisciProgettoGUI implements GUIHandler {
             } else {
                 hackathonInfoLabel.setText("Errore nel caricamento hackathon");
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             hackathonInfoLabel.setText("Errore nel caricamento hackathon");
         }
     }
@@ -573,7 +573,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                 loadTeams();
                 loadInviti();
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             teamInfoLabel.setText("Errore nel caricamento");
             isLeader = false;
             mostraPanel("NESSUN_TEAM");
@@ -623,7 +623,7 @@ public class GestisciProgettoGUI implements GUIHandler {
                     invitiRicevutiTableModel.fireTableDataChanged();
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
         }
     }
 

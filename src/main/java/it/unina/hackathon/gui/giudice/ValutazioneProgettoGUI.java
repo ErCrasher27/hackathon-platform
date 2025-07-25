@@ -115,8 +115,8 @@ public class ValutazioneProgettoGUI implements GUIHandler {
     public void setupFrame() {
         frame = new JFrame("Hackathon Platform - Valutazione Progetto");
         frame.setContentPane(mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         applyStyleFrame(frame);
     }
 
@@ -354,7 +354,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             } else {
                 hackathonInfoLabel.setText("Errore nel caricamento hackathon");
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             hackathonInfoLabel.setText("Errore nel caricamento hackathon");
         }
     }
@@ -425,7 +425,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
             VotoResponse response = controller.getVotoTeam(teamSelezionato.getTeamId());
             votoCorrente = response.voto();
             updateVotoDisplay();
-        } catch (Exception e) {
+        } catch (Exception _) {
             votoCorrente = null;
             updateVotoDisplay();
         }
@@ -496,7 +496,7 @@ public class ValutazioneProgettoGUI implements GUIHandler {
         textArea.setWrapStyleWord(true);
 
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
         JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         infoPanel.setBorder(BorderFactory.createEtchedBorder());

@@ -11,7 +11,7 @@ import it.unina.hackathon.gui.organizzatore.GestisciHackathonGUI;
 import it.unina.hackathon.gui.organizzatore.HomeOrganizzatoreGUI;
 import it.unina.hackathon.gui.partecipante.GestisciProgettoGUI;
 import it.unina.hackathon.gui.partecipante.HomePartecipanteGUI;
-import it.unina.hackathon.implementazioniPostgresDAO.*;
+import it.unina.hackathon.implementazioni_postgres_dao.*;
 import it.unina.hackathon.model.*;
 import it.unina.hackathon.model.enums.HackathonStatus;
 import it.unina.hackathon.model.enums.RuoloTeam;

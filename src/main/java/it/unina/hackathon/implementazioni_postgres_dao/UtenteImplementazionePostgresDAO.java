@@ -1,4 +1,4 @@
-package it.unina.hackathon.implementazioniPostgresDAO;
+package it.unina.hackathon.implementazioni_postgres_dao;
 
 import it.unina.hackathon.dao.UtenteDAO;
 import it.unina.hackathon.model.Utente;
@@ -8,10 +8,7 @@ import it.unina.hackathon.utils.responses.UtenteListResponse;
 import it.unina.hackathon.utils.responses.UtenteResponse;
 import it.unina.hackathon.utils.responses.base.ResponseResult;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,7 +115,7 @@ public class UtenteImplementazionePostgresDAO implements UtenteDAO {
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
-        try (PreparedStatement ps = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, utente.getUsername());
             ps.setString(2, utente.getEmail());
             ps.setString(3, utente.getPassword());

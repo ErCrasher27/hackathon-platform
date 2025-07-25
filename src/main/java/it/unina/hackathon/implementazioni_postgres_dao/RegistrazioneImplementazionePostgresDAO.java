@@ -1,4 +1,4 @@
-package it.unina.hackathon.implementazioniPostgresDAO;
+package it.unina.hackathon.implementazioni_postgres_dao;
 
 import it.unina.hackathon.dao.RegistrazioneDAO;
 import it.unina.hackathon.model.Registrazione;
@@ -135,7 +135,6 @@ public class RegistrazioneImplementazionePostgresDAO implements RegistrazioneDAO
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     registrazione.setRegistrazioneId(generatedKeys.getInt(1));
-                    registrazione.setDataRegistrazione(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new RegistrazioneResponse(registrazione, "Registrazione salvata con successo!");
             } else {
@@ -278,7 +277,6 @@ public class RegistrazioneImplementazionePostgresDAO implements RegistrazioneDAO
         registrazione.setRegistrazioneId(rs.getInt("registrazione_id"));
         registrazione.setUtentePartecipanteId(rs.getInt("partecipante_fk_utenti"));
         registrazione.setHackathonId(rs.getInt("hackathon_fk_hackathons"));
-        registrazione.setDataRegistrazione(rs.getTimestamp("data_registrazione").toLocalDateTime());
 
         if (rs.getObject("team_fk_teams") != null) {
             registrazione.setTeamId(rs.getInt("team_fk_teams"));

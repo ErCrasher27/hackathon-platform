@@ -371,7 +371,7 @@ public class GestisciHackathonGUI implements GUIHandler {
             iscrittiLabel.setText(partecipanti + " / " + (hackathonCorrente != null ? hackathonCorrente.getMaxIscritti() : "?"));
             teamLabel.setText(String.valueOf(team));
             giudiciLabel.setText(String.valueOf(giudici));
-        } catch (Exception e) {
+        } catch (Exception _) {
             iscrittiLabel.setText("Errore");
             teamLabel.setText("Errore");
             giudiciLabel.setText("Errore");

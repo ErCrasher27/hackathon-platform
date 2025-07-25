@@ -92,7 +92,7 @@ public class HomePartecipanteGUI implements GUIHandler {
     public void setupFrame() {
         frame = new JFrame("Hackathon Platform - Home Partecipante");
         frame.setContentPane(mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         applyStyleFrame(frame);
     }
 

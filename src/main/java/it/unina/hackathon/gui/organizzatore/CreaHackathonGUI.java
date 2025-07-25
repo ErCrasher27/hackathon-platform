@@ -36,10 +36,8 @@ public class CreaHackathonGUI implements GUIHandler {
     private JLabel sedeLabel;
     private JTextField sedeField;
 
-    private JLabel dataInizioLabel;
     private JFormattedTextField dataInizioField;
     private JFormattedTextField oraInizioField;
-    private JLabel dataFineLabel;
     private JFormattedTextField dataFineField;
     private JFormattedTextField oraFineField;
 
@@ -125,11 +123,15 @@ public class CreaHackathonGUI implements GUIHandler {
 
         int row = 0;
 
-        addFormField(gbc, row++, "Titolo:", titoloLabel = new JLabel("Titolo:"), titoloField = new JTextField(30), 1, 2);
+        titoloLabel = new JLabel("Titolo:");
+        titoloField = new JTextField(30);
+        addFormField(gbc, row++, titoloLabel, titoloField, 1, 2);
 
         addDescrizioneField(gbc, row++);
 
-        addFormField(gbc, row++, "Sede:", sedeLabel = new JLabel("Sede:"), sedeField = new JTextField(30), 1, 2);
+        sedeLabel = new JLabel("Sede:");
+        sedeField = new JTextField(30);
+        addFormField(gbc, row++, sedeLabel, sedeField, 1, 2);
 
         addDateTimeField(gbc, row++, "Data Inizio:", true);
         addDateTimeField(gbc, row++, "Data Fine:", false);
@@ -137,7 +139,7 @@ public class CreaHackathonGUI implements GUIHandler {
         addNumericFields(gbc, row);
     }
 
-    private void addFormField(GridBagConstraints gbc, int row, String labelText, JLabel label, JComponent field, int gridwidth, int colSpan) {
+    private void addFormField(GridBagConstraints gbc, int row, JLabel label, JComponent field, int gridwidth, int colSpan) {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.gridwidth = 1;
@@ -186,11 +188,6 @@ public class CreaHackathonGUI implements GUIHandler {
         gbc.weightx = 0;
 
         JLabel label = new JLabel(labelText);
-        if (isInizio) {
-            dataInizioLabel = label;
-        } else {
-            dataFineLabel = label;
-        }
         formPanel.add(label, gbc);
 
         JPanel dateTimePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -312,7 +309,7 @@ public class CreaHackathonGUI implements GUIHandler {
                 showError(frame, response.message());
             }
 
-        } catch (DateTimeParseException e) {
+        } catch (DateTimeParseException _) {
             showError(frame, "Formato data/ora non valido. Usare dd/MM/yyyy per la data e HH:mm per l'ora");
         } catch (Exception e) {
             showError(frame, "Errore imprevisto: " + e.getMessage());
@@ -370,7 +367,7 @@ public class CreaHackathonGUI implements GUIHandler {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             return LocalDateTime.parse(dateStr.trim() + " " + timeStr.trim(), formatter);
-        } catch (Exception e) {
+        } catch (Exception _) {
             throw new DateTimeParseException("Formato data/ora non valido", dateStr + " " + timeStr, 0);
         }
     }

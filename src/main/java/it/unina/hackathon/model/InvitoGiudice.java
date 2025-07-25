@@ -16,7 +16,6 @@ public class InvitoGiudice {
     private StatoInvito statoInvito;
     private LocalDateTime dataInvito;
     private Utente utenteOrganizzatoreInvitante;
-    private Utente utenteGiudiceInvitato;
 
     // endregion
 
@@ -77,10 +76,6 @@ public class InvitoGiudice {
 
     public void setUtenteOrganizzatoreInvitante(Utente utenteOrganizzatoreInvitante) {
         this.utenteOrganizzatoreInvitante = utenteOrganizzatoreInvitante;
-    }
-
-    public void setUtenteGiudiceInvitato(Utente utenteGiudiceInvitato) {
-        this.utenteGiudiceInvitato = utenteGiudiceInvitato;
     }
 
     // endregion

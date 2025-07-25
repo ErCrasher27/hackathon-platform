@@ -84,7 +84,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
     public void setupFrame() {
         frame = new JFrame("Hackathon Platform - Home Organizzatore");
         frame.setContentPane(mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         applyStyleFrame(frame);
     }
 
@@ -205,7 +205,7 @@ public class HomeOrganizzatoreGUI implements GUIHandler {
         hackathonTable.getColumnModel().getColumn(8).setCellEditor(new StatusComboBoxEditor());
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         hackathonTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
         hackathonTable.getColumnModel().getColumn(6).setCellRenderer(centerRenderer);
         hackathonTable.getColumnModel().getColumn(7).setCellRenderer(centerRenderer);

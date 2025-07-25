@@ -21,7 +21,6 @@ public class Hackathon {
     private int maxDimensioneTeam;
     private HackathonStatus status;
     private int utenteOrganizzatoreId;
-    private LocalDateTime dataCreazione;
 
     // endregion
 
@@ -117,10 +116,6 @@ public class Hackathon {
 
     public void setUtenteOrganizzatoreId(int utenteOrganizzatoreId) {
         this.utenteOrganizzatoreId = utenteOrganizzatoreId;
-    }
-
-    public void setDataCreazione(LocalDateTime dataCreazione) {
-        this.dataCreazione = dataCreazione;
     }
 
     // endregion

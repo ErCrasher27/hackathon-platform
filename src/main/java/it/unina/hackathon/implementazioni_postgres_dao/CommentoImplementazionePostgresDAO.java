@@ -1,4 +1,4 @@
-package it.unina.hackathon.implementazioniPostgresDAO;
+package it.unina.hackathon.implementazioni_postgres_dao;
 
 import it.unina.hackathon.dao.CommentoDAO;
 import it.unina.hackathon.model.Commento;

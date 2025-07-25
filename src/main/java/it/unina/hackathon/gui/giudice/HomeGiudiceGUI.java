@@ -97,7 +97,7 @@ public class HomeGiudiceGUI implements GUIHandler {
     public void setupFrame() {
         frame = new JFrame("Hackathon Platform - Home Giudice");
         frame.setContentPane(mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         applyStyleFrame(frame);
     }
 
@@ -460,7 +460,7 @@ public class HomeGiudiceGUI implements GUIHandler {
                 switch (statoText) {
                     case "In Attesa" -> c.setForeground(Color.ORANGE);
                     case "Accettato" -> c.setForeground(Color.GREEN);
-                    case "Rifiutato" -> c.setForeground(Color.RED);
+                    default -> c.setForeground(Color.RED);
                 }
             }
 

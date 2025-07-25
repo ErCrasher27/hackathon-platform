@@ -1,4 +1,4 @@
-package it.unina.hackathon.implementazioniPostgresDAO;
+package it.unina.hackathon.implementazioni_postgres_dao;
 
 import it.unina.hackathon.dao.InvitoGiudiceDAO;
 import it.unina.hackathon.model.InvitoGiudice;
@@ -195,7 +195,6 @@ public class InvitoGiudiceImplementazionePostgresDAO implements InvitoGiudiceDAO
 
         Utente invitato = new Utente(rs.getString("invitato_username"), rs.getString("invitato_email"), "", rs.getString("invitato_nome"), rs.getString("invitato_cognome"), TipoUtente.GIUDICE);
         invitato.setUtenteId(rs.getInt("invitato_utente_id"));
-        invito.setUtenteGiudiceInvitato(invitato);
 
         return invito;
     }

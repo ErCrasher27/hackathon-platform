@@ -1,4 +1,4 @@
-package it.unina.hackathon.implementazioniPostgresDAO;
+package it.unina.hackathon.implementazioni_postgres_dao;
 
 import it.unina.hackathon.dao.HackathonDAO;
 import it.unina.hackathon.model.Hackathon;
@@ -50,7 +50,6 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     hackathon.setHackathonId(generatedKeys.getInt(1));
-                    hackathon.setDataCreazione(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
                 }
                 return new HackathonResponse(hackathon, "Hackathon creato con successo!");
             } else {
@@ -233,7 +232,6 @@ public class HackathonImplementazionePostgresDAO implements HackathonDAO {
         hackathon.setDataChiusuraRegistrazioni(rs.getTimestamp("data_chiusura_reg").toLocalDateTime());
         hackathon.setUtenteOrganizzatoreId(rs.getInt("organizzatore_fk_utenti"));
         hackathon.setStatus(HackathonStatus.fromId(rs.getInt("stato_fk_stati_hackathon")));
-        hackathon.setDataCreazione(rs.getTimestamp("data_creazione").toLocalDateTime());
         return hackathon;
     }
 }

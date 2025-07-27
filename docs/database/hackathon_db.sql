@@ -462,6 +462,30 @@ UPDATE OR
 DELETE
 ON problemi FOR EACH ROW EXECUTE FUNCTION check_hackathon_in_corso();
 
+-- Team diventano definitivi quando hackathon inizia
+CREATE
+OR REPLACE FUNCTION set_team_definitivi()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF
+NEW.stato_fk_stati_hackathon = 3 AND OLD.stato_fk_stati_hackathon != 3 THEN
+UPDATE teams
+SET definitivo = TRUE
+WHERE hackathon_fk_hackathons = NEW.hackathon_id;
+RAISE
+NOTICE 'Tutti i team dell''hackathon % sono stati resi definitivi', NEW.hackathon_id;
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_11_team_definitivi_su_inizio
+    AFTER UPDATE
+    ON hackathons
+    FOR EACH ROW WHEN (NEW.stato_fk_stati_hackathon IS DISTINCT FROM OLD.stato_fk_stati_hackathon)
+    EXECUTE FUNCTION set_team_definitivi();
+
 -- ==================================================
 -- TRIGGER INVITI
 -- ==================================================
@@ -484,7 +508,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_11_leader_invita
+CREATE TRIGGER trg_12_leader_invita
     BEFORE INSERT
     ON inviti_team
     FOR EACH ROW EXECUTE FUNCTION check_leader_invite();
@@ -516,7 +540,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_12_auto_join_team
+CREATE TRIGGER trg_13_auto_join_team
     AFTER UPDATE
     ON inviti_team
     FOR EACH ROW EXECUTE FUNCTION auto_join_team();
